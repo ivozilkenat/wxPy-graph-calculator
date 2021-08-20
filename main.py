@@ -1,3 +1,4 @@
+# Das ist die Maindatei
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
 
