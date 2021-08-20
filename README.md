@@ -1,4 +1,5 @@
-# wxPython_GraphCalculator
-Modules:
--wxPython
--numpy
+## wxPython_GraphCalculator
+### Modules:
+> pip install wxPython
+
+> pip install numpy
