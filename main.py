@@ -20,7 +20,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
     def __init__(self, parent=None, id=wx.ID_ANY, title=""):
         super().__init__(parent, id, title)
         self.SetTitle(f"{GraphCalculatorApplicationFrame.title} (Version: {GraphCalculatorApplicationFrame.version})")
-        self.SetSize((1920, 1080))
+        self.SetSize((1280, 720))
         self.buildApp()
         #self.Maximize(True)
         self.Show(True)
