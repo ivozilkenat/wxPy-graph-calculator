@@ -1,5 +1,6 @@
 import os, timeit
 
+
 # A bunch of useful functions
 
 def multiplesInInterval(base, interval):
@@ -22,16 +23,19 @@ def absPathsFromDir(dirName):
         for f in fileNames:
             yield os.path.join(absPath, f)
 
+
 def timeMethod(method):
-    def inner(object, stopTime = True, **kwargs):
+    def inner(object, stopTime=True, **kwargs):
         if stopTime:
             start = timeit.default_timer()
             return method(object, **kwargs), timeit.default_timer() - start
         else:
             return method(object, **kwargs), None
+
     return inner
 
-def enumerateStep(iterable, stepSize, stepStart = 0):
+
+def enumerateStep(iterable, stepSize, stepStart=0):
     i = iterable.__iter__()
     while 1:
         try:

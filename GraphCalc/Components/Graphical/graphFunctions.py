@@ -10,6 +10,7 @@ class MathFunction():
     def __init__(self, functionAsLambda):
         self.functionAsLambda = functionAsLambda
 
+
 class Function2D(MathFunction):
     def __init__(self, functionAsLambda, definitionArea=None):
         super().__init__(functionAsLambda)
@@ -22,6 +23,7 @@ class Function2D(MathFunction):
 
     def __call__(self, arg):
         return self.func(arg)
+
 
 class DefinitionArea():
     vCoeff = 10
@@ -43,13 +45,14 @@ class DefinitionArea():
 
     def __iter__(self):
         if self.closedInterval == -1:
-            return -1 # extra Object ? smth. like infinite interval
+            return -1  # extra Object ? smth. like infinite interval
         else:
             return iter(self.values)
 
-#TODO: Must be deleted, since every function should be its own object
+
+# TODO: Must be deleted, since every function should be its own object
 class FunctionDrawerDC(GraphicalPanelObject):
-    def __init__(self, functions = None):
+    def __init__(self, functions=None):
         super().__init__()
         self.valueCoeff = 1
         if functions is None:
@@ -71,4 +74,5 @@ class FunctionDrawerDC(GraphicalPanelObject):
         for f in self.functions:
             values = f.calculateValueTuples(arguments)
             for i in range(1, len(arguments)):
-                deviceContext.DrawLine(*self.basePlane.correctPosition(arguments[i-1], values[i-1]), *self.basePlane.correctPosition(arguments[i], values[i]))
+                deviceContext.DrawLine(*self.basePlane.correctPosition(arguments[i - 1], values[i - 1]),
+                                       *self.basePlane.correctPosition(arguments[i], values[i]))

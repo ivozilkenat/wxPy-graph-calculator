@@ -2,28 +2,31 @@
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
 
-#from GraphCalc.Components.Graphical.GraphFunctions import Function2D
+# from GraphCalc.Components.Graphical.GraphFunctions import Function2D
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
 from GraphCalc.Components.Property.propertyManager import PropertyManager
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 
-#add string file
-#everything is displayed upside down -> mirror on x-axis
-#implement type hinting
-#overhaul all classes and adjust for new superclass, like genericPanel and its global parent implementation
+
+# add string file
+# everything is displayed upside down -> mirror on x-axis
+# implement type hinting
+# overhaul all classes and adjust for new superclass, like genericPanel and its global parent implementation
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.1.0"
     title = "Ivo's Graphcalculator"
+
     def __init__(self, parent=None, id=wx.ID_ANY, title=""):
         super().__init__(parent, id, title)
         self.SetTitle(f"{GraphCalculatorApplicationFrame.title} (Version: {GraphCalculatorApplicationFrame.version})")
         self.SetSize((1280, 720))
         self.buildApp()
-        #self.Maximize(True)
+        # self.Maximize(True)
         self.Show(True)
+
     def buildApp(self):
         self._buildBars()
         self._buildUI()
@@ -40,12 +43,10 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.workspace.setContent(RandomPanel(self), self.graphPlane, RandomPanel(self))
         self.workspace.build()
-        #self.workspace.splitter.SetMinimumPaneSize(100)
+        # self.workspace.splitter.SetMinimumPaneSize(100)
 
-        #from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
-        #self.workspace._graphicalPlane.addGraphicalObject(CartesianAxes())
-
-
+        # from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
+        # self.workspace._graphicalPlane.addGraphicalObject(CartesianAxes())
 
         self.mainSizer.Add(self.workspace.getSizer(), 1, wx.EXPAND)
         self.SetSizer(self.mainSizer)
@@ -108,11 +109,12 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
     def _onFrameClose(self, evt: wx.CloseEvent = None):
         if False:
-        #if evt.CanVeto():
+            # if evt.CanVeto():
             if wx.MessageBox("The latest changes have not been saved yet, do you want to save before closing ?",
                              "Please confirm", wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
                 pass
         self.Destroy()
+
 
 if __name__ == "__main__":
     app = wx.App(False)

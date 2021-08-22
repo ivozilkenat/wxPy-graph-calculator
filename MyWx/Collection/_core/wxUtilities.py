@@ -1,8 +1,10 @@
 import wx
 import random
 
+
 def randomRGBTriple():
     return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
+
 
 def adjustForNegIndex(indexedIterableObjectName):
     def callable(method):
@@ -16,10 +18,9 @@ def adjustForNegIndex(indexedIterableObjectName):
             if index >= 0:
                 return method(object, index, *args, **kwargs)
             else:
-                return method(object, normNegIndex(index, len(getattr(object, indexedIterableObjectName))), *args, **kwargs)
+                return method(object, normNegIndex(index, len(getattr(object, indexedIterableObjectName))), *args,
+                              **kwargs)
+
         return inner
+
     return callable
-
-
-
-
