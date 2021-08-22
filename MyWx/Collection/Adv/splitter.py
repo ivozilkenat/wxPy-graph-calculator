@@ -16,6 +16,7 @@ from wx.lib.splitter import MultiSplitterWindow, MultiSplitterEvent
 # (-resize while splitting) <- can be worked later on, since might be very complex, since sash drawing must be disabled
 # -allow for min and max size to work properly (set, get, implement checks)
 class DynamicMultiSplitter(MultiSplitterWindow):
+
     def __init__(self, parent, *args, **kwargs):
         super().__init__(parent=parent, *args, **kwargs)
         assert not parent is None
@@ -25,8 +26,18 @@ class DynamicMultiSplitter(MultiSplitterWindow):
         self._resizeWhileDragging = False  # <- what does this do
         self._parent = parent
 
+        self.__minPaneSizeLowerBound = 10 #<- if 0, paneSize can be zero and since panes do not unsplit an error will occur
+        self._minimumPaneSize = self.__minPaneSizeLowerBound #<- could be removed if unsplitting is possible
+        #TODO: what if size of pane is set to 0 and not -1
+
     # Resizes all windows properly, according to their proportion
     def _onSize(self, event=None):
+        self._setSashesProportional()
+
+        self.__refreshAllWindows() #mandatory for multiple windows, else bugs might appear
+        event.Skip()
+
+    def _setSashesProportional(self):
         # should work with both orientations (not tested yet)
         totalSpace = self.GetTotalSpaceWithoutSashes()
         for p in self._proportions:
@@ -37,9 +48,9 @@ class DynamicMultiSplitter(MultiSplitterWindow):
             ratio = p[0]
             if ratio != 0:
                 newWidth = totalSpace * (ratio / self._proportions.sum)
+                if newWidth < self._minimumPaneSize: #TODO: maybe rework this fix, to fully rescale everything
+                    newWidth = self._minimumPaneSize
                 self.SetSashRePosition(i, newWidth)
-        self.__refreshAllWindows()
-        event.Skip()
 
     # A valid solution for problems which occur when dealing with more windows?? If windows are not refreshed
     # their construction becomes invalid -> leads to overlapping in drawing (could be fixed with auimanager?)
@@ -249,6 +260,12 @@ class DynamicMultiSplitter(MultiSplitterWindow):
 
     def SetMovable(self, state):
         self._movable = state
+
+    def SetMinimumPaneSize(self, minSize):
+        if minSize >= self.__minPaneSizeLowerBound:
+            self._minimumPaneSize = minSize
+            return True
+        return False
 
     # Returns the correct index if given index is negative
     def _adjustIndex(self, idx, valueAmount):

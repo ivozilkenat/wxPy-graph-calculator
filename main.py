@@ -1,4 +1,3 @@
-# Das ist die Maindatei
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
 
@@ -17,7 +16,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.1.0"
-    title = "Ivo's Graphcalculator"
+    title = "Ivo's Grafikrechner"
 
     def __init__(self, parent=None, id=wx.ID_ANY, title=""):
         super().__init__(parent, id, title)
@@ -43,7 +42,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.workspace.setContent(RandomPanel(self), self.graphPlane, RandomPanel(self))
         self.workspace.build()
-        # self.workspace.splitter.SetMinimumPaneSize(100)
+        #self.workspace.splitter.SetMinimumPaneSize(100)
 
         # from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
         # self.workspace._graphicalPlane.addGraphicalObject(CartesianAxes())
