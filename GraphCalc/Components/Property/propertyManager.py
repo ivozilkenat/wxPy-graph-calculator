@@ -5,7 +5,7 @@ from GraphCalc.Components.Property._property import PropertyObject
 from typing import List
 
 
-class PropertyManager():
+class PropertyManager:
     def __init__(self):
         self._propertyObjects: List[PropertyObject] = []
 
@@ -26,21 +26,25 @@ class PropertyManager():
             categoryDic[p.getCategory()].append(p)
         return categoryDic
 
-    def createOverviewPanel(self, parent: wx.Window):
-        return PropObjectOverviewPanel(manager=self, parent=parent)
+    def createOverviewPanel(self, parent: wx.Window, inspectionPanel):
+        return PropObjectOverviewPanel(manager=self, inspectionPanel=inspectionPanel, parent=parent)
 
-    def createInspectionPanel(self, parent: wx.Window, overviewPanel):
-        return PropInspectionPanel(manager=self, overviewPanel=overviewPanel, parent=parent)
+    def createInspectionPanel(self, parent: wx.Window):
+        return PropInspectionPanel(manager=self, parent=parent)
+
+    def createOverviewInspectionPanels(self, parent):
+        inspection = self.createInspectionPanel(parent=parent)
+        return inspection, self.createOverviewPanel(inspectionPanel=inspection)
 
 
-class PropObjectOverviewPanel(GenericPanel):
+class PropInspectionPanel(GenericPanel):
     def __init__(self, manager: PropertyManager, parent=None, size=None):
         super().__init__(parent=parent, size=size)
         self._manager = manager
 
 
-class PropInspectionPanel(GenericPanel):
-    def __init__(self, manager: PropertyManager, overviewPanel: PropObjectOverviewPanel, parent=None, size=None):
+class PropObjectOverviewPanel(GenericPanel):
+    def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel, parent=None, size=None):
         super().__init__(parent=parent, size=size)
         self._manager = manager
-        self._overview = overviewPanel
+        self._overview = inspectionPanel
