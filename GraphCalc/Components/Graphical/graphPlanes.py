@@ -1,5 +1,6 @@
 from MyWx.wx import *
 
+from typing import Union
 
 # positions as tuples or individual arguments?
 # add more assertions or further type checking
@@ -32,6 +33,8 @@ class GraphicalPanel(GenericPanel):
     def getLayerOrder(self):
         return [(0, self)] + [(c + 1, o) for c, o in enumerate(self.layers)]
 
+    #TODO: Change layer into a propertyObject to manage object order
+
     # adds gpo at desired position in layer-stack
     def addGraphicalObject(self, graphicalObject, priorityIndex=None):
         graphicalObject.basePlane = self
@@ -39,6 +42,9 @@ class GraphicalPanel(GenericPanel):
             self.layers.append(graphicalObject)
         else:
             self.layers.insert(priorityIndex, graphicalObject)
+
+    def removeGraphicalObject(self, graphicalObject):
+        self.layers.remove(graphicalObject)
 
     def onPaint(self, event=None):
         """

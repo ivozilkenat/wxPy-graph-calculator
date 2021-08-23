@@ -2,19 +2,21 @@ from MyWx.wx import *
 
 from GraphCalc.Components.Property._property import PropertyObject
 
-from typing import List
+from typing import List, Set
 
 
 class PropertyManager:
     def __init__(self):
-        self._propertyObjects: List[PropertyObject] = []
+        self._propertyObjects: Set[PropertyObject] = set()
+        self._activeProperty = None #<- shown in the inspection panel / highlighted in the managed object (if possible)
+        # Extend the PropertyManager-class to fit desired needs, e.g. Graph Plane
 
     def getPropObjects(self):
         return self._propertyObjects
 
     def addPropObject(self, propertyObject: PropertyObject):
         assert isinstance(propertyObject, PropertyObject)
-        self._propertyObjects.append(propertyObject)
+        self._propertyObjects.add(propertyObject)
 
     def removePropObject(self, propertyObject: PropertyObject):
         assert isinstance(propertyObject, PropertyObject)
@@ -26,6 +28,12 @@ class PropertyManager:
             categoryDic[p.getCategory()].append(p)
         return categoryDic
 
+    def setActiveProperty(self, propertyObject: PropertyObject):
+        self._activeProperty = propertyObject
+
+    def getActiveProperty(self):
+        return self._activeProperty
+
     def createOverviewPanel(self, parent: wx.Window, inspectionPanel):
         return PropObjectOverviewPanel(manager=self, inspectionPanel=inspectionPanel, parent=parent)
 
@@ -34,7 +42,7 @@ class PropertyManager:
 
     def createOverviewInspectionPanels(self, parent):
         inspection = self.createInspectionPanel(parent=parent)
-        return inspection, self.createOverviewPanel(inspectionPanel=inspection)
+        return self.createOverviewPanel(parent=parent, inspectionPanel=inspection), inspection
 
 
 class PropInspectionPanel(GenericPanel):
@@ -47,4 +55,4 @@ class PropObjectOverviewPanel(GenericPanel):
     def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel, parent=None, size=None):
         super().__init__(parent=parent, size=size)
         self._manager = manager
-        self._overview = inspectionPanel
+        self._inspection = inspectionPanel

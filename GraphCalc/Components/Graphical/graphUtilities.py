@@ -4,7 +4,7 @@ from GraphCalc.Components.Property._property import GraphicalPanelObject, Toggle
 from GraphCalc._core.utilities import multiplesInInterval
 
 
-class CartesianAxes(GraphicalPanelObject):
+class CartesianAxies(GraphicalPanelObject):
     def __init__(self):
         super().__init__()
 

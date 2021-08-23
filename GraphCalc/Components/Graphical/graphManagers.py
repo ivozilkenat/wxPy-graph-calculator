@@ -1,34 +1,44 @@
-from GraphCalc.Components.Graphical.graphPlanes import GraphicalPanel
+from MyWx.wx import *
+from GraphCalc.Components.Graphical.graphPlanes import GraphicalPanel, Dynamic2DGraphicalPlane
+from GraphCalc.Components.Property.propertyManager import PropertyManager
+from GraphCalc.Components.Property._property import PropertyObject, GraphicalPanelObject
+from typing import Union
 
 
-# Manages Graphical-Layers, with any GraphPlane as Base-Layer
-class DynamicPlaneLayerManager:
-    def __init__(self, basePlane):
-        self.basePlane = basePlane
-        assert isinstance(self.basePlane, GraphicalPanel)
+class GraphPropertyManager:
+    _graphPlane: GraphicalPanel
+    _propertyManager: PropertyManager
 
-        self.layers = list()  # Exchange with priority queue
-        # ideal Design?
-        # Assigns important event-receiver-bindings
-        self.basePlane.Bind(wx.EVT_SIZE, self.basePlane.resize)
-        self.basePlane.Bind(wx.EVT_PAINT, self.basePlane.onPaint)  # Difference EVT_Paint, etc.
-        self.basePlane.Bind(wx.EVT_MOTION, self.basePlane.mouseMotion)
-        self.basePlane.Bind(wx.EVT_LEFT_UP, self.basePlane.leftMouseUp)
-        self.basePlane.Bind(wx.EVT_MOUSEWHEEL, self.basePlane.mousewheel)
+    def __init__(self, graphPlane : GraphicalPanel, propertyManager : PropertyManager):
+        self._graphPlane = graphPlane
+        self._propertyManager = propertyManager
 
-    # returns current layers and order
-    def layerOrder(self):
-        return [(0, self.basePlane)] + [(c + 1, o) for c, o in enumerate(self.layers)]
+    def getGraphPlane(self):
+        return self._graphPlane
 
-    # adds gpo at desired position in layer-stack
-    def addGraphicalObject(self, graphicalObject, priorityIndex=None):
-        graphicalObject.basePlane = self.basePlane
-        if priorityIndex is None:
-            self.layers.append(graphicalObject)
-        else:
-            self.layers.insert(priorityIndex, graphicalObject)
+    def setGraphPlane(self, graphPlane : GraphicalPanel):
+        self._graphPlane = graphPlane
 
-# !!!
-# !!! Redundant class -> maybe useful later on with more advanced group/layer managing
-# !!! 					or for input output management of propertyObjects
-# !!!
+    def getPropertyManager(self):
+        return self._propertyManager
+
+    def setPropertyManager(self, propertyManager : PropertyManager):
+        self._propertyManager = propertyManager
+
+    def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
+        self._propertyManager.addPropObject(propertyObject)
+        print(type(propertyObject))
+        if isinstance(PropertyObject, GraphicalPanelObject):
+            #TODO: fix this..faaaaaaaaaast
+            print("test")
+            self._graphPlane.addGraphicalObject(propertyObject)
+
+    def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
+        self._propertyManager.removePropObject(propertyObject)
+        if isinstance(PropertyObject, GraphicalPanelObject):
+            self._graphPlane.removeGraphicalObject(propertyObject)
+
+
+class Dy2DGraphPropertyManager(GraphPropertyManager):
+    def __init__(self, parent):
+        super().__init__(graphPlane=Dynamic2DGraphicalPlane(parent), propertyManager=PropertyManager())

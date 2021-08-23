@@ -3,8 +3,8 @@ from MyWx.Collection.panels import RandomPanel
 
 # from GraphCalc.Components.Graphical.GraphFunctions import Function2D
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
-from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
-from GraphCalc.Components.Property.propertyManager import PropertyManager
+from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
+from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 
@@ -34,13 +34,15 @@ class GraphCalculatorApplicationFrame(wx.Frame):
     def _buildUI(self):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.propertyManager = PropertyManager()
-
         self.workspace = ThreePanelWorkspace(self)
-        self.graphPlane = Dynamic2DGraphicalPlane(self)
-        self.graphPlane.addGraphicalObject(CartesianAxes())
 
-        self.workspace.setContent(RandomPanel(self), self.graphPlane, RandomPanel(self))
+        self.graphPropertyManager = Dy2DGraphPropertyManager(self)
+        self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.getPropertyManager().createOverviewInspectionPanels(self)
+
+        axis = CartesianAxies()
+        self.graphPropertyManager.addPropertyObject(axis)
+
+        self.workspace.setContent(self.overviewPanel, self.graphPropertyManager.getGraphPlane(), self.inspectionPanel)
         self.workspace.build()
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
