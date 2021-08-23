@@ -1,3 +1,5 @@
+import wx
+
 from MyWx.wx import *
 from MyWx.Collection.Adv.splitter import DynamicMultiSplitter
 from MyWx.Collection.format import expanded
@@ -45,14 +47,15 @@ class ThreePanelWorkspace(SizerTemplate):
 class PanelWithHeader(SizerComponent):
     def __init__(self, parent=None, headline="Headline"):
         super().__init__(parent)
-        self._content = None
+        self._content : wx.Window = None
 
-        self._h = headline
-        self._txt = None
-        self._font = wx.Font(15, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        self._txtBackground = None
-        self._backColor = (200, 200, 200)
-        self._hHeight = 25
+        self._h : str = headline
+        self._txt : wx.StaticText = None
+        self._backColor: Tuple[int, int, int] = (200, 200, 200)
+        self._hHeight: int = 25
+        self._font : wx.Font = wx.Font(15, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        self._txtBackground : wx.Panel = wx.Panel(self._parent, size=(0, self._hHeight))
+
 
         self.build()
 
@@ -120,3 +123,27 @@ class PanelWithHeader(SizerComponent):
 class PanelWithHeaderTab(PanelWithHeader):
     def __init__(self, parent=None, headline="Headline"):
         super().__init__(parent, headline=headline)
+        self._referenceCopy = None
+
+    def build(self):
+        super().build()
+        self._txt.Bind(wx.EVT_LEFT_DOWN, self._onClick)
+
+    def setContent(self, content):
+        super().setContent(content)
+        self._referenceCopy = content
+
+    def _onClick(self, evt = None):
+        self.minimize()
+
+    @SizerTemplate.rebuild
+    def minimize(self):
+        print("minimize")
+        self._content.SetSize((0, 0))
+        self._sizer.Detach(self._content)
+
+        #add function to remove content
+
+    #@SizerTemplate.rebuild
+    def maximize(self):
+        self._content.Show()
