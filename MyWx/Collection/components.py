@@ -1,7 +1,9 @@
 import wx
 
 from MyWx.wx import SizerComponent
+from MyWx.Collection.format import expanded
 
+from typing import Tuple
 
 # A Class to build very simple forms
 class FormManager(SizerComponent):

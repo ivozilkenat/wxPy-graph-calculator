@@ -1,4 +1,8 @@
+import wx
+
 from MyWx.wx import *
+from MyWx.Collection.templates import PanelWithHeaderTab
+from MyWx.Collection.panels import RandomPanel
 
 from GraphCalc.Components.Property._property import PropertyObject
 
@@ -53,11 +57,45 @@ class PropInspectionPanel(GenericPanel):
     def setActiveProperty(self, property: PropertyObject):
         pass
 
+
 class PropObjectOverviewPanel(GenericPanel):
     def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel, parent=None, size=None):
         super().__init__(parent=parent, size=size)
         self._manager = manager
         self._inspection = inspectionPanel
 
+        self._categorySizerC = CategoryOverview(self)
+
+        # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
+        # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
+        # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
+        # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
+        p1 = PanelWithHeaderTab(parent=self, headline="Kategorie 1")
+        p1.setContent(RandomPanel(self, (0, 100)))
+        p2 = PanelWithHeaderTab(parent=self, headline="Kategorie 2")
+        p2.setContent(RandomPanel(self, (0, 100)))
+        self._categorySizerC.addCategoryComponent(p1)
+        self._categorySizerC.addCategoryComponent(p2)
+
+        self.SetSizer(self._categorySizerC.getSizerAndBuild())
+
     def _changeActiveProperty(self):
         pass
+
+    def _updatePanel(self):
+        self._sizer.build()
+
+
+class CategoryOverview(SizerComponent):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._categories = list()
+
+    def addCategoryComponent(self, sizerComponent: SizerComponent):
+        #assert isinstance(panel, type)
+        self._categories.append(sizerComponent)
+
+    def build(self):
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        for c in self._categories:
+            self._sizer.Add(c.getSizer(), 0, wx.EXPAND | wx.BOTTOM, 5) #border ?

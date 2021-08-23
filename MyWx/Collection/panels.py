@@ -1,9 +1,12 @@
+import wx
+
 from MyWx.Collection.Adv.splitter import DynamicMultiSplitter
 from MyWx.wx import *
 from MyWx.Collection._core.wxUtilities import randomRGBTriple
 from MyWx.Collection.format import expanded
 from typing import Tuple
 
+#TODO: ADD Documentation
 
 # Basic Panel, which implements generic buttons and adjacent event method
 # minimizing is a feature preserved for splitter windows
@@ -151,84 +154,6 @@ class PanelWindowController(GenericPanel):
     def _onHover(self, event=None):
         pass
 # Could use custom hover effects or color highlighting
-
-
-class PanelWithHeader(GenericPanel):
-    def __init__(self, parent=None, size=None, headline="Headline"):
-        super().__init__(parent, size)
-        self.parent = parent
-        self._content = None
-
-        self._h = headline
-        self._txt = None
-        self._font = wx.Font(15, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        self._txtBackground = None
-        self._backColor = (200, 200, 200)
-        self._hHeight = 25
-
-        self.build()
-
-    def build(self):
-        self._mainSizer = wx.BoxSizer(wx.VERTICAL)
-        self._txtBackground = wx.Panel(self, size=(0, self._hHeight))
-        self._txtBackground.SetBackgroundColour(self._backColor)
-        self._txt = wx.StaticText(self._txtBackground, label=self._h, style=wx.ALIGN_CENTER_HORIZONTAL)
-        self._txt.SetFont(self._font)
-
-        self._txtBackground.SetSizer(expanded(self._txt))
-        self._mainSizer.Add(self._txtBackground, 0, wx.EXPAND)
-        if not self._content is None:
-            self._mainSizer.Add(self._content, 1, wx.EXPAND)
-        self.SetSizer(self._mainSizer)
-
-    @GenericPanel.rebuild
-    def setLabelTxt(self, headline):
-        self._h = headline
-
-    def getLabelTxt(self):
-        return self._h
-
-    @GenericPanel.rebuild
-    def setContent(self, content):
-        self._content = content
-
-    def getContent(self):
-        return self._content
-
-    @GenericPanel.rebuild
-    def setBackground(self, background):
-        self._txtBackground = background
-
-    def getBackground(self):
-        return self._txtBackground
-
-    @GenericPanel.rebuild
-    def setLabelObj(self, staticTxt):
-        self._txt = staticTxt
-
-    def getLabelObj(self):
-        return self._txt
-
-    @GenericPanel.rebuild
-    def setFont(self, font: wx.Font):
-        self._font = font
-
-    def getFont(self):
-        return self._font
-
-    @GenericPanel.rebuild
-    def setHeadBackgroundColor(self, color: Tuple[int, int, int]):
-        self._backColor = color
-
-    def getHeadBackgroundColor(self):
-        return self._backColor
-
-    @GenericPanel.rebuild
-    def setHeaderHeight(self, height):
-        self._hHeight = height
-
-    def getHeaderHeight(self):
-        return self._hHeight
 
 
 class RandomGridPanel(GenericPanel):

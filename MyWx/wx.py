@@ -22,7 +22,6 @@ class GenericPanel(wx.Panel):
             r = method(obj, *args, **kwargs)
             obj.build()
             return r
-
         return inner
 
     def build(self):
@@ -39,6 +38,25 @@ class SizerComponent(ABC):
     @abstractmethod
     def build(self):
         pass
+
+    @staticmethod
+    def rebuild(method):
+        def inner(obj, *args, **kwargs):
+            assert isinstance(obj, SizerComponent)
+            r = method(obj, *args, **kwargs)
+            obj.build()
+            return r
+        return inner
+
+    @staticmethod
+    def rebuildAndUpdateParent(method):
+        def inner(obj, *args, **kwargs):
+            assert isinstance(obj, SizerComponent)
+            r = method(obj, *args, **kwargs)
+            obj.build()
+            obj._parent.SetSizer(obj._sizer)
+            return r
+        return inner
 
     def getSizer(self):
         if self._sizer is None:  # If sizer is None, building automatically could be implemented
