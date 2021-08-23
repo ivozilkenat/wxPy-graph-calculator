@@ -134,16 +134,22 @@ class PanelWithHeaderTab(PanelWithHeader):
         self._referenceCopy = content
 
     def _onClick(self, evt = None):
-        self.minimize()
+        if self._content.IsShown():
+            self.minimize()
+        else:
+            self.maximize()
 
-    @SizerTemplate.rebuild
     def minimize(self):
-        print("minimize")
-        self._content.SetSize((0, 0))
+        self._content.Show(False)
         self._sizer.Detach(self._content)
+        self.build()
 
+
+        #TODO: update panel after change /udpate minimize logic, since _content can be None
         #add function to remove content
 
     #@SizerTemplate.rebuild
     def maximize(self):
-        self._content.Show()
+        self._content.Show(True)
+        self._sizer.Detach(self._content) #TODO: must this always be implemented (else already in sizer error)
+        self.build()

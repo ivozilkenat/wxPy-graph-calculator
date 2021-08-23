@@ -12,7 +12,7 @@ class GenericPanel(wx.Panel):
             super().__init__(parent=parent, *args, **kwargs)
         else:
             super().__init__(parent=parent, size=size, *args, **kwargs)
-        self._parent = parent
+        self._parent: wx.Window = parent
 
     # A decorator which rebuilds the panel, if wrapped method is called
     @staticmethod
@@ -32,8 +32,8 @@ class GenericPanel(wx.Panel):
 # e.g.: A sub-panel, with features, which is outsourced into another class
 class SizerComponent(ABC):
     def __init__(self, parent=None):
-        self._parent = parent
-        self._sizer = None
+        self._parent: wx.Window = parent
+        self._sizer: wx.Sizer = None
 
     @abstractmethod
     def build(self):
