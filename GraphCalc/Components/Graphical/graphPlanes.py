@@ -50,18 +50,18 @@ class GraphicalPanel(GenericPanel):
         """
         OnPaint-Event-Receiver
         """
+        if not 0 in self.GetSize():
+            self.updatePlaneData()
+            # self.bitmap = wx.Bitmap(*self.GetSize())
+            # self.memoryDc = wx.MemoryDC(self.bitmap)
+            # self.memoryDc.SetBackground(wx.Brush((255, 255, 255)))
+            # self.memoryDc.Clear() # <- why is this necessary
+            dc = wx.BufferedPaintDC(self, wx.Bitmap(*self.GetSize()))
+            dc.SetBackground(wx.Brush(self.backgroundColor))
+            dc.Clear()
 
-        self.updatePlaneData()
-        # self.bitmap = wx.Bitmap(*self.GetSize())
-        # self.memoryDc = wx.MemoryDC(self.bitmap)
-        # self.memoryDc.SetBackground(wx.Brush((255, 255, 255)))
-        # self.memoryDc.Clear() # <- why is this necessary
-        dc = wx.BufferedPaintDC(self, wx.Bitmap(*self.GetSize()))
-        dc.SetBackground(wx.Brush(self.backgroundColor))
-        dc.Clear()
-
-        for object in self.layers:
-            object.blitUpdate(dc)
+            for object in self.layers:
+                object.blitUpdate(dc)
 
     # self.bitmap.ConvertToImage().SaveFile("test.png", wx.BITMAP_TYPE_PNG)
     # dc = wx.BufferedPaintDC(self, self.bitmap)

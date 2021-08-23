@@ -37,12 +37,13 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.workspace = ThreePanelWorkspace(self)
 
         self.graphPropertyManager = Dy2DGraphPropertyManager(self)
+        self.graphPanel = self.graphPropertyManager.getGraphPlane()
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.getPropertyManager().createOverviewInspectionPanels(self)
 
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)
 
-        self.workspace.setContent(self.overviewPanel, self.graphPropertyManager.getGraphPlane(), self.inspectionPanel)
+        self.workspace.setContent(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
         #self.workspace.splitter.SetMinimumPaneSize(100)
 

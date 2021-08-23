@@ -28,8 +28,6 @@ class GraphPropertyManager:
     def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
         self._propertyManager.addPropObject(propertyObject)
         if isinstance(propertyObject, GraphicalPanelObject):
-            #TODO: fix this..faaaaaaaaaast
-            print("test")
             self._graphPlane.addGraphicalObject(propertyObject)
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):

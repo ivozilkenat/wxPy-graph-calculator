@@ -50,9 +50,14 @@ class PropInspectionPanel(GenericPanel):
         super().__init__(parent=parent, size=size)
         self._manager = manager
 
+    def setActiveProperty(self, property: PropertyObject):
+        pass
 
 class PropObjectOverviewPanel(GenericPanel):
     def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel, parent=None, size=None):
         super().__init__(parent=parent, size=size)
         self._manager = manager
         self._inspection = inspectionPanel
+
+    def _changeActiveProperty(self):
+        pass
