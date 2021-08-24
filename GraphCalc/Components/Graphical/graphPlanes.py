@@ -1,3 +1,5 @@
+import wx
+
 from MyWx.wx import *
 
 from typing import Union
@@ -146,11 +148,11 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.mouseBefore = None
 
     # Adjusts origin shift in proportion to mouse movement
-    def mouseMotion(self, event=None):
+    def mouseMotion(self, event: wx.MouseEvent=None):
         self.mouseCounter += 1  # <- current fix to reduce drawCalls when mouseMotion is received
         if self.mouseCounter > 5:  # <- spurious fix / could be adjusted for stepwise scaling
 
-            if event.Dragging():
+            if event.Dragging() and event.leftIsDown:
                 self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 mX, mY = event.GetPosition()
                 if self.mouseBefore is None:

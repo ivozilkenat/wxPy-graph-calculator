@@ -59,33 +59,21 @@ class PropInspectionPanel(GenericPanel):
     def setActiveProperty(self, property: PropertyObject):
         pass
 
-
-class PropObjectOverviewPanel(GenericPanel):
-    def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel, parent=None, size=None):
-        super().__init__(parent=parent, size=size)
+class PropObjectOverviewPanel(GenericMouseScrollPanel):
+    def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel, parent=None):
+        super().__init__(parent)
         self._manager = manager
         self._inspection = inspectionPanel
 
         self._categorySizerC = CategoryOverview(self)
-
         # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
         # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
         # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
         # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
 
-
-        self._categorySizerC.addCategoryComponent(
-            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
-        self._categorySizerC.addCategoryComponent(
-            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
-        self._categorySizerC.addCategoryComponent(
-            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
-        self._categorySizerC.addCategoryComponent(
-            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
-        self._categorySizerC.addCategoryComponent(
-            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
-        self._categorySizerC.addCategoryComponent(
-            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
+        for i in range(10):
+            self._categorySizerC.addCategoryComponent(
+                PanelWithHeaderAccordion(parent=self, headline=f"Kategorie {i}", content=RandomPanel(self, (0, 100))).getBuild())
 
 
         # self._categorySizerC.addCategoryComponent(PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 50))))
@@ -94,7 +82,8 @@ class PropObjectOverviewPanel(GenericPanel):
 
         self.SetSizer(self._categorySizerC.getSizerAndBuild())
 
-    def build(self):
+
+    def build(self, evt = None):
         pass
 
     def _changeActiveProperty(self):
