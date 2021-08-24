@@ -101,6 +101,8 @@ class GraphicalPanel(GenericPanel):
 
 
 # implement zooming / scaling
+# implement highlighting
+# getRect of plane
 
 # 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):

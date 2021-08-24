@@ -8,6 +8,8 @@ from GraphCalc.Components.Property._property import PropertyObject
 
 from typing import List, Set
 
+from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
+from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
 
 class PropertyManager:
     def __init__(self):
@@ -75,7 +77,9 @@ class PropObjectOverviewPanel(GenericPanel):
         p2 = PanelWithHeaderTab(parent=self, headline="Kategorie 2")
         p2.setContent(RandomPanel(self, (0, 100)))
         p3 = PanelWithHeaderTab(parent=self, headline="Kategorie 3")
-        p3.setContent(RandomPanel(self, (0, 100)))
+        plane = Dynamic2DGraphicalPlane(self, (0, 100))
+        plane.addGraphicalObject(CartesianAxies())
+        p3.setContent(plane)
         p4 = PanelWithHeaderTab(parent=self, headline="Kategorie 4")
         p4.setContent(RandomPanel(self, (0, 100)))
 
