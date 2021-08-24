@@ -60,7 +60,7 @@ class PanelWithHeader(SizerComponent):
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
         #self.build()
-
+    #TODO: is building in the constructor redundant
     def build(self):
         self._sizer.Clear()
         self._txtBackground.Destroy()

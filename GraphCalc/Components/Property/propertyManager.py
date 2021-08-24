@@ -74,8 +74,15 @@ class PropObjectOverviewPanel(GenericPanel):
         p1.setContent(RandomPanel(self, (0, 100)))
         p2 = PanelWithHeaderTab(parent=self, headline="Kategorie 2")
         p2.setContent(RandomPanel(self, (0, 100)))
+        p3 = PanelWithHeaderTab(parent=self, headline="Kategorie 3")
+        p3.setContent(RandomPanel(self, (0, 100)))
+        p4 = PanelWithHeaderTab(parent=self, headline="Kategorie 4")
+        p4.setContent(RandomPanel(self, (0, 100)))
+
         self._categorySizerC.addCategoryComponent(p1)
         self._categorySizerC.addCategoryComponent(p2)
+        self._categorySizerC.addCategoryComponent(p3)
+        self._categorySizerC.addCategoryComponent(p4)
 
         self._categorySizerC.build()
         self.SetSizer(self._categorySizerC._sizer)
