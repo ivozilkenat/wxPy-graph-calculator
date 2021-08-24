@@ -49,14 +49,17 @@ class SizerComponent(ABC):
         return inner
 
     @staticmethod
-    def rebuildAndUpdateParent(method):
+    def rebuildAndLayout(method):
         def inner(obj, *args, **kwargs):
             assert isinstance(obj, SizerComponent)
             r = method(obj, *args, **kwargs)
             obj.build()
-            obj._parent.SetSizer(obj._sizer)
+            obj.layoutParent()
             return r
         return inner
+
+    def layoutParent(self):
+        self._parent.Layout()
 
     def getSizer(self):
         if self._sizer is None:  # If sizer is None, building automatically could be implemented

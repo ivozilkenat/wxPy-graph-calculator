@@ -15,6 +15,7 @@ class ThreePanelWorkspace(SizerTemplate):
 
     def __init__(self, parent):
         super().__init__(parent)
+        self._sizer = wx.BoxSizer(wx.HORIZONTAL)
 
     def build(self,
               firstSashPos: int = None,
@@ -22,7 +23,7 @@ class ThreePanelWorkspace(SizerTemplate):
               splitterProportion: Tuple[int, int, int] = (0, 1, 0),
               splitterStyle: int = wx.SP_THIN_SASH
               ):
-        self._sizer = wx.BoxSizer(wx.HORIZONTAL)
+        self._sizer.Clear()
         self.splitter = DynamicMultiSplitter(self._parent, style=splitterStyle)
         self.splitter.SetOrientation(wx.HORIZONTAL)
 
@@ -56,11 +57,13 @@ class PanelWithHeader(SizerComponent):
         self._font : wx.Font = wx.Font(15, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
         self._txtBackground : wx.Panel = wx.Panel(self._parent, size=(0, self._hHeight))
 
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.build()
+        #self.build()
 
     def build(self):
-        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self._sizer.Clear()
+        self._txtBackground.Destroy()
         self._txtBackground = wx.Panel(self._parent, size=(0, self._hHeight))
         self._txtBackground.SetBackgroundColour(self._backColor)
         self._txt = wx.StaticText(self._txtBackground, label=self._h, style=wx.ALIGN_CENTER_HORIZONTAL)
@@ -70,7 +73,6 @@ class PanelWithHeader(SizerComponent):
         self._sizer.Add(self._txtBackground, 0, wx.EXPAND)
         if not self._content is None:
             self._sizer.Add(self._content, 1, wx.EXPAND)
-
     @SizerComponent.rebuild
     def setLabelTxt(self, headline):
         self._h = headline
@@ -123,7 +125,6 @@ class PanelWithHeader(SizerComponent):
 class PanelWithHeaderTab(PanelWithHeader):
     def __init__(self, parent=None, headline="Headline"):
         super().__init__(parent, headline=headline)
-        self._referenceCopy = None
 
     def build(self):
         super().build()
@@ -139,17 +140,12 @@ class PanelWithHeaderTab(PanelWithHeader):
         else:
             self.maximize()
 
+    @SizerTemplate.rebuildAndLayout
     def minimize(self):
         self._content.Show(False)
-        self._sizer.Detach(self._content)
-        self.build()
 
+        #add function to remove content -> Set content None
 
-        #TODO: update panel after change /udpate minimize logic, since _content can be None
-        #add function to remove content
-
-    #@SizerTemplate.rebuild
+    @SizerTemplate.rebuildAndLayout
     def maximize(self):
         self._content.Show(True)
-        self._sizer.Detach(self._content) #TODO: must this always be implemented (else already in sizer error)
-        self.build()

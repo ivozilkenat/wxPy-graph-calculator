@@ -77,12 +77,13 @@ class PropObjectOverviewPanel(GenericPanel):
         self._categorySizerC.addCategoryComponent(p1)
         self._categorySizerC.addCategoryComponent(p2)
 
-        self.SetSizer(self._categorySizerC.getSizerAndBuild())
+        self._categorySizerC.build()
+        self.SetSizer(self._categorySizerC._sizer)
 
     def _changeActiveProperty(self):
         pass
 
-    def _updatePanel(self):
+    def _updatePanel(self): #should not be a extra method?
         self._sizer.build()
 
 
@@ -90,12 +91,13 @@ class CategoryOverview(SizerComponent):
     def __init__(self, parent):
         super().__init__(parent)
         self._categories = list()
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
 
     def addCategoryComponent(self, sizerComponent: SizerComponent):
         #assert isinstance(panel, type)
         self._categories.append(sizerComponent)
 
     def build(self):
-        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self._sizer.Clear()
         for c in self._categories:
-            self._sizer.Add(c.getSizer(), 0, wx.EXPAND | wx.BOTTOM, 5) #border ?
+            self._sizer.Add(c._sizer, 0, wx.EXPAND | wx.BOTTOM, 5) #border ?

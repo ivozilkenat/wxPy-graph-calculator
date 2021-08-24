@@ -36,7 +36,7 @@ class FormManager(SizerComponent):
         return self._form
 
     def build(self):
-        self._sizer = wx.BoxSizer(self._style)
+        self._sizer.Clear()
         for c in self._components:
             self._sizer.Add(c.comp, c.prop, c.flags, c.padding)
 
