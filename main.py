@@ -13,6 +13,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # everything is displayed upside down -> mirror on x-axis
 # implement type hinting
 # overhaul all classes and adjust for new superclass, like genericPanel and its global parent implementation
+# add *args, **kwargs
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.1.0"
@@ -43,7 +44,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)
 
-        self.workspace.setContent(self.overviewPanel, self.graphPanel, self.inspectionPanel)
+        self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
         #self.workspace.splitter.SetMinimumPaneSize(100)
 

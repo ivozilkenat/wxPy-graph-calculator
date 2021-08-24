@@ -35,10 +35,17 @@ class SizerComponent(ABC):
         self._parent: wx.Window = parent
         self._sizer: wx.Sizer = None
 
+    # Implement instructions on how to create sizer configuration
     @abstractmethod
     def build(self):
         pass
 
+    # return object after it has been build (mostly for inline object creation) <- Maybe redundant
+    def getBuild(self):
+        self.build()
+        return self
+
+    # Wrap method to rebuild sizer
     @staticmethod
     def rebuild(method):
         def inner(obj, *args, **kwargs):
@@ -48,6 +55,7 @@ class SizerComponent(ABC):
             return r
         return inner
 
+    # Wrap method to rebuild and live-update layout of parent (used for user interaction)
     @staticmethod
     def rebuildAndLayout(method):
         def inner(obj, *args, **kwargs):
@@ -60,6 +68,9 @@ class SizerComponent(ABC):
 
     def layoutParent(self):
         self._parent.Layout()
+
+    def clearSizer(self):
+        self._sizer.Clear()
 
     def getSizer(self):
         if self._sizer is None:  # If sizer is None, building automatically could be implemented
@@ -74,9 +85,9 @@ class SizerComponent(ABC):
 # A sizer-template represents a sizer-component which is also already formatted but displayed
 # objects are not initialized with the object, thus can be added after object-init
 class SizerTemplate(SizerComponent, ABC):
-    def __init__(self, parent=None):
+    def __init__(self, parent=None, content=None):
         super().__init__(parent)
-        self._content = None
+        self._content : wx.Window = content
         self.__build = self.build
         self.build = self.__buildWrapper
 
@@ -89,5 +100,5 @@ class SizerTemplate(SizerComponent, ABC):
             raise MyWxException.MissingContent()
         self.__build()
 
-    def setContent(self, *content):
+    def setContent(self, content):
         self._content = content

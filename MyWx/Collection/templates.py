@@ -13,8 +13,8 @@ from typing import Tuple
 class ThreePanelWorkspace(SizerTemplate):
     splitter: DynamicMultiSplitter
 
-    def __init__(self, parent):
-        super().__init__(parent)
+    def __init__(self, parent, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
         self._sizer = wx.BoxSizer(wx.HORIZONTAL)
 
     def build(self,
@@ -41,14 +41,17 @@ class ThreePanelWorkspace(SizerTemplate):
 
         self._sizer.Add(self.splitter, 1, wx.EXPAND)
 
-    def setContent(self, panel1: wx.Window, panel2: wx.Window, panel3: wx.Window):
+    def setWindows(self, panel1: wx.Window, panel2: wx.Window, panel3: wx.Window):
         self._content = [panel1, panel2, panel3]
 
+    # redundant, only exists to override setContent and setWindows should be used instead
+    def setContent(self, content: Tuple[wx.Window, wx.Window, wx.Window]):
+        assert len(content) == 3 and all([isinstance(type(i), wx.Window) for i in content])
+        self._content = content
 
-class PanelWithHeader(SizerComponent):
-    def __init__(self, parent=None, headline="Headline"):
-        super().__init__(parent)
-        self._content : wx.Window = None
+class PanelWithHeader(SizerTemplate):
+    def __init__(self, parent=None, headline="Headline", *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
 
         self._h : str = headline
         self._txt : wx.StaticText = None
@@ -59,7 +62,6 @@ class PanelWithHeader(SizerComponent):
 
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-        #self.build()
     #TODO: is building in the constructor redundant
     def build(self):
         self._sizer.Clear()
@@ -82,7 +84,7 @@ class PanelWithHeader(SizerComponent):
 
     @SizerComponent.rebuild
     def setContent(self, content):
-        self._content = content
+        super().setContent(content)
 
     def getContent(self):
         return self._content
@@ -122,9 +124,9 @@ class PanelWithHeader(SizerComponent):
     def getHeaderHeight(self):
         return self._hHeight
 
-class PanelWithHeaderTab(PanelWithHeader):
-    def __init__(self, parent=None, headline="Headline"):
-        super().__init__(parent, headline=headline)
+class PanelWithHeaderAccordion(PanelWithHeader):
+    def __init__(self, parent=None, headline="Headline", *args, **kwargs):
+        super().__init__(parent, headline=headline, *args, **kwargs)
 
     def build(self):
         super().build()
@@ -132,7 +134,6 @@ class PanelWithHeaderTab(PanelWithHeader):
 
     def setContent(self, content):
         super().setContent(content)
-        self._referenceCopy = content
 
     def _onClick(self, evt = None):
         if self._content.IsShown():

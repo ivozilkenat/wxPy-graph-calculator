@@ -1,7 +1,7 @@
 import wx
 
 from MyWx.wx import *
-from MyWx.Collection.templates import PanelWithHeaderTab
+from MyWx.Collection.templates import PanelWithHeaderAccordion
 from MyWx.Collection.panels import RandomPanel
 
 from GraphCalc.Components.Property._property import PropertyObject
@@ -72,24 +72,30 @@ class PropObjectOverviewPanel(GenericPanel):
         # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
         # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
         # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
-        p1 = PanelWithHeaderTab(parent=self, headline="Kategorie 1")
-        p1.setContent(RandomPanel(self, (0, 100)))
-        p2 = PanelWithHeaderTab(parent=self, headline="Kategorie 2")
-        p2.setContent(RandomPanel(self, (0, 100)))
-        p3 = PanelWithHeaderTab(parent=self, headline="Kategorie 3")
-        plane = Dynamic2DGraphicalPlane(self, (0, 100))
-        plane.addGraphicalObject(CartesianAxies())
-        p3.setContent(plane)
-        p4 = PanelWithHeaderTab(parent=self, headline="Kategorie 4")
-        p4.setContent(RandomPanel(self, (0, 100)))
 
-        self._categorySizerC.addCategoryComponent(p1)
-        self._categorySizerC.addCategoryComponent(p2)
-        self._categorySizerC.addCategoryComponent(p3)
-        self._categorySizerC.addCategoryComponent(p4)
 
-        self._categorySizerC.build()
-        self.SetSizer(self._categorySizerC._sizer)
+        self._categorySizerC.addCategoryComponent(
+            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
+        self._categorySizerC.addCategoryComponent(
+            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
+        self._categorySizerC.addCategoryComponent(
+            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
+        self._categorySizerC.addCategoryComponent(
+            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
+        self._categorySizerC.addCategoryComponent(
+            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
+        self._categorySizerC.addCategoryComponent(
+            PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 100))).getBuild())
+
+
+        # self._categorySizerC.addCategoryComponent(PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 50))))
+
+
+
+        self.SetSizer(self._categorySizerC.getSizerAndBuild())
+
+    def build(self):
+        pass
 
     def _changeActiveProperty(self):
         pass
@@ -104,8 +110,8 @@ class CategoryOverview(SizerComponent):
         self._categories = list()
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-    def addCategoryComponent(self, sizerComponent: SizerComponent):
-        #assert isinstance(panel, type)
+    def addCategoryComponent(self, sizerComponent: PanelWithHeaderAccordion):
+        assert isinstance(sizerComponent, PanelWithHeaderAccordion)
         self._categories.append(sizerComponent)
 
     def build(self):
