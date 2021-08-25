@@ -32,17 +32,17 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
     # can *args be placed after keyword argument?
     def __init__(self, parent=None, size=None, *args, **kwargs):
         if size is None:
-            super().__init__(parent=parent, style=wx.RETAINED, *args, **kwargs)
+            super().__init__(parent=parent, *args, **kwargs)
         else:
-            super().__init__(parent=parent, size=size, style=wx.RETAINED, *args, **kwargs)
+            super().__init__(parent=parent, size=size, *args, **kwargs)
         self._parent = parent
 
         self.Bind(wx.EVT_PAINT, self._setUpScrolling)
-        self._setUpScrolling()
 
     def _setUpScrolling(self, evt = None):
         self.FitInside()
         self.SetScrollRate(0, 10)
+        evt.Skip()
 
 # Base class for classes which represent a sizer abstraction
 # e.g.: A sub-panel, with features, which is outsourced into another class
