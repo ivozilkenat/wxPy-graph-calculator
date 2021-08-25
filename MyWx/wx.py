@@ -32,51 +32,17 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
     # can *args be placed after keyword argument?
     def __init__(self, parent=None, size=None, *args, **kwargs):
         if size is None:
-            super().__init__(parent=parent, *args, **kwargs)
+            super().__init__(parent=parent, style=wx.RETAINED, *args, **kwargs)
         else:
-            super().__init__(parent=parent, size=size, *args, **kwargs)
+            super().__init__(parent=parent, size=size, style=wx.RETAINED, *args, **kwargs)
         self._parent = parent
-        self._yOffset = 0
-        self._scrollFactor = 0.5
-        self._scrollDirectionFactor = self.Direction.DOWN.value
 
-        self.SetScrollRate(10, 10)
-        print(self.GetScrollPixelsPerUnit())
+        self.Bind(wx.EVT_PAINT, self._setUpScrolling)
+        self._setUpScrolling()
 
-        self.Bind(wx.EVT_MOUSEWHEEL, self._onScroll)
-
-    def setScrollDirection(self, direction):
-        assert isinstance(direction, self.Direction)
-        self._scrollDirectionFactor = direction.value
-
-    #Only implements vertical scrolling
-    def _onScroll(self, evt: wx.MouseEvent = None):
-        sizeY = self.GetSize().GetHeight()
-        contentSizeY = self.GetBestSize().GetHeight()
-        # No scrolling possible, since all objects in view
-        if sizeY > contentSizeY: #TODO: what if object change while scrolling
-            return
-        lowerBound, upperBound = 0, contentSizeY - sizeY
-
-        scrollAmount = evt.GetWheelRotation()
-        scrollDistance = scrollAmount * self._scrollFactor * self._scrollDirectionFactor
-
-        self._yOffset += scrollDistance
-        if self._yOffset < 0 or self._yOffset > upperBound:
-            self._yOffset -= scrollDistance
-        else:
-            print("scrolling", scrollDistance, self._yOffset)
-            self.Scroll(0, scrollDistance * self._scrollDirectionFactor)
-
-
-    def _adjustScroll(self):
-        self.Scroll(0, self._yOffset * self._scrollDirectionFactor)
-        print("Scroll update", self._yOffset * self._scrollDirectionFactor)
-
-    class Direction(Enum):
-        UP = 1
-        DOWN = -1 # Normal scrolling behaviour
-
+    def _setUpScrolling(self, evt = None):
+        self.FitInside()
+        self.SetScrollRate(0, 10)
 
 # Base class for classes which represent a sizer abstraction
 # e.g.: A sub-panel, with features, which is outsourced into another class

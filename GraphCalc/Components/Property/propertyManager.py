@@ -83,7 +83,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         self.SetSizer(self._categorySizerC.getSizerAndBuild())
 
 
-    def build(self, evt = None):
+    def build(self):
         pass
 
     def _changeActiveProperty(self):
