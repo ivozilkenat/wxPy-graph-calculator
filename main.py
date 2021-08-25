@@ -40,7 +40,6 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPropertyManager = Dy2DGraphPropertyManager(self)
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.getPropertyManager().createOverviewInspectionPanels(self)
-
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)
 

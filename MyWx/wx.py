@@ -39,7 +39,21 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
 
         self.Bind(wx.EVT_PAINT, self._setUpScrolling)
 
-    def _setUpScrolling(self, evt = None):
+    # A decorator which rebuilds the panel, if wrapped method is called
+    @staticmethod
+    def rebuild(method):
+        def inner(obj, *args, **kwargs):
+            assert isinstance(obj, GenericPanel)
+            r = method(obj, *args, **kwargs)
+            obj.build()
+            return r
+
+        return inner
+
+    def build(self):
+        pass
+
+    def _setUpScrolling(self, evt=None):
         self.FitInside()
         self.SetScrollRate(0, 10)
         evt.Skip()
@@ -116,5 +130,5 @@ class SizerTemplate(SizerComponent, ABC):
             raise MyWxException.MissingContent()
         self.__build()
 
-    def setContent(self, content):
+    def setContent(self, content: wx.Window):
         self._content = content

@@ -6,7 +6,7 @@ from MyWx.Collection._core.wxUtilities import randomRGBTriple
 from MyWx.Collection.format import expanded
 from typing import Tuple
 
-#TODO: ADD Documentation
+#TODO: ADD Documentation, Add build() to panels
 
 # Basic Panel, which implements generic buttons and adjacent event method
 # minimizing is a feature preserved for splitter windows
@@ -32,6 +32,9 @@ class SplitterSideViewPanel(GenericPanel):
 
         self._vSizer.Add(self.controlBar.sizer, 0, wx.EXPAND)
         self.SetSizer(self._vSizer)
+
+    def build(self):
+        pass
 
     def _onSizeMinimize(self, event=None):
         if self.GetSize()[0] < SplitterSideViewPanel.minSize + 1:  # and not self.minimized: #only accounts for width

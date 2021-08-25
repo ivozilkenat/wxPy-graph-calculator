@@ -59,45 +59,44 @@ class PropInspectionPanel(GenericPanel):
     def setActiveProperty(self, property: PropertyObject):
         pass
 
+
 class PropObjectOverviewPanel(GenericMouseScrollPanel):
     def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel, parent=None):
         super().__init__(parent)
         self._manager = manager
         self._inspection = inspectionPanel
-
         self._categorySizerC = CategoryOverview(self)
-        # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
-        # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
-        # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
-        # self._categorySizerC.addCategoryPanel(TabPanel(self, (0, 60)))
 
-        for i in range(10):
-            self._categorySizerC.addCategoryComponent(
-                PanelWithHeaderAccordion(parent=self, headline=f"Kategorie {i}", content=RandomPanel(self, (0, 100))).getBuild())
-
-
-        # self._categorySizerC.addCategoryComponent(PanelWithHeaderAccordion(parent=self, headline="Kategorie", content=RandomPanel(self, (0, 50))))
-
-
-
-        self.SetSizer(self._categorySizerC.getSizerAndBuild())
-
+        self.build()
 
     def build(self):
-        pass
+        self.SetSizer(self._categorySizerC.getSizerAndBuild())
 
-    def _changeActiveProperty(self):
-        pass
+    def addCategory(self, category: PanelWithHeaderAccordion):
+        assert isinstance(category, PanelWithHeaderAccordion)
+        self._categorySizerC.addCategoryComponent(category)
 
-    def _updatePanel(self): #should not be a extra method?
-        self._sizer.build()
+    #TODO: Not implemented yet
+    def _setupHandlers(self):
+        for c in self._categorySizerC.getCategories():
+            tabs = c.getContent()
+            for t in tabs:
+                t.Bind(wx.EVT_LEFT_DOWN, self._changeActiveProperty)
+
+
+    def _changeActiveProperty(self, evt: wx.MouseEvent=None):
+        #TODO: must be finished
+        self._manager.setActiveProperty(evt.GetEventObject().GetPropertyObj())
 
 
 class CategoryOverview(SizerComponent):
     def __init__(self, parent):
         super().__init__(parent)
-        self._categories = list()
+        self._categories: List[PanelWithHeaderAccordion, ...] = list()
         self._sizer = wx.BoxSizer(wx.VERTICAL)
+
+    def getCategories(self):
+        return self._categories
 
     def addCategoryComponent(self, sizerComponent: PanelWithHeaderAccordion):
         assert isinstance(sizerComponent, PanelWithHeaderAccordion)
@@ -106,4 +105,17 @@ class CategoryOverview(SizerComponent):
     def build(self):
         self._sizer.Clear()
         for c in self._categories:
-            self._sizer.Add(c._sizer, 0, wx.EXPAND | wx.BOTTOM, 5) #border ?
+            self._sizer.Add(c.getSizer(), 0, wx.EXPAND | wx.BOTTOM, 5) #border ?
+
+
+class PropertyObjPanel(GenericPanel):
+    def __init__(self, parent, propertyObject: PropertyObject, *args, **kwargs):
+        super().__init__(parent, *args, **kwargs)
+        self._property = propertyObject
+        
+    def getPropertyObj(self):
+        return self._property
+
+    def setPropertyObj(self, propertyObj: PropertyObject):
+        self._property = propertyObj
+        
