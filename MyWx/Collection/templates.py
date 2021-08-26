@@ -73,8 +73,9 @@ class PanelWithHeader(SizerTemplate):
 
         self._txtBackground.SetSizer(expanded(self._txt))
         self._sizer.Add(self._txtBackground, 0, wx.EXPAND)
-        if not self._content is None:
+        if self._content is not None:
             self._sizer.Add(self._content, 1, wx.EXPAND)
+
     @SizerComponent.rebuild
     def setLabelTxt(self, headline):
         self._h = headline
@@ -136,10 +137,11 @@ class PanelWithHeaderAccordion(PanelWithHeader):
         super().setContent(content)
 
     def _onClick(self, evt = None):
-        if self._content.IsShown():
-            self.minimize()
-        else:
-            self.maximize()
+        if self._content is not None:
+            if self._content.IsShown(): #TODO: maybe replace none condition with panel size zero
+                self.minimize()
+            else:
+                self.maximize()
 
     @SizerTemplate.rebuildAndLayout
     def minimize(self):

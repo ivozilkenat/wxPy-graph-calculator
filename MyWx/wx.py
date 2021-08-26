@@ -40,10 +40,11 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self._setUpScrolling)
 
     # A decorator which rebuilds the panel, if wrapped method is called
+    #TODO: is it possible to add @rebuild
     @staticmethod
     def rebuild(method):
         def inner(obj, *args, **kwargs):
-            assert isinstance(obj, GenericPanel)
+            assert isinstance(obj, GenericMouseScrollPanel)
             r = method(obj, *args, **kwargs)
             obj.build()
             return r
@@ -117,18 +118,27 @@ class SizerComponent(ABC):
 class SizerTemplate(SizerComponent, ABC):
     def __init__(self, parent=None, content=None):
         super().__init__(parent)
+        self._allowEmpty = False
         self._content : wx.Window = content
         self.__build = self.build
         self.build = self.__buildWrapper
+
+    def allowEmpty(self):
+        return self._allowEmpty
+
+    def setAllowEmpty(self, state: bool = True):
+        assert isinstance(state, bool)
+        self._allowEmpty = state
 
     @abstractmethod
     def build(self):
         pass
 
     def __buildWrapper(self):
-        if self._content is None:
+        if not self._allowEmpty and self._content is None: #TODO: use Enum as none content / maybe emptyPanel as content
             raise MyWxException.MissingContent()
         self.__build()
 
     def setContent(self, content: wx.Window):
+        assert isinstance(content, wx.Window)
         self._content = content

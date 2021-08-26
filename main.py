@@ -40,11 +40,18 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPropertyManager = Dy2DGraphPropertyManager(self)
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.getPropertyManager().createOverviewInspectionPanels(self)
+
+        self.overviewPanel.createCategory("Test")
+        self.overviewPanel.createCategory("Test2")
+
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
+
+        #self.overviewPanel.createCategory("Test2")
+
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
         # from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes

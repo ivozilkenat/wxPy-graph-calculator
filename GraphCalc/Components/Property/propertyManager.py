@@ -65,16 +65,37 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         super().__init__(parent)
         self._manager = manager
         self._inspection = inspectionPanel
-        self._categorySizerC = CategoryOverview(self)
-
+        self._categorySizerC = CategoryOverviewComponent(self)
+        #TODO: implement ordering
         self.build()
 
     def build(self):
         self.SetSizer(self._categorySizerC.getSizerAndBuild())
 
-    def addCategory(self, category: PanelWithHeaderAccordion):
+    @GenericMouseScrollPanel.rebuild
+    def addCategoryPanel(self, category: PanelWithHeaderAccordion):
         assert isinstance(category, PanelWithHeaderAccordion)
         self._categorySizerC.addCategoryComponent(category)
+
+    @GenericMouseScrollPanel.rebuild
+    def removeCategoryPanel(self, category: PanelWithHeaderAccordion):
+        assert isinstance(category, PanelWithHeaderAccordion)
+        self._categorySizerC.removeCategoryComponent(category)
+
+    def createCategory(self, name: str):
+        newCategory = PanelWithHeaderAccordion(self, headline=name)
+        newCategory.setAllowEmpty(True)
+        newCategory.build()
+        self.addCategoryPanel(newCategory)
+
+    def deleteCategory(self, name: str):
+        self.removeCategoryPanel(self.categoryNameDict()[name])
+
+    def categoryNameDict(self):
+        return {i.getLabelTxt(): i for i in self._categorySizerC.getCategories()}
+
+    def categoryNames(self):
+        return [i.getLabelTxt() for i in self._categorySizerC.getCategories()]
 
     #TODO: Not implemented yet
     def _setupHandlers(self):
@@ -89,7 +110,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         self._manager.setActiveProperty(evt.GetEventObject().GetPropertyObj())
 
 
-class CategoryOverview(SizerComponent):
+class CategoryOverviewComponent(SizerComponent):
     def __init__(self, parent):
         super().__init__(parent)
         self._categories: List[PanelWithHeaderAccordion, ...] = list()
@@ -102,9 +123,19 @@ class CategoryOverview(SizerComponent):
         assert isinstance(sizerComponent, PanelWithHeaderAccordion)
         self._categories.append(sizerComponent)
 
+    def removeCategoryComponent(self, sizerComponent: PanelWithHeaderAccordion):
+        assert isinstance(sizerComponent, PanelWithHeaderAccordion)
+        self._categories.remove(sizerComponent)
+
     def build(self):
         self._sizer.Clear()
+        print(len(self._categories), self._sizer)
         for c in self._categories:
+            print(c, "Category object")
+            print(c.getLabelTxt())
+            print(c.getSizer())
+            print()
+            #Child sizers are deleted, as a consequence of detachment
             self._sizer.Add(c.getSizer(), 0, wx.EXPAND | wx.BOTTOM, 5) #border ?
 
 
