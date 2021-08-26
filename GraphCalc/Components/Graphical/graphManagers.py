@@ -28,6 +28,10 @@ class GraphPropertyManager:
     def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject], show=True): #TODO: decide if to change property here
         self.propertyManager.addPropertyObject(propertyObject)
         if isinstance(propertyObject, GraphicalPanelObject):
+            if show: #<- let this stay?
+                propertyObject.properties["draw"].setValue(True)
+            else:
+                propertyObject.properties["draw"].setValue(False)
             self._graphPlane.addGraphicalObject(propertyObject)
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):

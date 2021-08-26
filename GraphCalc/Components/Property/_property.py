@@ -18,6 +18,9 @@ class Property(ABC):
     def getValue(self):
         return self._value
 
+    def setValue(self, value: Any):
+        self._value = value
+
     def __str__(self):
         return self._name
 
@@ -80,13 +83,12 @@ class PropertyCategory(Enum):
 class PropertyObject(ABC):
     def __init__(self, category: PropCategoryDataClass):
         self.setCategory(category)
-        self._properties: Dict[str, Property] = {}  # Exchange with priority queue (or not?)
+        self.properties: Dict[str, Property] = {}  # Exchange with priority queue (or not?)
 
-    def getProperties(self):
-        return self._properties
+        self.addProperty(StrProperty("name", "NO_NAME"))# <- TODO: outsource such constant values
 
     def addProperty(self, property: Property):
-        self._properties[property._name] = property
+        self.properties[property._name] = property
 
     def getCategory(self):
         return self._category
@@ -112,7 +114,7 @@ class GraphicalPanelObject(PropertyObject, ABC):
     def standardProperties(blitUpdateMethod):
         def inner(graphicalPanelObject, deviceContext):
             assert isinstance(graphicalPanelObject, GraphicalPanelObject)
-            if graphicalPanelObject._properties["draw"].getValue() is True: #<- standard property
+            if graphicalPanelObject.properties["draw"].getValue() is True: #<- standard property
                 blitUpdateMethod(graphicalPanelObject, deviceContext)
 
         return inner

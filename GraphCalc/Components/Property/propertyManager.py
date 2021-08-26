@@ -231,9 +231,20 @@ class PropertyObjPanel(GenericPanel):
     def __init__(self, parent, propertyObject: PropertyObject, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self._property = propertyObject
-        from MyWx.Collection._core.wxUtilities import randomRGBTriple
+        self.SetBackgroundColour((250, 250, 250))
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.SetBackgroundColour(randomRGBTriple())
+        self.build()
+
+    #TODO: should be expanded in the future
+    def build(self):
+        self._sizer.Clear()
+        name = self._property.properties["name"].getValue()
+        font = wx.Font(13, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
+        txt = wx.StaticText(self, label=name, style=wx.ALIGN_CENTER)
+        txt.SetFont(font)
+        self._sizer.Add(txt, 1, wx.EXPAND)
+        self.SetSizer(self._sizer)
 
     def getPropertyObj(self):
         return self._property

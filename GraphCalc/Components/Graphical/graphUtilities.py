@@ -8,6 +8,8 @@ class CartesianAxies(GraphicalPanelObject):
     def __init__(self):
         super().__init__()
 
+        self.properties["name"].setValue("Cartesian Coordinate-System")
+
         self.addProperty(ToggleProperty("draw_sub_axis", True))
         self.addProperty(ToggleProperty("draw_main_axis", True))
 
@@ -15,9 +17,9 @@ class CartesianAxies(GraphicalPanelObject):
     # -> new version utilises blit from basePlane
     @GraphicalPanelObject.standardProperties
     def blitUpdate(self, deviceContext):  # TODO: update base class
-        if self._properties["draw_sub_axis"].getValue() is True:
+        if self.properties["draw_sub_axis"].getValue() is True:
             self.drawSubAxis(deviceContext, 50)
-        if self._properties["draw_main_axis"].getValue() is True:
+        if self.properties["draw_main_axis"].getValue() is True:
             self.drawMainAxis(deviceContext)
 
     def drawSubAxis(self, deviceContext, axisPixelDistance):

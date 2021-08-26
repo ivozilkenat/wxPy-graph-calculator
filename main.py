@@ -48,12 +48,8 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel.createCategory(PropertyCategory.SHAPES.getName())
         self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.getName())
 
-        #self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
-        #self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
-
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)
-        self.graphPropertyManager.removePropertyObject(axis)
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
