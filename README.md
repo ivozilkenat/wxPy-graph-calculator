@@ -1,4 +1,4 @@
-## wxPython_GraphCalculator (Windows)
+## wxPython_GraphCalculator (OS: Windows)
 
 ### Modules:
 
