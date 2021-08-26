@@ -49,6 +49,7 @@ class ThreePanelWorkspace(SizerTemplate):
         assert len(content) == 3 and all([isinstance(type(i), wx.Window) for i in content])
         self._content = content
 
+# Panel with a headline which can have content
 class PanelWithHeader(SizerTemplate):
     def __init__(self, parent=None, headline="Headline", *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -125,6 +126,7 @@ class PanelWithHeader(SizerTemplate):
     def getHeaderHeight(self):
         return self._hHeight
 
+# Expansion of PanelWithHeader to allow for tabbing (minimize, maximize content)
 class PanelWithHeaderAccordion(PanelWithHeader):
     def __init__(self, parent=None, headline="Headline", *args, **kwargs):
         super().__init__(parent, headline=headline, *args, **kwargs)

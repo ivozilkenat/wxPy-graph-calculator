@@ -100,7 +100,7 @@ class SplitterSideViewPanel(GenericPanel):
             self.coveredObject._unminimize()
             event.Skip()
 
-
+# Panel that works as top-bar to hold controls (e.g. minimize button)
 class PanelControlBar(SizerComponent):
     def __init__(self, parent, barHeight=30, color=(200, 200, 200), windowControllers=None):
         super().__init__(parent)
@@ -158,6 +158,7 @@ class PanelWindowController(GenericPanel):
         pass
 # Could use custom hover effects or color highlighting
 
+# A panel that lists given windows
 class ListPanel(GenericPanel):
     def __init__(self, parent=None, size=None):
         super().__init__(parent=parent, size=size)
@@ -172,7 +173,6 @@ class ListPanel(GenericPanel):
 
     def build(self):
         self.SetSizer(self._listComponent.getSizerAndBuild())
-
 
 
 class RandomGridPanel(GenericPanel):
