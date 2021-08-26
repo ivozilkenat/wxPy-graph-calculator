@@ -43,26 +43,19 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.getPropertyManager().createOverviewInspectionPanels(self)
 
+        self.overviewPanel.createCategory(PropertyCategory.FUNCTION.value)
+        self.overviewPanel.createCategory(PropertyCategory.SHAPES.value)
+        self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.value)
+
+
+        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
+        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
+
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
-
-
-
-        self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.value)
-        self.overviewPanel.createCategory("Test2")
-        self.overviewPanel.createCategory("Test3")
-        self.overviewPanel.createCategory("Test4")
-
-        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
-        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
-        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
-        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
-
-        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY), targetCategory="Test2")
-
 
 
         #self.workspace.splitter.SetMinimumPaneSize(100)

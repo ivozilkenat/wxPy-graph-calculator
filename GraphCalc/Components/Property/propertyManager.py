@@ -120,6 +120,18 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         lp.add(panel)
         lp.build()
 
+    @GenericMouseScrollPanel.rebuild
+    def setCategoryIndex(self, categoryName, newPos):
+        assert categoryName in self.categoryNames()
+        cat = self.getCategories()
+        if newPos < 1:
+            newPos = 1
+        elif newPos > len(cat):
+            newPos = len(cat)
+        catObj = self.categoryNameDict()[categoryName]
+        cat.remove(catObj)
+        cat.insert(newPos, catObj)
+
     # Check if a category exists
     def categoryExits(self, categoryName: str):
         if categoryName in self.categoryNames():
