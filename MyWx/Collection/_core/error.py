@@ -13,3 +13,7 @@ class MyWxException:
     class AlreadyExists(Exception):
         def __init__(self, message="Object already exists"):
             super().__init__(message)
+
+    class NotExistent(Exception):
+        def __init__(self, message="Object does not exist"):
+            super().__init__(message)

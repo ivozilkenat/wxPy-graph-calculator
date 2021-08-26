@@ -1,10 +1,10 @@
 import wx
 
-from MyWx.Collection.Adv.splitter import DynamicMultiSplitter
 from MyWx.wx import *
+from MyWx.Collection.Adv.splitter import DynamicMultiSplitter
 from MyWx.Collection._core.wxUtilities import randomRGBTriple
+from MyWx.Collection.components import ListComponent
 from MyWx.Collection.format import expanded
-from typing import Tuple
 
 #TODO: ADD Documentation, Add build() to panels
 
@@ -158,12 +158,33 @@ class PanelWindowController(GenericPanel):
         pass
 # Could use custom hover effects or color highlighting
 
+class ListPanel(GenericPanel):
+    def __init__(self, parent=None, size=None):
+        super().__init__(parent=parent, size=size)
+
+        self._listComponent = ListComponent(self)
+
+    def add(self, panelEntry: wx.Window):
+        self._listComponent.addComponent(panelEntry)
+
+    def remove(self, panelEntry: wx.Window):
+        self._listComponent.removeComponent(panelEntry)
+
+    def build(self):
+        self.SetSizer(self._listComponent.getSizerAndBuild())
+
+
 
 class RandomGridPanel(GenericPanel):
     def __init__(self, parent, n=3, size=None, hgap=5, vgap=5):
         super().__init__(parent=parent, size=size)
         self.sizer = wx.GridBagSizer(hgap=hgap, vgap=vgap)
         self.n = n
+
+        self.build()
+
+    def build(self):
+        self.sizer.Clear()
         for i in range(self.n ** 2):
             p = wx.Panel(self)
             p.SetBackgroundColour(randomRGBTriple())

@@ -5,6 +5,7 @@ from MyWx.Collection.panels import RandomPanel
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
+from GraphCalc.Components.Property._property import PropertyObject, PropertyCategory
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 
@@ -48,10 +49,21 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
 
-        self.overviewPanel.createCategory("Test")
+
+
+        self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.value)
         self.overviewPanel.createCategory("Test2")
         self.overviewPanel.createCategory("Test3")
         self.overviewPanel.createCategory("Test4")
+
+        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
+        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
+        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
+        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
+
+        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY), targetCategory="Test2")
+
+
 
         #self.workspace.splitter.SetMinimumPaneSize(100)
 

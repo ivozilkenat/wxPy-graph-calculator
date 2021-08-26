@@ -2,10 +2,10 @@ import wx
 
 from MyWx.wx import *
 from MyWx.Collection.templates import PanelWithHeaderAccordion
-from MyWx.Collection.panels import RandomPanel
+from MyWx.Collection.panels import ListPanel, ListComponent
 from MyWx.Collection._core import error
 
-from GraphCalc.Components.Property._property import PropertyObject
+from GraphCalc.Components.Property._property import PropertyObject, Property
 
 from typing import List, Set
 
@@ -92,14 +92,36 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
     def deleteCategory(self, name: str):
         self.removeCategoryPanel(self.categoryNameDict()[name])
 
+    def addToCategory(self, propertyEntry: PropertyObject, createCategory: bool = True, targetCategory: str = None):
+        assert isinstance(propertyEntry, PropertyObject)
+        categoryName = propertyEntry.getCategory().value if targetCategory is None else targetCategory #<- could potentially cause conflicts in the future
+        if not self.categoryExits(categoryName) and createCategory:
+            self.createCategory(categoryName)
+        else:
+            MyWxException.NotExistent(f"Category '{categoryName}' does not exist")
+        categoryTemp = self.categoryNameDict()[categoryName]
+        if categoryTemp.isEmpty():
+            lp = ListPanel(self)
+            lp._listComponent = ListComponent(lp, sizerFlags=wx.EXPAND | wx.BOTTOM, padding=1)
+            categoryTemp.setContent(lp)
+        lp: ListPanel = categoryTemp.getContent()
+        panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry, size=(0, 50))
+        lp.add(panel)
+        lp.build()
+
+    def categoryExits(self, categoryName: str):
+        if categoryName in self.categoryNames():
+            return True
+        return False
+
     def getCategories(self):
         return self._categorySizerC._categories
 
-    def categoryNameDict(self):
-        return {i.getLabelTxt(): i for i in self.getCategories()}
+    def categoryNameDict(self) -> Dict[str, PanelWithHeaderAccordion]:
+        return self._categorySizerC.categoryNameDict()
 
     def categoryNames(self):
-        return self._categorySizerC._categoryNames()
+        return self._categorySizerC.categoryNames()
 
     #TODO: Not implemented yet
     def _setupHandlers(self):
@@ -126,7 +148,7 @@ class CategoryOverviewComponent(SizerComponent):
 
     def addCategoryComponent(self, accordionPanel: PanelWithHeaderAccordion):
         assert isinstance(accordionPanel, PanelWithHeaderAccordion)
-        if accordionPanel.getLabelTxt() in self._categoryNames():
+        if accordionPanel.getLabelTxt() in self.categoryNames():
             raise MyWxException.AlreadyExists(f"Category of name '{accordionPanel.getLabelTxt()}' already exists")
         self._categories.append(accordionPanel)
 
@@ -134,15 +156,20 @@ class CategoryOverviewComponent(SizerComponent):
         assert isinstance(accordionPanel, PanelWithHeaderAccordion)
         self._categories.remove(accordionPanel)
 
-    def _categoryNames(self):
+    def categoryNames(self):
         return [i.getLabelTxt() for i in self._categories]
 
+    def categoryNameDict(self):
+        return {i.getLabelTxt(): i for i in self._categories}
 
 class PropertyObjPanel(GenericPanel):
     def __init__(self, parent, propertyObject: PropertyObject, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self._property = propertyObject
-        
+        from MyWx.Collection._core.wxUtilities import randomRGBTriple
+
+        self.SetBackgroundColour(randomRGBTriple())
+
     def getPropertyObj(self):
         return self._property
 

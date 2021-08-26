@@ -64,23 +64,23 @@ class PropertyObject(ABC):
         return self._category
 
     def setCategory(self, category):
-        assert isinstance(category, self.Category)
+        assert isinstance(category, PropertyCategory)
         self._category = category
 
-    class Category(Enum):
-        FUNCTION = "Funktionen"
-        SHAPES = "Formen"
-        NO_CATEGORY = "Weiteres"
+class PropertyCategory(Enum):
+    FUNCTION = "Funktionen"
+    SHAPES = "Formen"
+    NO_CATEGORY = "Weiteres"
 
-        # Needed for the object manager to sort by category
-        @classmethod
-        def categoryDict(cls) -> Dict[TypeVar, list]:
-            return {i: [] for i in list(cls)}
+    # Needed for the object manager to sort by category
+    @classmethod
+    def categoryDict(cls) -> Dict[TypeVar, list]:
+        return {i: [] for i in list(cls)}
 
 
 # Baseclass for graphical objects, which lie on top of a base panel
 class GraphicalPanelObject(PropertyObject, ABC):
-    def __init__(self, basePlane=None, category=PropertyObject.Category.NO_CATEGORY):
+    def __init__(self, basePlane=None, category=PropertyCategory.NO_CATEGORY):
         super().__init__(category=category)
         self.basePlane = basePlane
 

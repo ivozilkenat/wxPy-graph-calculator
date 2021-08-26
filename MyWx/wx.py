@@ -1,6 +1,7 @@
 import wx
 from abc import ABC, abstractmethod
 from enum import Enum
+from typing import Tuple, List, Dict, Any
 
 from MyWx.Collection._core.error import MyWxException
 
@@ -27,6 +28,7 @@ class GenericPanel(wx.Panel):
 
     def build(self):
         pass
+
 
 class GenericMouseScrollPanel(wx.ScrolledWindow):
     # can *args be placed after keyword argument?
@@ -117,14 +119,34 @@ class SizerComponent(ABC):
         self.build()
         return self.getSizer()
 
+# Sizer Component which uses SizerContent to specify sizer building
+# Used if components need different styling
+class SizerComponentStyle(SizerComponent):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self._components: List[SizerContent, ...] = list()
+
+    def build(self):
+        self.clearSizer()
+        for c in self._components:
+            self._sizer.Add(c.comp, c.prop, c.flags, c.padding)
+
+# Dataclass to hold information about sizer content style
+class SizerContent():
+    def __init__(self, component, proportion=0, sizerFlags=wx.EXPAND, padding=5):
+        self.comp: wx.Window = component
+        self.prop: int  = proportion
+        self.flags: wx.SizerFlags = sizerFlags
+        self.padding: int = padding
+
 
 # A sizer-template represents a sizer-component which is also already formatted but displayed
 # objects are not initialized with the object, thus can be added after object-init
 class SizerTemplate(SizerComponent, ABC):
     def __init__(self, parent=None, content=None):
         super().__init__(parent)
-        self._allowEmpty = False
-        self._content : wx.Window = content
+        self._allowEmpty: bool = False
+        self._content: wx.Window = content
         self.__build = self.build
         self.build = self.__buildWrapper
 
@@ -134,6 +156,9 @@ class SizerTemplate(SizerComponent, ABC):
     def setAllowEmpty(self, state: bool = True):
         assert isinstance(state, bool)
         self._allowEmpty = state
+
+    def isEmpty(self):
+        return True if self._content is None else False
 
     @abstractmethod
     def build(self):
@@ -147,3 +172,6 @@ class SizerTemplate(SizerComponent, ABC):
     def setContent(self, content: wx.Window):
         assert isinstance(content, wx.Window)
         self._content = content
+
+    def getContent(self):
+        return self._content
