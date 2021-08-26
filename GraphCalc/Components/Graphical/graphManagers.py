@@ -32,7 +32,7 @@ class GraphPropertyManager:
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
         self.propertyManager.removePropObject(propertyObject)
-        if isinstance(PropertyObject, GraphicalPanelObject):
+        if isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.removeGraphicalObject(propertyObject)
 
 

@@ -171,6 +171,9 @@ class ListPanel(GenericPanel):
     def remove(self, panelEntry: wx.Window):
         self._listComponent.removeComponent(panelEntry)
 
+    def getComponents(self):
+        return self._listComponent._components
+
     def build(self):
         self.SetSizer(self._listComponent.getSizerAndBuild())
 

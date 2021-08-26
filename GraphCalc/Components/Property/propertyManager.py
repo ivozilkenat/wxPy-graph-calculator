@@ -32,7 +32,6 @@ class PropertyManager:
         if self._overviewPanel is not None:
             self._overviewPanel.addToCategory(propertyObject)
 
-
     def removePropObject(self, propertyObject: PropertyObject):
         assert isinstance(propertyObject, PropertyObject)
         self._propertyObjects.remove(propertyObject)
@@ -149,7 +148,14 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
 
     def removeFromCategory(self, propertyEntry: PropertyObject):
         assert isinstance(propertyEntry, PropertyObject)
-
+        catName = propertyEntry.getCategory().getName()
+        catTemp = self.categoryNameDict()[catName]
+        lp: ListPanel = catTemp.getContent()
+        for panel in lp.getComponents():
+            if panel.getPropertyObj() == propertyEntry:
+                lp.remove(panel)
+                lp.build()
+                return
 
     @GenericMouseScrollPanel.rebuild
     def setCategoryIndex(self, categoryName, newPos):

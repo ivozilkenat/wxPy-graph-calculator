@@ -53,6 +53,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)
+        self.graphPropertyManager.removePropertyObject(axis)
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
