@@ -3,6 +3,7 @@ import wx
 from MyWx.wx import *
 from MyWx.Collection.templates import PanelWithHeaderAccordion
 from MyWx.Collection.panels import RandomPanel
+from MyWx.Collection._core import error
 
 from GraphCalc.Components.Property._property import PropertyObject
 
@@ -91,19 +92,21 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
     def deleteCategory(self, name: str):
         self.removeCategoryPanel(self.categoryNameDict()[name])
 
+    def getCategories(self):
+        return self._categorySizerC._categories
+
     def categoryNameDict(self):
-        return {i.getLabelTxt(): i for i in self._categorySizerC.getCategories()}
+        return {i.getLabelTxt(): i for i in self.getCategories()}
 
     def categoryNames(self):
-        return [i.getLabelTxt() for i in self._categorySizerC.getCategories()]
+        return self._categorySizerC._categoryNames()
 
     #TODO: Not implemented yet
     def _setupHandlers(self):
-        for c in self._categorySizerC.getCategories():
+        for c in self.getCategories():
             tabs = c.getContent()
             for t in tabs:
                 t.Bind(wx.EVT_LEFT_DOWN, self._changeActiveProperty)
-
 
     def _changeActiveProperty(self, evt: wx.MouseEvent=None):
         #TODO: must be finished
@@ -116,27 +119,23 @@ class CategoryOverviewComponent(SizerComponent):
         self._categories: List[PanelWithHeaderAccordion, ...] = list()
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-    def getCategories(self):
-        return self._categories
-
-    def addCategoryComponent(self, sizerComponent: PanelWithHeaderAccordion):
-        assert isinstance(sizerComponent, PanelWithHeaderAccordion)
-        self._categories.append(sizerComponent)
-
-    def removeCategoryComponent(self, sizerComponent: PanelWithHeaderAccordion):
-        assert isinstance(sizerComponent, PanelWithHeaderAccordion)
-        self._categories.remove(sizerComponent)
-
     def build(self):
-        self._sizer.Clear()
-        print(len(self._categories), self._sizer)
+        self.clearSizer()
         for c in self._categories:
-            print(c, "Category object")
-            print(c.getLabelTxt())
-            print(c.getSizer())
-            print()
-            #Child sizers are deleted, as a consequence of detachment
-            self._sizer.Add(c.getSizer(), 0, wx.EXPAND | wx.BOTTOM, 5) #border ?
+            self._sizer.Add(c.getSizer(), 0, wx.EXPAND | wx.BOTTOM, 5)  # border ?
+
+    def addCategoryComponent(self, accordionPanel: PanelWithHeaderAccordion):
+        assert isinstance(accordionPanel, PanelWithHeaderAccordion)
+        if accordionPanel.getLabelTxt() in self._categoryNames():
+            raise MyWxException.AlreadyExists(f"Category of name '{accordionPanel.getLabelTxt()}' already exists")
+        self._categories.append(accordionPanel)
+
+    def removeCategoryComponent(self, accordionPanel: PanelWithHeaderAccordion):
+        assert isinstance(accordionPanel, PanelWithHeaderAccordion)
+        self._categories.remove(accordionPanel)
+
+    def _categoryNames(self):
+        return [i.getLabelTxt() for i in self._categories]
 
 
 class PropertyObjPanel(GenericPanel):

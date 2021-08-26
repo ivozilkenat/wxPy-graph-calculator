@@ -9,3 +9,7 @@ class MyWxException:
     class MissingContent(Exception):
         def __init__(self, message="Content must be set before building"):
             super().__init__(message)
+
+    class AlreadyExists(Exception):
+        def __init__(self, message="Object already exists"):
+            super().__init__(message)

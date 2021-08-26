@@ -64,7 +64,7 @@ class PanelWithHeader(SizerTemplate):
 
     #TODO: is building in the constructor redundant
     def build(self):
-        self._sizer.Clear()
+        self.clearSizer()
         self._txtBackground.Destroy()
         self._txtBackground = wx.Panel(self._parent, size=(0, self._hHeight))
         self._txtBackground.SetBackgroundColour(self._backColor)

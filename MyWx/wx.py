@@ -100,8 +100,13 @@ class SizerComponent(ABC):
     def layoutParent(self):
         self._parent.Layout()
 
-    def clearSizer(self):
-        self._sizer.Clear()
+    # Detaches all windows and deletes all sizers
+    def clearSizer(self, deleteSizers = False):
+        if deleteSizers:
+            self._sizer.Clear()
+        else:
+            for i in range(self._sizer.GetItemCount()-1, -1, -1):
+                self._sizer.Detach(i)
 
     def getSizer(self):
         if self._sizer is None:  # If sizer is None, building automatically could be implemented

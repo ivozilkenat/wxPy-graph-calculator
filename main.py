@@ -14,6 +14,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # implement type hinting
 # overhaul all classes and adjust for new superclass, like genericPanel and its global parent implementation
 # add *args, **kwargs
+# convert assert's into exceptions
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.1.0"
@@ -41,16 +42,16 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.getPropertyManager().createOverviewInspectionPanels(self)
 
-        self.overviewPanel.createCategory("Test")
-        self.overviewPanel.createCategory("Test2")
-
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
 
-        #self.overviewPanel.createCategory("Test2")
+        self.overviewPanel.createCategory("Test")
+        self.overviewPanel.createCategory("Test2")
+        self.overviewPanel.createCategory("Test3")
+        self.overviewPanel.createCategory("Test4")
 
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
