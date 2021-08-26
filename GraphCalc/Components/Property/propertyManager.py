@@ -5,7 +5,7 @@ from MyWx.Collection.templates import PanelWithHeaderAccordion
 from MyWx.Collection.panels import ListPanel, ListComponent
 from MyWx.Collection._core import error
 
-from GraphCalc.Components.Property._property import PropertyObject, Property, PropertyCategory
+from GraphCalc.Components.Property._property import PropertyObject, Property, PropertyCategory, PropCategoryDataClass
 
 from typing import List, Set
 
@@ -17,18 +17,27 @@ class PropertyManager:
     def __init__(self):
         self._propertyObjects: Set[PropertyObject] = set()
         self._activeProperty = None #<- shown in the inspection panel / highlighted in the managed object (if possible)
+
+        self._overviewPanel: PropObjectOverviewPanel = None
+        self._inspectionPanel: PropInspectionPanel = None
+
         # Extend the PropertyManager-class to fit desired needs, e.g. Graph Plane
 
-    def getPropObjects(self):
+    def getPropertyObjects(self):
         return self._propertyObjects
 
-    def addPropObject(self, propertyObject: PropertyObject):
+    def addPropertyObject(self, propertyObject: PropertyObject):
         assert isinstance(propertyObject, PropertyObject)
         self._propertyObjects.add(propertyObject)
+        if self._overviewPanel is not None:
+            self._overviewPanel.addToCategory(propertyObject)
+
 
     def removePropObject(self, propertyObject: PropertyObject):
         assert isinstance(propertyObject, PropertyObject)
         self._propertyObjects.remove(propertyObject)
+        if self._overviewPanel is not None:
+            self._overviewPanel.removeFromCategory(propertyObject)
 
     def getPropertiesByCategory(self):
         categoryDic = PropertyCategory.categoryDict()
@@ -44,18 +53,32 @@ class PropertyManager:
     def getActiveProperty(self):
         return self._activeProperty
 
+    def getOverviewPanel(self):
+        return self._overviewPanel
+
+    def getInspectionPanel(self):
+        return self._inspectionPanel
+
+    def getOverviewInspectionPanels(self):
+        return self._overviewPanel, self._inspectionPanel
+
     # Creates a panel which shows a overview of all objects in the propertyManager
-    def createOverviewPanel(self, parent: wx.Window, inspectionPanel):
-        return PropObjectOverviewPanel(manager=self, inspectionPanel=inspectionPanel, parent=parent)
+    def createOverviewPanel(self, parent: wx.Window, inspectionPanel = None):
+        if inspectionPanel is None and self._inspectionPanel is not None:
+            inspectionPanel = self._inspectionPanel
+        else:
+            pass #TODO: should something happen if None?
+        self._overviewPanel = PropObjectOverviewPanel(manager=self, inspectionPanel=inspectionPanel, parent=parent)
 
     # Creates a panel which allows to get detailed information about all properties of a PropertyObject
     def createInspectionPanel(self, parent: wx.Window):
-        return PropInspectionPanel(manager=self, parent=parent)
+        self._inspectionPanel = PropInspectionPanel(manager=self, parent=parent)
 
     # Combines overview and inspection creation in a more convenient way
     def createOverviewInspectionPanels(self, parent):
-        inspection = self.createInspectionPanel(parent=parent)
-        return self.createOverviewPanel(parent=parent, inspectionPanel=inspection), inspection
+        self.createInspectionPanel(parent=parent)
+        inspection = self._inspectionPanel
+        self.createOverviewPanel(parent=parent, inspectionPanel=inspection), inspection
 
 # Panel to show Properties
 class PropInspectionPanel(GenericPanel):
@@ -68,10 +91,10 @@ class PropInspectionPanel(GenericPanel):
 
 # Panel to Show PropertyObjects by Category
 class PropObjectOverviewPanel(GenericMouseScrollPanel):
-    def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel, parent=None):
+    def __init__(self, manager: PropertyManager, inspectionPanel: PropInspectionPanel=None, parent=None):
         super().__init__(parent)
         self._manager = manager
-        self._inspection = inspectionPanel
+        self._inspection = inspectionPanel #<- can be None <- bind event handler dynamically
         self._categorySizerC = CategoryOverviewComponent(self)
         #TODO: implement ordering
         self.build()
@@ -90,7 +113,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         self._categorySizerC.removeCategoryComponent(category)
 
     # Create a new Category by string
-    def createCategory(self, name: str):
+    def createCategory(self, name: str): #<- TODO: should a string object be used instead of PropertyCategory?
         newCategory = PanelWithHeaderAccordion(self, headline=name)
         newCategory.setAllowEmpty(True)
         newCategory.build()
@@ -102,9 +125,13 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
 
     # Add a propertyObj to its correlated category (toggle adding if category has not been created yet)
     # or create new category by string as target
-    def addToCategory(self, propertyEntry: PropertyObject, createCategory: bool = True, targetCategory: str = None):
+    def addToCategory(self, propertyEntry: PropertyObject, createCategory: bool = True, targetCategory: PropCategoryDataClass = None):
         assert isinstance(propertyEntry, PropertyObject)
-        categoryName = propertyEntry.getCategory().value if targetCategory is None else targetCategory #<- could potentially cause conflicts in the future
+        if targetCategory is None:
+            categoryName = propertyEntry.getCategory().getName()
+        else:
+            categoryName = targetCategory.getName() #<- could potentially cause conflicts in the future
+            propertyEntry.setCategory(targetCategory)
         if not self.categoryExits(categoryName) and createCategory:
             self.createCategory(categoryName)
         else:
@@ -119,6 +146,10 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry, size=(0, 50))#TODO: unfinished / does not display anything yet
         lp.add(panel)
         lp.build()
+
+    def removeFromCategory(self, propertyEntry: PropertyObject):
+        assert isinstance(propertyEntry, PropertyObject)
+
 
     @GenericMouseScrollPanel.rebuild
     def setCategoryIndex(self, categoryName, newPos):
@@ -181,6 +212,7 @@ class CategoryOverviewComponent(SizerComponent):
     def removeCategoryComponent(self, accordionPanel: PanelWithHeaderAccordion):
         assert isinstance(accordionPanel, PanelWithHeaderAccordion)
         self._categories.remove(accordionPanel)
+        accordionPanel.destroy()
 
     def categoryNames(self):
         return [i.getLabelTxt() for i in self._categories]

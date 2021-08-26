@@ -41,15 +41,15 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.graphPropertyManager = Dy2DGraphPropertyManager(self)
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
-        self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.getPropertyManager().createOverviewInspectionPanels(self)
+        self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self)
+        self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.propertyManager.getOverviewInspectionPanels()
 
-        self.overviewPanel.createCategory(PropertyCategory.FUNCTION.value)
-        self.overviewPanel.createCategory(PropertyCategory.SHAPES.value)
-        self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.value)
+        self.overviewPanel.createCategory(PropertyCategory.FUNCTION.getName())
+        self.overviewPanel.createCategory(PropertyCategory.SHAPES.getName())
+        self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.getName())
 
-
-        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
-        self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
+        #self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
+        #self.overviewPanel.addToCategory(PropertyObject(PropertyCategory.NO_CATEGORY))
 
         axis = CartesianAxies()
         self.graphPropertyManager.addPropertyObject(axis)

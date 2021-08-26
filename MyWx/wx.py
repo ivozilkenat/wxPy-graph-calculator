@@ -110,6 +110,10 @@ class SizerComponent(ABC):
             for i in range(self._sizer.GetItemCount()-1, -1, -1):
                 self._sizer.Detach(i)
 
+    def destroy(self):
+        self._sizer.Clear(True)
+        self._sizer.Destroy()
+
     def getSizer(self):
         if self._sizer is None:  # If sizer is None, building automatically could be implemented
             raise MyWxException.SizerNotBuild()

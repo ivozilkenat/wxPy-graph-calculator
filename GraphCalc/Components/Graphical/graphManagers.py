@@ -7,11 +7,11 @@ from typing import Union
 
 class GraphPropertyManager:
     _graphPlane: GraphicalPanel
-    _propertyManager: PropertyManager
+    propertyManager: PropertyManager
 
     def __init__(self, graphPlane : GraphicalPanel, propertyManager : PropertyManager):
         self._graphPlane = graphPlane
-        self._propertyManager = propertyManager
+        self.propertyManager = propertyManager
 
     def getGraphPlane(self):
         return self._graphPlane
@@ -20,18 +20,18 @@ class GraphPropertyManager:
         self._graphPlane = graphPlane
 
     def getPropertyManager(self):
-        return self._propertyManager
+        return self.propertyManager
 
     def setPropertyManager(self, propertyManager : PropertyManager):
-        self._propertyManager = propertyManager
+        self.propertyManager = propertyManager
 
-    def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
-        self._propertyManager.addPropObject(propertyObject)
+    def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject], show=True): #TODO: decide if to change property here
+        self.propertyManager.addPropertyObject(propertyObject)
         if isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.addGraphicalObject(propertyObject)
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
-        self._propertyManager.removePropObject(propertyObject)
+        self.propertyManager.removePropObject(propertyObject)
         if isinstance(PropertyObject, GraphicalPanelObject):
             self._graphPlane.removeGraphicalObject(propertyObject)
 
