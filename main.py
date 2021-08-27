@@ -1,8 +1,8 @@
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
 
-# from GraphCalc.Components.Graphical.GraphFunctions import Function2D
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
+from GraphCalc.Components.Graphical.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Property._property import PropertyObject, PropertyCategory
@@ -47,9 +47,11 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel.createCategory(PropertyCategory.FUNCTION.getName())
         self.overviewPanel.createCategory(PropertyCategory.SHAPES.getName())
         self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.getName())
+        self.overviewPanel.createCategory(PropertyCategory.CUSTOM_CATEGORY("Test").getName())
 
-        axis = CartesianAxies()
-        self.graphPropertyManager.addPropertyObject(axis)
+        for i in range(1):
+            axis = CartesianAxies()
+            self.graphPropertyManager.addPropertyObject(axis)
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()

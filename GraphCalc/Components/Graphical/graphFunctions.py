@@ -11,20 +11,6 @@ class MathFunction():
         self.functionAsLambda = functionAsLambda
 
 
-class Function2D(MathFunction):
-    def __init__(self, functionAsLambda, definitionArea=None):
-        super().__init__(functionAsLambda)
-
-        self.func = functionAsLambda
-        self.definitionArea = definitionArea
-
-    def calculateValueTuples(self, arguments):
-        return [self.functionAsLambda(i) for i in arguments]
-
-    def __call__(self, arg):
-        return self.func(arg)
-
-
 class DefinitionArea():
     vCoeff = 10
 
@@ -50,16 +36,19 @@ class DefinitionArea():
             return iter(self.values)
 
 
-# TODO: Must be deleted, since every function should be its own object
-class FunctionDrawerDC(GraphicalPanelObject):
-    def __init__(self, functions=None):
-        super().__init__()
+class GraphFunction2D(GraphicalPanelObject, MathFunction):
+    def __init__(self, functionAsLambda, definitionArea=None):
+        super().__init__(functionAsLambda)
+
+        self.func = functionAsLambda
+        self.definitionArea = definitionArea
+
         self.valueCoeff = 1
-        if functions is None:
-            self.functions = list()
-        else:
-            assert isinstance(functions, list)
-            self.functions = functions
+
+        self.properties["name"].setValue("Funktion2D")
+
+    def calculateValueTuples(self, arguments):
+        return [self.func(i) for i in arguments]
 
     @GraphicalPanelObject.standardProperties
     def blitUpdate(self, deviceContext):
@@ -71,8 +60,7 @@ class FunctionDrawerDC(GraphicalPanelObject):
 
         arguments = np.linspace(*self.basePlane.db, valueAmount)
 
-        for f in self.functions:
-            values = f.calculateValueTuples(arguments)
-            for i in range(1, len(arguments)):
-                deviceContext.DrawLine(*self.basePlane.correctPosition(arguments[i - 1], values[i - 1]),
-                                       *self.basePlane.correctPosition(arguments[i], values[i]))
+        values = self.calculateValueTuples(arguments)
+        for i in range(1, len(arguments)):
+            deviceContext.DrawLine(*self.basePlane.correctPosition(arguments[i - 1], values[i - 1]),
+                                   *self.basePlane.correctPosition(arguments[i], values[i]))
