@@ -7,7 +7,7 @@ from typing import Tuple
 
 
 # Todo:
-# 		-what happens with equal scaling while resizing
+# 		-what happens with equal scaling while resizing!!!
 #	    -implement system for minimum size or unsplit window
 #		-add another random panel to try out functionality
 class ThreePanelWorkspace(SizerTemplate):
@@ -35,7 +35,7 @@ class ThreePanelWorkspace(SizerTemplate):
         if firstSashPos is None:
             firstSashPos = self.splitter.GetWidth() * 0.15
         if secondSashPos is None:
-            secondSashPos = -self.splitter.GetWidth() * 0.15
+            secondSashPos = -self.splitter.GetWidth() * 0.2 #TODO: change this?
         self.splitter.SetSashAbsPosition(0, firstSashPos)
         self.splitter.SetSashAbsPosition(1, secondSashPos)
 

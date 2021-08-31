@@ -1,7 +1,7 @@
 from MyWx.wx import *
 
 import numpy as np
-from GraphCalc.Components.Property._property import GraphicalPanelObject
+from GraphCalc.Components.Property.property import GraphicalPanelObject
 
 
 # Current implementation only for testing purposes / lacks optimization

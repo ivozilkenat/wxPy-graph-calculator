@@ -3,14 +3,17 @@ import wx
 from MyWx.wx import *
 from MyWx.Collection.templates import PanelWithHeaderAccordion
 from MyWx.Collection.panels import ListPanel, ListComponent
-from MyWx.Collection._core import error
+from MyWx.Collection._core import error, wxUtilities
+from MyWx.Collection.format import expanded
 
-from GraphCalc.Components.Property._property import PropertyObject, Property, PropertyCategory, PropCategoryDataClass
+from GraphCalc.Components.Property.property import PropertyObject, Property, PropertyCategory, PropCategoryDataClass
 
 from typing import List, Set
 
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
+
+#TODO: -allow for sorting of properties and categorize them
 
 # Base class to handle everything related to propertyObject organization
 class PropertyManager:
@@ -84,9 +87,42 @@ class PropInspectionPanel(GenericPanel):
     def __init__(self, manager: PropertyManager, parent=None, size=None):
         super().__init__(parent=parent, size=size)
         self._manager = manager
+        self._inspectedObj: PropertyObject = None
+        self._sizerComponent = ListComponent(self, sizerFlags=wx.EXPAND | wx.BOTTOM)
 
-    def setActiveProperty(self, property: PropertyObject):
-        pass
+    def setActivePropObj(self, propertyObj: PropertyObject):
+        assert isinstance(propertyObj, PropertyObject)
+        self._inspectedObj = propertyObj
+
+    def buildCurrentPropObj(self):
+        self.buildByPropObj(self._inspectedObj)
+
+    def buildByPropObj(self, propertyObj: PropertyObject):
+        #TODO: How to sort property objects / How to update property objects
+        self._sizerComponent.clearSizer()
+
+
+        for i, p in enumerate(propertyObj.properties.values()):
+            print(p.getName())
+            txtWidth = 100
+            txtCtrlProportion = (1, 6)
+
+
+            #background = wx.Panel(self)
+            #background.SetBackgroundColour((250, 250, 250))
+
+            txt = wx.StaticText(parent=self, label=f"{p.getName().capitalize()}:", size=(txtWidth, 0))
+            ctrl = p.getInputCtrl(parent=self)
+
+            s1 = wx.BoxSizer(wx.HORIZONTAL)
+            s1.Add(txt, 1, wx.EXPAND)
+            s1.Add(ctrl, 6, wx.EXPAND) #TODO: export proportions into separate file
+
+            self._sizerComponent.addComponent(s1)
+            self._sizerComponent.addComponent(wx.StaticLine(self))
+            #self._sizerComponent.addComponent(background)
+
+        self.SetSizer(self._sizerComponent.getSizerAndBuild())
 
 # Panel to Show PropertyObjects by Category
 class PropObjectOverviewPanel(GenericMouseScrollPanel):
@@ -251,4 +287,3 @@ class PropertyObjPanel(GenericPanel):
 
     def setPropertyObj(self, propertyObj: PropertyObject):
         self._property = propertyObj
-        

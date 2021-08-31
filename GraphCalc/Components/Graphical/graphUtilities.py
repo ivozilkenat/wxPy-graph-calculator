@@ -1,6 +1,6 @@
 from MyWx.wx import *
 
-from GraphCalc.Components.Property._property import GraphicalPanelObject, ToggleProperty
+from GraphCalc.Components.Property.property import GraphicalPanelObject, ToggleProperty
 from GraphCalc._core.utilities import multiplesInInterval
 
 

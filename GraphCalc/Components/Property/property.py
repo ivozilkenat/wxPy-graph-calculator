@@ -1,3 +1,5 @@
+import wx
+
 from MyWx.wx import *
 from GraphCalc._core.utilities import *
 
@@ -24,31 +26,71 @@ class Property(ABC):
     def __str__(self):
         return self._name
 
+class StandardCtrl(ABC):
+    def __init__(self):
+        self._input = None
+        self._parameters: Dict = None
+
+    def getInputCtrl(self, parent, *args, **kwargs):
+        if self._input is None:
+            raise MyWxException.MissingContent("There was no standard wx.Control defined")
+        return self._input(parent, *args, **self._parameters, **kwargs)
+
+    def setInputCtrl(self, inputElement, parameters: Dict = dict()):
+        self._input = inputElement
+        self._parameters = parameters
+
+
 
 # implement logic for bounds of properties / further implement necessary logic
 
-class ToggleProperty(Property):
+class ToggleProperty(Property, StandardCtrl):
     def __init__(self, propertyName, value):
         assert isinstance(value, bool)
-        super().__init__(propertyName, value)
+        Property.__init__(self, propertyName, value)
+        StandardCtrl.__init__(self)
+        self.setInputCtrl(
+            inputElement=wx.CheckBox,
+        )
 
 
-class NumProperty(Property):
+class NumProperty(Property, StandardCtrl):
     def __init__(self, propertyName, value):
         assert isinstance(value, float) or isinstance(value, int)
-        super().__init__(propertyName, value)
+        Property.__init__(self, propertyName, value)
+        StandardCtrl.__init__(self)
+        self.setInputCtrl(
+            inputElement=wx.SpinCtrl,
+            parameters={
+                "min": "0",
+                "initial": "0"
+            }
+        )
 
-
-class StrProperty(Property):
+class StrProperty(Property, StandardCtrl):
     def __init__(self, propertyName, value):
         assert isinstance(value, str)
-        super().__init__(propertyName, value)
+        Property.__init__(self, propertyName, value)
+        StandardCtrl.__init__(self)
+        self.setInputCtrl(
+            inputElement=wx.TextCtrl,
+            parameters={
+                "value": "PLACEHOLDER"
+            }
+        )
 
 
-class ContainerProperty(Property):
+class ContainerProperty(Property, StandardCtrl):
     def __init__(self, propertyName, value):
         assert isinstance(value, (list, tuple, set))
-        super().__init__(propertyName, value)
+        Property.__init__(self, propertyName, value)
+        StandardCtrl.__init__(self)
+        self.setInputCtrl(
+            inputElement=wx.TextCtrl,
+            parameters={
+                "value": "PLACEHOLDER"
+            }
+        )
 
 class PropCategoryDataClass:
     def __init__(self, categoryName: str):
@@ -98,7 +140,7 @@ class PropertyObject(ABC):
         if isinstance(category, PropCategoryDataClass):
             self._category = category
         else:
-            self._category = category.value #<- TODO: should this be implemented here or should the enum change?
+            self._category = category.getCat()
 
 
 # Baseclass for graphical objects, which lie on top of a base panel

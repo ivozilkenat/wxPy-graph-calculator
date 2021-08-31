@@ -1,3 +1,5 @@
+import wx
+
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
 
@@ -5,7 +7,7 @@ from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Graphical.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
-from GraphCalc.Components.Property._property import PropertyObject, PropertyCategory
+from GraphCalc.Components.Property.property import PropertyObject, PropertyCategory
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 
@@ -49,19 +51,24 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.getName())
         self.overviewPanel.createCategory(PropertyCategory.CUSTOM_CATEGORY("Test").getName())
 
+        # TESTING---------------
         for i in range(1):
             axis = CartesianAxies()
             self.graphPropertyManager.addPropertyObject(axis)
 
+
+        print("Properties: ")
+        self.inspectionPanel.setActivePropObj(axis)
+        self.inspectionPanel.buildCurrentPropObj()
+        print()
+
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
-
 
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
         # from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
         # self.workspace._graphicalPlane.addGraphicalObject(CartesianAxes())
-
         self.mainSizer.Add(self.workspace.getSizer(), 1, wx.EXPAND)
         self.SetSizer(self.mainSizer)
 

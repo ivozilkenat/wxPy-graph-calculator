@@ -135,6 +135,11 @@ class SizerComponentStyle(SizerComponent):
         for c in self._components:
             self._sizer.Add(c.comp, c.prop, c.flags, c.padding)
 
+    def buildOverrideStyle(self, styleFlags=wx.EXPAND | wx.BOTTOM, padding=5):
+        self._sizer = wx.BoxSizer(self._style)
+        for c in self._components:
+            self._sizer.Add(c.comp, c.prop, styleFlags, padding)
+
 # Dataclass to hold information about sizer content style
 class SizerContent():
     def __init__(self, component, proportion=0, sizerFlags=wx.EXPAND, padding=5):

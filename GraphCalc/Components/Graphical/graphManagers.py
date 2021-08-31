@@ -1,7 +1,7 @@
 from MyWx.wx import *
 from GraphCalc.Components.Graphical.graphPlanes import GraphicalPanel, Dynamic2DGraphicalPlane
 from GraphCalc.Components.Property.propertyManager import PropertyManager
-from GraphCalc.Components.Property._property import PropertyObject, GraphicalPanelObject
+from GraphCalc.Components.Property.property import PropertyObject, GraphicalPanelObject
 from typing import Union
 
 

@@ -36,11 +36,6 @@ class FormManager(SizerComponentStyle):
     def getForm(self):
         return self._form
 
-    def buildOverrideStyle(self, styleFlags=wx.EXPAND | wx.BOTTOM, padding=5):
-        self._sizer = wx.BoxSizer(self._style)
-        for c in self._components:
-            self._sizer.Add(c.comp, c.prop, styleFlags, padding)
-
     class _Form():
         def __init__(self):
             self._items = list()
