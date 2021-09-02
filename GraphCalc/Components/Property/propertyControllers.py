@@ -1,4 +1,4 @@
-from GraphCalc.Components.Property._property import Property, ToggleProperty, NumProperty
+from GraphCalc.Components.Property.property import Property, ToggleProperty, NumProperty
 
 
 # A class that allows for any Object to bind a Property to it, which can be manipulated due to that

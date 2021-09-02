@@ -1,9 +1,13 @@
+import wx
+
 from MyWx.wx import *
 
+from typing import Union
 
 # positions as tuples or individual arguments?
 # add more assertions or further type checking
 # add interactive selection of displayed objects
+# 3 coordinate system
 
 # Baseclass for Base-Panels
 # -> Foundation of every layer-system
@@ -32,30 +36,35 @@ class GraphicalPanel(GenericPanel):
     def getLayerOrder(self):
         return [(0, self)] + [(c + 1, o) for c, o in enumerate(self.layers)]
 
+    #TODO: Change layer into a propertyObject to manage object order
+
     # adds gpo at desired position in layer-stack
     def addGraphicalObject(self, graphicalObject, priorityIndex=None):
-        graphicalObject.basePlane = self
+        graphicalObject.setBasePlane(self)
         if priorityIndex is None:
             self.layers.append(graphicalObject)
         else:
             self.layers.insert(priorityIndex, graphicalObject)
 
+    def removeGraphicalObject(self, graphicalObject):
+        self.layers.remove(graphicalObject)
+
     def onPaint(self, event=None):
         """
         OnPaint-Event-Receiver
         """
+        if not 0 in self.GetSize():
+            self.updatePlaneData()
+            # self.bitmap = wx.Bitmap(*self.GetSize())
+            # self.memoryDc = wx.MemoryDC(self.bitmap)
+            # self.memoryDc.SetBackground(wx.Brush((255, 255, 255)))
+            # self.memoryDc.Clear() # <- why is this necessary
+            dc = wx.BufferedPaintDC(self, wx.Bitmap(*self.GetSize()))
+            dc.SetBackground(wx.Brush(self.backgroundColor))
+            dc.Clear()
 
-        self.updatePlaneData()
-        # self.bitmap = wx.Bitmap(*self.GetSize())
-        # self.memoryDc = wx.MemoryDC(self.bitmap)
-        # self.memoryDc.SetBackground(wx.Brush((255, 255, 255)))
-        # self.memoryDc.Clear() # <- why is this necessary
-        dc = wx.BufferedPaintDC(self, wx.Bitmap(*self.GetSize()))
-        dc.SetBackground(wx.Brush(self.backgroundColor))
-        dc.Clear()
-
-        for object in self.layers:
-            object.blitUpdate(dc)
+            for object in self.layers:
+                object.blitUpdate(dc)
 
     # self.bitmap.ConvertToImage().SaveFile("test.png", wx.BITMAP_TYPE_PNG)
     # dc = wx.BufferedPaintDC(self, self.bitmap)
@@ -95,6 +104,8 @@ class GraphicalPanel(GenericPanel):
 
 
 # implement zooming / scaling
+# implement highlighting
+# getRect of plane
 
 # 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):
@@ -138,11 +149,11 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.mouseBefore = None
 
     # Adjusts origin shift in proportion to mouse movement
-    def mouseMotion(self, event=None):
+    def mouseMotion(self, event: wx.MouseEvent=None):
         self.mouseCounter += 1  # <- current fix to reduce drawCalls when mouseMotion is received
         if self.mouseCounter > 5:  # <- spurious fix / could be adjusted for stepwise scaling
 
-            if event.Dragging():
+            if event.Dragging() and event.leftIsDown:
                 self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 mX, mY = event.GetPosition()
                 if self.mouseBefore is None:

@@ -1,10 +1,13 @@
+import wx
+
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
 
-# from GraphCalc.Components.Graphical.GraphFunctions import Function2D
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
-from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
-from GraphCalc.Components.Property.propertyManager import PropertyManager
+from GraphCalc.Components.Graphical.graphFunctions import GraphFunction2D
+from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
+from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
+from GraphCalc.Components.Property.property import PropertyObject, PropertyCategory
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 
@@ -13,6 +16,8 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # everything is displayed upside down -> mirror on x-axis
 # implement type hinting
 # overhaul all classes and adjust for new superclass, like genericPanel and its global parent implementation
+# add *args, **kwargs
+# convert assert's into exceptions
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.1.0"
@@ -34,14 +39,39 @@ class GraphCalculatorApplicationFrame(wx.Frame):
     def _buildUI(self):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.propertyManager = PropertyManager()
-
         self.workspace = ThreePanelWorkspace(self)
-        self.graphPlane = Dynamic2DGraphicalPlane(self)
-        self.graphPlane.addGraphicalObject(CartesianAxes())
 
-        self.workspace.setContent(RandomPanel(self), self.graphPlane, RandomPanel(self))
+        self.graphPropertyManager = Dy2DGraphPropertyManager(self)
+        self.graphPanel = self.graphPropertyManager.getGraphPlane()
+        self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self)
+        self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.propertyManager.getOverviewInspectionPanels()
+
+        self.overviewPanel.createCategory(PropertyCategory.FUNCTION.getName())
+        self.overviewPanel.createCategory(PropertyCategory.SHAPES.getName())
+        self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.getName())
+        self.overviewPanel.createCategory(PropertyCategory.CUSTOM_CATEGORY("Test").getName())
+
+        # TESTING---------------
+        for i in range(1):
+            axis = CartesianAxies()
+            self.graphPropertyManager.addPropertyObject(axis)
+
+
+        print("Properties: ")
+        self.inspectionPanel.setActivePropObj(axis)
+        self.inspectionPanel.buildCurrentPropObj()
+        print()
+
+        self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
+
+        test = Dynamic2DGraphicalPlane(self.workspace.splitter)
+        test.addGraphicalObject(axis)
+
+        self.inspectionPanel.buildCurrentPropObj()
+
+        self.workspace.splitter.ReplaceWindow(self.graphPanel, test)
+
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
         # from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
