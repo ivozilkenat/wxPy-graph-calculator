@@ -103,12 +103,13 @@ class SizerComponent(ABC):
         self._parent.Layout()
 
     # Detaches all windows and deletes all sizers
-    def clearSizer(self, deleteSizers = False):
+    def clearSizer(self, deleteSizers = False, deleteWindows=False):
         if deleteSizers:
-            self._sizer.Clear()
+            self._sizer.Clear(deleteWindows)
         else:
             for i in range(self._sizer.GetItemCount()-1, -1, -1):
                 self._sizer.Detach(i)
+        #TODO: missing implementation
 
     def destroy(self):
         self._sizer.Clear(True)

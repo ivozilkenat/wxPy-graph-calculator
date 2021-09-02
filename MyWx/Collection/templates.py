@@ -133,7 +133,7 @@ class PanelWithHeaderAccordion(PanelWithHeader):
 
     def build(self):
         super().build()
-        self._txt.Bind(wx.EVT_LEFT_DOWN, self._onClick)
+        self._txt.Bind(wx.EVT_LEFT_UP, self._onClick)
 
     def setContent(self, content):
         super().setContent(content)

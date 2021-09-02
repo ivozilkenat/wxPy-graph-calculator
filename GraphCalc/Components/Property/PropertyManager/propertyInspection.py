@@ -19,8 +19,8 @@ class PropInspectionPanel(GenericPanel):
 
     def buildByPropObj(self, propertyObj: PropertyObject):
         #TODO: How to sort property objects / How to update property objects
-        self._sizerComponent.clearSizer()
         self._sizerComponent.emptyList()
+        self._sizerComponent.clearSizer(deleteSizers=True, deleteWindows=True)
 
         for i, p in enumerate(propertyObj._properties.values()):
 
@@ -43,3 +43,4 @@ class PropInspectionPanel(GenericPanel):
             #self._sizerComponent.addComponent(background)
 
         self.SetSizer(self._sizerComponent.getSizerAndBuild())
+        self.Layout()

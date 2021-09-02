@@ -52,25 +52,21 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel.createCategory(PropertyCategory.CUSTOM_CATEGORY("Test").getName())
 
         # TESTING---------------
-        for i in range(1):
+        for i in range(2):
             axis = CartesianAxies()
+            p = axis.getProperty("name")
+            p.setValue("Cartesian-Plane - " + str(i))
+            axis.addProperty(p, override=True)
             self.graphPropertyManager.addPropertyObject(axis)
 
 
         print("Properties: ")
-        self.inspectionPanel.setActivePropObj(axis)
-        self.inspectionPanel.buildCurrentPropObj()
+        self.graphPropertyManager.propertyManager.setActiveProperty(axis)
+        #self.inspectionPanel.buildCurrentPropObj()
         print()
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
-
-        test = Dynamic2DGraphicalPlane(self.workspace.splitter)
-        test.addGraphicalObject(axis)
-
-        self.inspectionPanel.buildCurrentPropObj()
-
-        self.workspace.splitter.ReplaceWindow(self.graphPanel, test)
 
         #self.workspace.splitter.SetMinimumPaneSize(100)
 

@@ -1,3 +1,5 @@
+import wx
+
 from MyWx.wx import *
 from MyWx.Collection.templates import PanelWithHeaderAccordion
 from MyWx.Collection.panels import ListPanel, ListComponent
@@ -44,7 +46,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         self._categorySizerC.removeCategoryComponent(category)
 
     # Create a new Category by string
-    def createCategory(self, name: str): #<- TODO: should a string object be used instead of PropertyCategory?
+    def createCategory(self, name: str):
         newCategory = PanelWithHeaderAccordion(self, headline=name)
         newCategory.setAllowEmpty(True)
         newCategory.build()
@@ -75,8 +77,13 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
 
         lp: ListPanel = categoryTemp.getContent()
         panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry, size=(0, 50))#TODO: unfinished / does not display anything yet
+        panel._text.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
+
         lp.add(panel)
         lp.build()
+
+    def test(self, e: wx.MouseEvent = None):
+        print("click")
 
     def removeFromCategory(self, propertyEntry: PropertyObject):
         assert isinstance(propertyEntry, PropertyObject)
@@ -116,18 +123,12 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
     def categoryNames(self):
         return self._categorySizerC.categoryNames()
 
-    # Setup a set of handlers to check if any propertyObj has been selected
-    #TODO: Not implemented yet
-    def _setupHandlers(self):
-        for c in self.getCategories():
-            tabs = c.getContent()
-            for t in tabs:
-                t.Bind(wx.EVT_LEFT_DOWN, self._changeActiveProperty)
-
     # Event handler for propertyObj selection
     def _changeActiveProperty(self, evt: wx.MouseEvent=None):
-        #TODO: must be finished
-        self._manager.setActiveProperty(evt.GetEventObject().GetPropertyObj())
+        txt = evt.GetEventObject()
+        panel = txt.GetParent()
+        self._manager.setActiveProperty(panel.getPropertyObj())
+
 
 # SizerComponent to manage accordionPanels
 class CategoryOverviewComponent(SizerComponent):
@@ -166,17 +167,20 @@ class PropertyObjPanel(GenericPanel):
         self.SetBackgroundColour((250, 250, 250))
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
+        self._text = wx.StaticText(self, label=self._property._properties["name"].getValue(), style=wx.ALIGN_CENTER)
+
         self.build()
 
     #TODO: should be expanded in the future
     def build(self):
         self._sizer.Clear()
         name = self._property._properties["name"].getValue()
+        self._text.SetLabel(name)
         font = wx.Font(13, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
-        txt = wx.StaticText(self, label=name, style=wx.ALIGN_CENTER)
-        txt.SetFont(font)
-        self._sizer.Add(txt, 1, wx.EXPAND)
+        self._text.SetFont(font)
+        self._sizer.Add(self._text, 1, wx.EXPAND)
         self.SetSizer(self._sizer)
+
 
     def getPropertyObj(self):
         return self._property

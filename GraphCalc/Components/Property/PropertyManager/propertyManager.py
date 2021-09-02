@@ -50,7 +50,11 @@ class PropertyManager:
 
     # Set currently selected/Focused Property
     def setActiveProperty(self, propertyObject: PropertyObject):
+        equal = self._activeProperty == propertyObject
         self._activeProperty = propertyObject
+        if self.hasInspectionPanel() and not equal:
+            self._inspectionPanel.setActivePropObj(self._activeProperty)
+            self._inspectionPanel.buildCurrentPropObj()
 
     # Get currently selected/Focused Property
     def getActiveProperty(self):

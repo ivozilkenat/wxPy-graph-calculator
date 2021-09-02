@@ -117,6 +117,7 @@ class StrProperty(Property, StandardCtrl):
     def updateValue(self):
         self.setValue(self._control.GetValue())
 
+#TODO: not fully implemented yet
 class ContainerProperty(Property, StandardCtrl):
     def __init__(self, propertyName, value, updateFunction = None, constant = False):
         assert isinstance(value, (list, tuple, set))
@@ -127,7 +128,7 @@ class ContainerProperty(Property, StandardCtrl):
         pass#TODO: not implemented yet
 
     def updateValue(self):
-        pass
+        pass#TODO: not implemented yet
 
 class PropCategoryDataClass:
     def __init__(self, categoryName: str):
