@@ -1,12 +1,11 @@
-from MyWx.wx import *
 from GraphCalc.Components.Graphical.graphPlanes import GraphicalPanel, Dynamic2DGraphicalPlane
-from GraphCalc.Components.Property.propertyManager import PropertyManager
+from GraphCalc.Components.Property.PropertyManager.propertyManager import PropertyManager
 from GraphCalc.Components.Property.property import PropertyObject, GraphicalPanelObject
 from typing import Union
 
 
 class GraphPropertyManager:
-    _graphPlane: GraphicalPanel
+    _graphPlane: GraphicalPanel #TODO: implement this sort of typing everywhere?
     propertyManager: PropertyManager
 
     def __init__(self, graphPlane : GraphicalPanel, propertyManager : PropertyManager):
@@ -28,11 +27,11 @@ class GraphPropertyManager:
     def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject], show=True): #TODO: decide if to change property here
         self.propertyManager.addPropertyObject(propertyObject)
         if isinstance(propertyObject, GraphicalPanelObject):
-            if show: #<- let this stay?
-                propertyObject.properties["draw"].setValue(True)
-            else:
-                propertyObject.properties["draw"].setValue(False)
             self._graphPlane.addGraphicalObject(propertyObject)
+            if show: #<- let this stay?
+                propertyObject.getProperty("draw").setValue(True)
+            else:
+                propertyObject.getProperty("draw").setValue(False)
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
         self.propertyManager.removePropObject(propertyObject)

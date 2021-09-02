@@ -7,6 +7,7 @@ from typing import Union
 # positions as tuples or individual arguments?
 # add more assertions or further type checking
 # add interactive selection of displayed objects
+# 3 coordinate system
 
 # Baseclass for Base-Panels
 # -> Foundation of every layer-system
@@ -39,7 +40,7 @@ class GraphicalPanel(GenericPanel):
 
     # adds gpo at desired position in layer-stack
     def addGraphicalObject(self, graphicalObject, priorityIndex=None):
-        graphicalObject.basePlane = self
+        graphicalObject.setBasePlane(self)
         if priorityIndex is None:
             self.layers.append(graphicalObject)
         else:

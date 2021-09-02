@@ -43,6 +43,3 @@ def enumerateStep(iterable, stepSize, stepStart=0):
             stepStart += stepSize
         except StopIteration:
             break
-
-# A decorator for methods which allows to calculate the normal index of a negative index if the name
-# of the indexedIterable is given.

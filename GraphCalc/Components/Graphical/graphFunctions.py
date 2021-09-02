@@ -45,7 +45,7 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
 
         self.valueCoeff = 1
 
-        self.properties["name"].setValue("Funktion2D")
+        self.getProperty("name").setValue("Funktion2D")
 
     def calculateValueTuples(self, arguments):
         return [self.func(i) for i in arguments]
@@ -56,11 +56,11 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         p.SetWidth(2)
         deviceContext.SetPen(p)
 
-        valueAmount = abs(int((self.basePlane.db[0] - self.basePlane.db[1]) * self.valueCoeff))
+        valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.valueCoeff))
 
-        arguments = np.linspace(*self.basePlane.db, valueAmount)
+        arguments = np.linspace(*self._basePlane.db, valueAmount)
 
         values = self.calculateValueTuples(arguments)
         for i in range(1, len(arguments)):
-            deviceContext.DrawLine(*self.basePlane.correctPosition(arguments[i - 1], values[i - 1]),
-                                   *self.basePlane.correctPosition(arguments[i], values[i]))
+            deviceContext.DrawLine(*self._basePlane.correctPosition(arguments[i - 1], values[i - 1]),
+                                   *self._basePlane.correctPosition(arguments[i], values[i]))

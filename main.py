@@ -65,10 +65,18 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
 
+        test = Dynamic2DGraphicalPlane(self.workspace.splitter)
+        test.addGraphicalObject(axis)
+
+        self.inspectionPanel.buildCurrentPropObj()
+
+        self.workspace.splitter.ReplaceWindow(self.graphPanel, test)
+
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
         # from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
         # self.workspace._graphicalPlane.addGraphicalObject(CartesianAxes())
+
         self.mainSizer.Add(self.workspace.getSizer(), 1, wx.EXPAND)
         self.SetSizer(self.mainSizer)
 

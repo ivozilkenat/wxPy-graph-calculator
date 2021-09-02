@@ -74,6 +74,9 @@ class ListComponent(SizerComponent):
     def removeComponent(self, component: wx.Window):
         self._components.remove(component)
 
+    def emptyList(self):
+        self._components = list()
+
     def build(self):
         self.clearSizer()
         for i in self._components:
