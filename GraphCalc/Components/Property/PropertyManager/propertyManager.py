@@ -52,7 +52,7 @@ class PropertyManager:
     def setActiveProperty(self, propertyObject: PropertyObject):
         equal = self._activeProperty == propertyObject
         self._activeProperty = propertyObject
-        if self.hasInspectionPanel() and not equal:
+        if self.hasInspectionPanel():# and not equal: todo: <- uncomment
             self._inspectionPanel.setActivePropObj(self._activeProperty)
             self._inspectionPanel.buildCurrentPropObj()
 
