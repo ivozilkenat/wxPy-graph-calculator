@@ -3,16 +3,17 @@ import wx
 from MyWx.wx import *
 from MyWx.Collection.templates import PanelWithHeaderAccordion
 from MyWx.Collection.panels import ListPanel, ListComponent
+from GraphCalc._core._sc import *
 
 from GraphCalc.Components.Property.PropertyManager.propertyInspection import PropInspectionPanel
 from GraphCalc.Components.Property.property import PropertyObject, PropCategoryDataClass
 
 # Panel to Show PropertyObjects by Category
 class PropObjectOverviewPanel(GenericMouseScrollPanel):
-    def __init__(self, manager, inspectionPanel: PropInspectionPanel=None, parent=None):
+    def __init__(self, manager, parent=None):
         super().__init__(parent)
         self._manager = manager
-        self._inspection = inspectionPanel #<- can be None <- bind event handler dynamically
+        self._activePanel = None
         self._categorySizerC = CategoryOverviewComponent(self)
         #TODO: implement ordering
         self.build()
@@ -82,8 +83,6 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         lp.add(panel)
         lp.build()
 
-    def test(self, e: wx.MouseEvent = None):
-        print("click")
 
     def removeFromCategory(self, propertyEntry: PropertyObject):
         assert isinstance(propertyEntry, PropertyObject)
@@ -123,6 +122,20 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
     def categoryNames(self):
         return self._categorySizerC.categoryNames()
 
+    def getPanelOfProperty(self, propertyObj: PropertyObject):
+        for p in self.getPropertyPanels():
+            if propertyObj == p.getPropertyObj():
+                return p
+        return None
+
+    def highlightProperty(self, propertyObj: PropertyObject):
+        panel = self.getPanelOfProperty(propertyObj)
+        if self._activePanel is not None:
+            self._activePanel.SetBackgroundColour(PropertyObjPanel.STD_COLOR)
+        panel.SetBackgroundColour(PropertyObjPanel.SELECT_COLOR)
+        self._activePanel = panel
+        self.Refresh() #<- should this be called here?
+
     # Event handler for propertyObj selection
     def _changeActiveProperty(self, evt: wx.MouseEvent=None):
         txt = evt.GetEventObject()
@@ -161,20 +174,22 @@ class CategoryOverviewComponent(SizerComponent):
 
 # Panel to represent PropertyObjects
 class PropertyObjPanel(GenericPanel):
+    STD_COLOR = (250, 250, 250)
+    SELECT_COLOR = (220, 220, 220) #<- TODO: outsource values
     def __init__(self, parent, propertyObject: PropertyObject, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self._property = propertyObject
-        self.SetBackgroundColour((250, 250, 250))
+        self.SetBackgroundColour(self.STD_COLOR)
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self._text = wx.StaticText(self, label=self._property._properties["name"].getValue(), style=wx.ALIGN_CENTER)
+        self._text = wx.StaticText(self, label=self._property._properties[PROPERTY_NAME].getValue(), style=wx.ALIGN_CENTER)
 
         self.build()
 
     #TODO: should be expanded in the future
     def build(self):
         self._sizer.Clear()
-        name = self._property._properties["name"].getValue()
+        name = self._property._properties[PROPERTY_NAME].getValue()
         self._text.SetLabel(name)
         font = wx.Font(13, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self._text.SetFont(font)

@@ -1,6 +1,7 @@
 import wx
 
 from MyWx.wx import *
+from GraphCalc._core._sc import *
 
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -58,7 +59,7 @@ class StandardCtrl(ABC):
     def callUpdFunc(self, mustUpdate = True):
         if self._updateFunction is None:
             if mustUpdate:
-                raise MyWxException.MissingContent(f"update-function of property has not been specified")
+                raise MyWxException.MissingContent(ERROR_UPDATE_FUNCTION_MISSING)
         else:
             self._updateFunction()
 
@@ -139,9 +140,9 @@ class PropCategoryDataClass:
         return self.name
 
 class PropertyCategory(Enum):
-    FUNCTION = PropCategoryDataClass("Funktionen")
-    SHAPES = PropCategoryDataClass("Formen")
-    NO_CATEGORY = PropCategoryDataClass("Weiteres")
+    FUNCTION = PropCategoryDataClass(PROPERTY_CAT_FUNC)
+    SHAPES = PropCategoryDataClass(PROPERTY_CAT_SHAPE)
+    NO_CATEGORY = PropCategoryDataClass(PROPERTY_CAT_MISC)
 
     # Needed for the object manager to sort by category
     @classmethod
@@ -167,14 +168,13 @@ class PropertyObject(ABC):
         self.setCategory(category)
         self._properties: Dict[str, Property] = {}  # Exchange with priority queue (or not?)
 
-        self.addProperty(StrProperty("name", "NO_NAME", constant=True))  # <- TODO: outsource such constant values
-
+        self.addProperty(StrProperty(PROPERTY_NAME, PROPERTY_NAME_PLACEHOLDER, constant=True))
     def _validPropertyKey(method):
         def inner(object, key, *args, **kwargs):
             try:
                 return method(object, key, *args, **kwargs)
             except KeyError:
-                raise MyWxException.MissingContent(f"Property with name '{key}' does not exist")
+                raise MyWxException.MissingContent(f"Property with name '{key}' does not exist") #todo: <- outource such strings?
         return inner
 
     def addProperty(self, property: Property, override = False):
@@ -231,7 +231,7 @@ class ManagerPropertyObject(PropertyObject, ABC):
 
     def setManager(self, manager):
         self._manager = manager
-        p = self.getProperty("name")
+        p = self.getProperty(PROPERTY_NAME)
         p.setUpdateFunction(self.updateOverviewPanel)
         self.addProperty(p, override=True)
 
@@ -243,9 +243,9 @@ class ManagerPropertyObject(PropertyObject, ABC):
             if self._manager.hasOverviewPanel():
                 return self._manager.getOverviewPanel()
             else:
-                raise MyWxException.MissingContent("propertyManager has not created an inspectionPanel")
+                raise MyWxException.MissingContent(ERROR_MISSING_INSPECTION)
         else:
-            raise MyWxException.MissingContent("propertyManager is not set")
+            raise MyWxException.MissingContent(ERROR_MISSING_PROP_MAN)
 
     def updateOverviewPanel(self):
         self.getOverview().updatePropertyPanels()
@@ -259,7 +259,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def setBasePlane(self, plane):
         self.clear()
         self._basePlane = plane
-        self.addProperty(ToggleProperty("draw", True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))
 
     def refreshBasePlane(self):
         self._basePlane.Refresh()
@@ -270,7 +270,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         def inner(graphicalPanelObject, deviceContext):
             assert isinstance(graphicalPanelObject, GraphicalPanelObject)
 
-            if graphicalPanelObject.getProperty("draw").getValue() is True: #<- standard property
+            if graphicalPanelObject.getProperty(PROPERTY_DRAW).getValue() is True: #<- standard property
                 blitUpdateMethod(graphicalPanelObject, deviceContext)
         return inner
 

@@ -1,0 +1,2 @@
+PROPERTY_NAME = "name"
+PROPERTY_DRAW = "draw"

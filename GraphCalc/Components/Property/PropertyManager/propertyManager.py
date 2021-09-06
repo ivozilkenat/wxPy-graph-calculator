@@ -52,9 +52,11 @@ class PropertyManager:
     def setActiveProperty(self, propertyObject: PropertyObject):
         equal = self._activeProperty == propertyObject
         self._activeProperty = propertyObject
-        if self.hasInspectionPanel():# and not equal: todo: <- uncomment
+        if self.hasInspectionPanel() and not equal:
             self._inspectionPanel.setActivePropObj(self._activeProperty)
             self._inspectionPanel.buildCurrentPropObj()
+        if self.hasOverviewPanel():
+            self._overviewPanel.highlightProperty(propertyObject)
 
     # Get currently selected/Focused Property
     def getActiveProperty(self):
@@ -70,12 +72,8 @@ class PropertyManager:
         return self._overviewPanel, self._inspectionPanel
 
     # Creates a panel which shows a overview of all objects in the propertyManager
-    def createOverviewPanel(self, parent: wx.Window, inspectionPanel = None):
-        if inspectionPanel is None and self._inspectionPanel is not None:
-            inspectionPanel = self._inspectionPanel
-        else:
-            pass #TODO: should something happen if None?
-        self._overviewPanel = PropObjectOverviewPanel(manager=self, inspectionPanel=inspectionPanel, parent=parent)
+    def createOverviewPanel(self, parent: wx.Window):
+        self._overviewPanel = PropObjectOverviewPanel(manager=self, parent=parent)
 
     # Creates a panel which allows to get detailed information about all properties of a PropertyObject
     def createInspectionPanel(self, parent: wx.Window):
@@ -83,9 +81,7 @@ class PropertyManager:
 
     # Combines overview and inspection creation in a more convenient way
     def createOverviewInspectionPanels(self, parent):
-        self.createInspectionPanel(parent=parent)
-        inspection = self._inspectionPanel
-        self.createOverviewPanel(parent=parent, inspectionPanel=inspection), inspection
+        return self.createOverviewPanel(parent=parent), self.createInspectionPanel(parent=parent)
 
     def hasOverviewPanel(self):
         return False if self._overviewPanel is None else True
