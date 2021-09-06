@@ -2,6 +2,7 @@ import wx
 
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
+from MyWx.Collection.format import expanded
 
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Graphical.graphFunctions import GraphFunction2D
@@ -20,7 +21,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # convert assert's into exceptions
 
 class GraphCalculatorApplicationFrame(wx.Frame):
-    version = "0.1.0"
+    version = "0.2.0"
     title = "Ivo's Grafikrechner"
 
     def __init__(self, parent=None, id=wx.ID_ANY, title=""):
@@ -41,9 +42,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.workspace = ThreePanelWorkspace(self)
 
-        self.graphPropertyManager = Dy2DGraphPropertyManager(self)
+        self.graphPropertyManager = Dy2DGraphPropertyManager(self.workspace.splitter)
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
-        self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self)
+        self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self.workspace.splitter)
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.propertyManager.getOverviewInspectionPanels()
 
         self.overviewPanel.createCategory(PropertyCategory.FUNCTION.getName())
@@ -52,25 +53,27 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel.createCategory(PropertyCategory.CUSTOM_CATEGORY("Test").getName())
 
         # TESTING---------------
-        for i in range(2):
+        for i in range(1):
             axis = CartesianAxies()
             p = axis.getProperty("name")
             p.setValue("Cartesian-Plane - " + str(i))
             axis.addProperty(p, override=True)
             self.graphPropertyManager.addPropertyObject(axis)
 
-        print("Properties: ")
-        self.graphPropertyManager.propertyManager.setActiveProperty(axis)
-        #self.inspectionPanel.buildCurrentPropObj()
-        print()
+        addPropertyObjectPanelPlaceholder = RandomPanel(self.workspace.splitter, (0, 100))
+        leftWorkspaceSizer = wx.BoxSizer(wx.VERTICAL)
+
+        leftWorkspaceSizer.Add(addPropertyObjectPanelPlaceholder, 0, wx.EXPAND)
+        leftWorkspaceSizer.Add(self.overviewPanel, 1, wx.EXPAND)
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
-        # from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes
-        # self.workspace._graphicalPlane.addGraphicalObject(CartesianAxes())
+        toolbarPlaceholder = RandomPanel(self, size=(0, 50)) #todo: implement
 
+
+        self.mainSizer.Add(toolbarPlaceholder, 0, wx.EXPAND)
         self.mainSizer.Add(self.workspace.getSizer(), 1, wx.EXPAND)
         self.SetSizer(self.mainSizer)
 

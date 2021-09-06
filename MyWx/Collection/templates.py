@@ -13,31 +13,36 @@ from typing import Tuple
 class ThreePanelWorkspace(SizerTemplate):
     splitter: DynamicMultiSplitter
 
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent,
+                 firstSashPos: int = None,
+                 secondSashPos: int = None,
+                 splitterProportion: Tuple[int, int, int] = (0, 1, 0),
+                 splitterStyle: int = wx.SP_THIN_SASH,
+                *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self._sizer = wx.BoxSizer(wx.HORIZONTAL)
-
-    def build(self,
-              firstSashPos: int = None,
-              secondSashPos: int = None,
-              splitterProportion: Tuple[int, int, int] = (0, 1, 0),
-              splitterStyle: int = wx.SP_THIN_SASH
-              ):
-        self._sizer.Clear()
-        self.splitter = DynamicMultiSplitter(self._parent, style=splitterStyle)
+        self._firstSashPos = firstSashPos
+        self._secondSashPos = secondSashPos
+        self._splitterProportion = splitterProportion
+        self._splitterStyle = splitterStyle
+        self.splitter = DynamicMultiSplitter(self._parent, style=self._splitterStyle)
         self.splitter.SetOrientation(wx.HORIZONTAL)
+
+    def build(self):
+        self._sizer.Clear()
+        self.splitter.detachAllWindows()
 
         for c in self._content:
             self.splitter.AppendWindow(c)
 
-        self.splitter.SetProportions(splitterProportion)
+        self.splitter.SetProportions(self._splitterProportion)
 
-        if firstSashPos is None:
-            firstSashPos = self.splitter.GetWidth() * 0.15
-        if secondSashPos is None:
-            secondSashPos = -self.splitter.GetWidth() * 0.2 #TODO: change this?
-        self.splitter.SetSashAbsPosition(0, firstSashPos)
-        self.splitter.SetSashAbsPosition(1, secondSashPos)
+        if self._firstSashPos is None:
+            self._firstSashPos = self.splitter.GetWidth() * 0.15
+        if self._secondSashPos is None:
+            self._secondSashPos = -self.splitter.GetWidth() * 0.2 #TODO: change this?
+        self.splitter.SetSashAbsPosition(0, self._firstSashPos)
+        self.splitter.SetSashAbsPosition(1, self._secondSashPos)
 
         self._sizer.Add(self.splitter, 1, wx.EXPAND)
 

@@ -267,6 +267,10 @@ class DynamicMultiSplitter(MultiSplitterWindow):
             return True
         return False
 
+    def detachAllWindows(self):
+        for w in self._windows:
+            self.DetachWindow(w)
+
     # Returns the correct index if given index is negative
     def _adjustIndex(self, idx, valueAmount):
         return idx if idx >= 0 else valueAmount + idx
