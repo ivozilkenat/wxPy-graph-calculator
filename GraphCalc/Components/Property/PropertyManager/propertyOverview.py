@@ -21,6 +21,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
     def build(self):
         self.SetSizer(self._categorySizerC.getSizerAndBuild())
 
+    # build and refresh all contained panels
     @GenericMouseScrollPanel.rebuild
     def updatePropertyPanels(self):
         for p in self.getPropertyPanels():
@@ -28,6 +29,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         self.Refresh() #TODO: Is this a hacky solution?
         #TODO: not working correctly, problem with text boxes
 
+    # get all panels that represent property-objects
     def getPropertyPanels(self):
         panels = list()
         for i in self._categorySizerC._categories:
@@ -36,11 +38,22 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
                     panels.append(j)
         return panels
 
+    # get all categorized propertyObjects
+    def getPropertyObjects(self):
+        propObjs = list()
+        for i in self._categorySizerC._categories:
+            if (content := i.getContent()) is not None:
+                for j in content.getComponents():
+                    propObjs.append(j.getPropertyObj())
+        return propObjs
+
+    # add a valid category panel
     @GenericMouseScrollPanel.rebuild
     def addCategoryPanel(self, category: PanelWithHeaderAccordion):
-        assert isinstance(category, PanelWithHeaderAccordion)
+        assert isinstance(category, PanelWithHeaderAccordion) #todo: add further type checking?
         self._categorySizerC.addCategoryComponent(category)
 
+    # remove a valid category panel
     @GenericMouseScrollPanel.rebuild
     def removeCategoryPanel(self, category: PanelWithHeaderAccordion):
         assert isinstance(category, PanelWithHeaderAccordion)
@@ -83,7 +96,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         lp.add(panel)
         lp.build()
 
-
+    # remove property-object
     def removeFromCategory(self, propertyEntry: PropertyObject):
         assert isinstance(propertyEntry, PropertyObject)
         catName = propertyEntry.getCategory().getName()
@@ -95,6 +108,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
                 lp.build()
                 return
 
+    # set position of category
     @GenericMouseScrollPanel.rebuild
     def setCategoryIndex(self, categoryName, newPos):
         assert categoryName in self.categoryNames()
@@ -113,21 +127,26 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
             return True
         return False
 
+    # get all categories (accordion panels)
     def getCategories(self):
         return self._categorySizerC._categories
 
+    # get a dict of all category names and their according content
     def categoryNameDict(self) -> Dict[str, PanelWithHeaderAccordion]:
         return self._categorySizerC.categoryNameDict()
 
+    # get all category names
     def categoryNames(self):
         return self._categorySizerC.categoryNames()
 
+    # get the panel of a specified property-object
     def getPanelOfProperty(self, propertyObj: PropertyObject):
         for p in self.getPropertyPanels():
             if propertyObj == p.getPropertyObj():
                 return p
         return None
 
+    # highlight a specified property-object
     def highlightProperty(self, propertyObj: PropertyObject):
         panel = self.getPanelOfProperty(propertyObj)
         if self._activePanel is not None:
@@ -155,20 +174,24 @@ class CategoryOverviewComponent(SizerComponent):
         for c in self._categories:
             self._sizer.Add(c.getSizer(), 0, wx.EXPAND | wx.BOTTOM, 5)  # border ?
 
+    # add new category as accordion panel
     def addCategoryComponent(self, accordionPanel: PanelWithHeaderAccordion):
         assert isinstance(accordionPanel, PanelWithHeaderAccordion)
         if accordionPanel.getLabelTxt() in self.categoryNames():
             raise MyWxException.AlreadyExists(f"Category of name '{accordionPanel.getLabelTxt()}' already exists")
         self._categories.append(accordionPanel)
 
+    # remove an existing category
     def removeCategoryComponent(self, accordionPanel: PanelWithHeaderAccordion):
         assert isinstance(accordionPanel, PanelWithHeaderAccordion)
         self._categories.remove(accordionPanel)
         accordionPanel.destroy()
 
+    # get all category names
     def categoryNames(self):
         return [i.getLabelTxt() for i in self._categories]
 
+    # get all category names and their represented accordion panel
     def categoryNameDict(self):
         return {i.getLabelTxt(): i for i in self._categories}
 

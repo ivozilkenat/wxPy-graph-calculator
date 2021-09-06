@@ -26,22 +26,27 @@ class PropertyManager:
 
         # Extend the PropertyManager-class to fit desired needs, e.g. Graph Plane
 
+    # get all managed property-objects
     def getPropertyObjects(self):
         return self._propertyObjects
 
-    def addPropertyObject(self, propertyObject: PropertyObject):
+    # add property object / if initialized add property-object to the overview panel
+    def addPropertyObject(self, propertyObject: PropertyObject, addToOverview = True):
         assert isinstance(propertyObject, PropertyObject)
         self._propertyObjects.add(propertyObject)
         propertyObject.setManager(self)
-        if self._overviewPanel is not None:
+        if self._overviewPanel is not None and addToOverview is True:
             self._overviewPanel.addToCategory(propertyObject)
 
+    # remove property object / if initialized remove property-object from overview panel
     def removePropObject(self, propertyObject: PropertyObject):
         assert isinstance(propertyObject, PropertyObject)
         self._propertyObjects.remove(propertyObject)
         if self._overviewPanel is not None:
-            self._overviewPanel.removeFromCategory(propertyObject)
+            if propertyObject in self._overviewPanel.getPropertyObjects():
+                self._overviewPanel.removeFromCategory(propertyObject)
 
+    # get dict of categories and their property-objects
     def getPropertiesByCategory(self):
         categoryDic = PropertyCategory.categoryDict()
         for p in self._propertyObjects:
@@ -62,12 +67,15 @@ class PropertyManager:
     def getActiveProperty(self):
         return self._activeProperty
 
+    # get overview-panel
     def getOverviewPanel(self):
         return self._overviewPanel
 
+    # get inspection-panel
     def getInspectionPanel(self):
         return self._inspectionPanel
 
+    # get tuple of overview and inspection panel
     def getOverviewInspectionPanels(self):
         return self._overviewPanel, self._inspectionPanel
 
@@ -83,11 +91,10 @@ class PropertyManager:
     def createOverviewInspectionPanels(self, parent):
         return self.createOverviewPanel(parent=parent), self.createInspectionPanel(parent=parent)
 
+    # check if overview panel has been initialized
     def hasOverviewPanel(self):
         return False if self._overviewPanel is None else True
 
+    # check if inspection panel has been initialized
     def hasInspectionPanel(self):
         return False if self._inspectionPanel is None else True
-
-
-

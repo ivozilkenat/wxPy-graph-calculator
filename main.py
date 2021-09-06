@@ -59,7 +59,6 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             axis.addProperty(p, override=True)
             self.graphPropertyManager.addPropertyObject(axis)
 
-
         print("Properties: ")
         self.graphPropertyManager.propertyManager.setActiveProperty(axis)
         #self.inspectionPanel.buildCurrentPropObj()
@@ -67,7 +66,6 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
         self.workspace.build()
-
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
         # from GraphCalc.Components.Graphical.graphUtilities import CartesianAxes

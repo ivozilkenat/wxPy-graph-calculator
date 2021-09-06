@@ -5,7 +5,6 @@ from typing import Tuple, List, Dict, Any
 
 from MyWx.Collection._core.error import MyWxException
 
-
 # Extends the wx.Panel-Class and grants a bit of genericity
 class GenericPanel(wx.Panel):
     # can *args be placed after keyword argument?
@@ -17,7 +16,6 @@ class GenericPanel(wx.Panel):
         self._parent: wx.Window = parent
 
     # A decorator which rebuilds the panel, if wrapped method is called
-    @staticmethod
     def rebuild(method):
         def inner(obj, *args, **kwargs):
             assert isinstance(obj, GenericPanel)
@@ -43,7 +41,7 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
 
     # A decorator which rebuilds the panel, if wrapped method is called
     #TODO: is it possible to add @rebuild
-    @staticmethod
+
     def rebuild(method):
         def inner(obj, *args, **kwargs):
             assert isinstance(obj, GenericMouseScrollPanel)
@@ -89,7 +87,6 @@ class SizerComponent(ABC):
         return inner
 
     # Wrap method to rebuild and live-update layout of parent (used for user interaction)
-    @staticmethod
     def rebuildAndLayout(method):
         def inner(obj, *args, **kwargs):
             assert isinstance(obj, SizerComponent)

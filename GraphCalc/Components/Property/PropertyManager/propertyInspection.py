@@ -1,11 +1,10 @@
-import wx
-
 from MyWx.wx import *
 from MyWx.Collection.panels import ListComponent
 from MyWx.Collection.format import expanded
 
 from GraphCalc.Components.Property.property import PropertyObject
-# Panel to show Properties
+
+# Panel to further inspect properties of PropertyObject
 class PropInspectionPanel(GenericPanel):
     def __init__(self, manager, parent=None, size=None):
         super().__init__(parent=parent, size=size)
@@ -16,13 +15,16 @@ class PropInspectionPanel(GenericPanel):
 
         self.SetSizer(expanded(self._contentPanel))
 
+    # Set currently inspected object
     def setActivePropObj(self, propertyObj: PropertyObject):
         assert isinstance(propertyObj, PropertyObject)
         self._inspectedObj = propertyObj
 
+    # create inspection panel based on the currently inspected object
     def buildCurrentPropObj(self):
         self.buildByPropObj(self._inspectedObj)
 
+    # build inspection panel by a property-object
     def buildByPropObj(self, propertyObj: PropertyObject):
         #TODO: How to sort property objects / How to update property objects / flickers a bit when builidng
         self._contentPanel.Show(False) #<- prevents unwanted overlapping of elements while object is build
