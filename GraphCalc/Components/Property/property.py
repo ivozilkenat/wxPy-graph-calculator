@@ -5,7 +5,7 @@ from GraphCalc._core._sc import *
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Dict, TypeVar, Set
+from typing import Dict, TypeVar, Union
 
 # Probably unnecessary / Maybe nest Property-classes
 class Property(ABC):
@@ -224,7 +224,7 @@ class PropertyObject(ABC):
 #TODO: This class and derived do not account for manager changing and thereby if any property is added dynamically,
 #       they wont update the correct manager if manager is changed -> sol: 1. add support 2. disable dynamic properties
 class ManagerPropertyObject(PropertyObject, ABC):
-    def __init__(self, category: PropCategoryDataClass, manager=None):
+    def __init__(self, category: Union[PropCategoryDataClass, PropertyCategory], manager=None):
         super().__init__(category)
         self._manager = manager  # TODO: Is this sensible
 

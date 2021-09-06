@@ -19,6 +19,8 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # overhaul all classes and adjust for new superclass, like genericPanel and its global parent implementation
 # add *args, **kwargs
 # convert assert's into exceptions
+# rework function system -> optimize
+# allow prompt interaction
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.2.0"
@@ -41,10 +43,14 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.workspace = ThreePanelWorkspace(self)
+        self.rightWorkspacePanel = GenericPanel(self.workspace.splitter)
+        self.rightWorkspacePanelSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.graphPropertyManager = Dy2DGraphPropertyManager(self.workspace.splitter)
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
-        self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self.workspace.splitter)
+        #self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self.workspace.splitter)
+        self.graphPropertyManager.propertyManager.createOverviewPanel(self.workspace.splitter)
+        self.graphPropertyManager.propertyManager.createInspectionPanel(self.rightWorkspacePanel)
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.propertyManager.getOverviewInspectionPanels()
 
         self.overviewPanel.createCategory(PropertyCategory.FUNCTION.getName())
@@ -60,13 +66,17 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             axis.addProperty(p, override=True)
             self.graphPropertyManager.addPropertyObject(axis)
 
-        addPropertyObjectPanelPlaceholder = RandomPanel(self.workspace.splitter, (0, 100))
-        leftWorkspaceSizer = wx.BoxSizer(wx.VERTICAL)
+        self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x))
 
-        leftWorkspaceSizer.Add(addPropertyObjectPanelPlaceholder, 0, wx.EXPAND)
-        leftWorkspaceSizer.Add(self.overviewPanel, 1, wx.EXPAND)
+        graphToolPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
+        inputPromptPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
 
-        self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.inspectionPanel)
+        self.rightWorkspacePanelSizer.Add(self.inspectionPanel, 10, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.rightWorkspacePanelSizer.Add(graphToolPlaceholder, 11, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.rightWorkspacePanelSizer.Add(inputPromptPlaceholder, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.rightWorkspacePanel.SetSizer(self.rightWorkspacePanelSizer)
+
+        self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.rightWorkspacePanel)
         self.workspace.build()
         #self.workspace.splitter.SetMinimumPaneSize(100)
 

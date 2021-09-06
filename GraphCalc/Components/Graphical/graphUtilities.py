@@ -1,12 +1,12 @@
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import GraphicalPanelObject, ToggleProperty
+from GraphCalc.Components.Property.property import GraphicalPanelObject, ToggleProperty, PropertyCategory
 from GraphCalc._core.utilities import multiplesInInterval
 
 
 class CartesianAxies(GraphicalPanelObject):
     def __init__(self):
-        super().__init__()
+        super().__init__(category=PropertyCategory.NO_CATEGORY)
 
         self.getProperty("name").setValue("Cartesian Coordinate-System")
 

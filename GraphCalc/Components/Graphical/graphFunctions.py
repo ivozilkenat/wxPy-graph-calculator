@@ -1,5 +1,7 @@
 from MyWx.wx import *
 
+from GraphCalc.Components.Property.property import PropertyCategory
+
 import numpy as np
 from GraphCalc.Components.Property.property import GraphicalPanelObject
 
@@ -38,7 +40,8 @@ class DefinitionArea():
 
 class GraphFunction2D(GraphicalPanelObject, MathFunction):
     def __init__(self, functionAsLambda, definitionArea=None):
-        super().__init__(functionAsLambda)
+        MathFunction.__init__(self, functionAsLambda)
+        GraphicalPanelObject.__init__(self, category=PropertyCategory.FUNCTION)
 
         self.func = functionAsLambda
         self.definitionArea = definitionArea

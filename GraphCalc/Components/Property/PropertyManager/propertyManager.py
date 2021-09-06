@@ -80,12 +80,12 @@ class PropertyManager:
         return self._overviewPanel, self._inspectionPanel
 
     # Creates a panel which shows a overview of all objects in the propertyManager
-    def createOverviewPanel(self, parent: wx.Window):
-        self._overviewPanel = PropObjectOverviewPanel(manager=self, parent=parent)
+    def createOverviewPanel(self, parent: wx.Window, **panelKwargs):
+        self._overviewPanel = PropObjectOverviewPanel(manager=self, parent=parent, **panelKwargs)
 
     # Creates a panel which allows to get detailed information about all properties of a PropertyObject
-    def createInspectionPanel(self, parent: wx.Window):
-        self._inspectionPanel = PropInspectionPanel(manager=self, parent=parent)
+    def createInspectionPanel(self, parent: wx.Window, **panelKwargs):
+        self._inspectionPanel = PropInspectionPanel(manager=self, parent=parent, **panelKwargs)
 
     # Combines overview and inspection creation in a more convenient way
     def createOverviewInspectionPanels(self, parent):

@@ -133,11 +133,14 @@ class PanelWithHeader(SizerTemplate):
 
 # Expansion of PanelWithHeader to allow for tabbing (minimize, maximize content)
 class PanelWithHeaderAccordion(PanelWithHeader):
-    def __init__(self, parent=None, headline="Headline", *args, **kwargs):
+    def __init__(self, parent=None, headline="Headline", startOpen = True, *args, **kwargs):
         super().__init__(parent, headline=headline, *args, **kwargs)
+        self._startOpen = startOpen
 
     def build(self):
         super().build()
+        if not self._startOpen:
+            self._onClick()
         self._txt.Bind(wx.EVT_LEFT_UP, self._onClick)
 
     def setContent(self, content):
