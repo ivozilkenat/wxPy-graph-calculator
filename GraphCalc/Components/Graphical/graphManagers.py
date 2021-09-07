@@ -1,3 +1,7 @@
+import wx
+
+from MyWx.wx import *
+
 from GraphCalc.Components.Graphical.graphPlanes import GraphicalPanel, Dynamic2DGraphicalPlane
 from GraphCalc.Components.Property.PropertyManager.propertyManager import PropertyManager
 from GraphCalc.Components.Property.property import PropertyObject, GraphicalPanelObject
@@ -38,7 +42,38 @@ class GraphPropertyManager:
         if isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.removeGraphicalObject(propertyObject)
 
-
+# Defines interface between graphPlane and properties -> allows for graphical operations etc.
 class Dy2DGraphPropertyManager(GraphPropertyManager):
     def __init__(self, parent):
         super().__init__(graphPlane=Dynamic2DGraphicalPlane(parent), propertyManager=PropertyManager())
+
+
+
+# Panel for adding property objects
+class PropertyAddPanel(GenericPanel):
+    def __init__(self, manager, parent=None, size=None):
+        super().__init__(parent=parent, size=size)
+        self._manager = manager
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self.SetBackgroundColour((255, 255, 255))
+
+        self.build()
+
+    def build(self):
+        self._sizer.Clear()
+        notebook = wx.Notebook(self)
+
+        self._expressionPanel = GenericPanel(notebook)
+        self._expressionPanel.SetBackgroundColour((255, 0, 0))
+        self._shapePanel = GenericPanel(notebook)
+        self._shapePanel.SetBackgroundColour((0, 255, 0))
+        self._otherPanel = GenericPanel(notebook)
+        self._otherPanel.SetBackgroundColour((0, 0, 255))
+
+        notebook.AddPage(self._expressionPanel, text="Expression")
+        notebook.AddPage(self._shapePanel, text="Shape")
+        notebook.AddPage(self._otherPanel, text="Other")
+
+        self._sizer.Add(notebook, 1, wx.EXPAND)
+
+        self.SetSizer(self._sizer)

@@ -7,7 +7,7 @@ from MyWx.Collection.format import expanded
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Graphical.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
-from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
+from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager, PropertyAddPanel
 from GraphCalc.Components.Property.property import PropertyObject, PropertyCategory
 
 from MyWx.Collection.templates import ThreePanelWorkspace
@@ -21,6 +21,8 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # convert assert's into exceptions
 # rework function system -> optimize
 # allow prompt interaction
+# add graph information below
+# add context menu
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.2.0"
@@ -43,13 +45,17 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.workspace = ThreePanelWorkspace(self)
+
+        self.leftWorkspacePanel = GenericPanel(self.workspace.splitter)
+        self.leftWorkspacePanelSizer = wx.BoxSizer(wx.VERTICAL)
+
         self.rightWorkspacePanel = GenericPanel(self.workspace.splitter)
         self.rightWorkspacePanelSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.graphPropertyManager = Dy2DGraphPropertyManager(self.workspace.splitter)
+        self.graphPropertyManager = Dy2DGraphPropertyManager(self.workspace.splitter) #<- move parent into getter method
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
         #self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self.workspace.splitter)
-        self.graphPropertyManager.propertyManager.createOverviewPanel(self.workspace.splitter)
+        self.graphPropertyManager.propertyManager.createOverviewPanel(self.leftWorkspacePanel)
         self.graphPropertyManager.propertyManager.createInspectionPanel(self.rightWorkspacePanel)
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.propertyManager.getOverviewInspectionPanels()
 
@@ -67,6 +73,13 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             self.graphPropertyManager.addPropertyObject(axis)
 
         self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x))
+        self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x**2*0.005))
+
+        self.addPropertyPanel = PropertyAddPanel(self.graphPropertyManager, self.leftWorkspacePanel) #<- define as special control / also other controls that effect manager
+
+        self.leftWorkspacePanelSizer.Add(self.addPropertyPanel, 1, wx.EXPAND | wx.TOP, 5)
+        self.leftWorkspacePanelSizer.Add(self.overviewPanel, 3, wx.EXPAND | wx.TOP, 5)
+        self.leftWorkspacePanel.SetSizer(self.leftWorkspacePanelSizer)
 
         graphToolPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
         inputPromptPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
@@ -76,7 +89,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.rightWorkspacePanelSizer.Add(inputPromptPlaceholder, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.rightWorkspacePanel.SetSizer(self.rightWorkspacePanelSizer)
 
-        self.workspace.setWindows(self.overviewPanel, self.graphPanel, self.rightWorkspacePanel)
+        self.leftWorkspacePanel.SetBackgroundColour((255, 255, 255))
+        self.rightWorkspacePanel.SetBackgroundColour((100, 100, 100))
+        self.workspace.setWindows(self.leftWorkspacePanel, self.graphPanel, self.rightWorkspacePanel)
         self.workspace.build()
         #self.workspace.splitter.SetMinimumPaneSize(100)
 
@@ -89,6 +104,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
     def _bindHandlers(self):
         self.Bind(wx.EVT_CLOSE, self._onFrameClose)
+        self.graphPanel.Bind(wx.EVT_RIGHT_DOWN, self._onRightDownGraph)
 
     def _buildBars(self):
         # Make a file menu with Hello and Exit items
@@ -129,19 +145,23 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.CreateStatusBar()
         self.SetStatusText("Wer das ließt kann lesen")
 
-    def _onExit(self, event):
+    def _onExit(self, evt = None):
         """Close the frame, terminating the application."""
         self.Close(True)
 
-    def _onHello(self, event):
+    def _onHello(self, evt = None):
         """Say hello to the user."""
         wx.MessageBox("Hello again from wxPython")
 
-    def _onAbout(self, event):
+    def _onAbout(self, evt = None):
         """Display an About Dialog"""
         wx.MessageBox("This is a wxPython Hello World sample",
                       "About Hello World 2",
                       wx.OK | wx.ICON_INFORMATION)
+
+    def _onRightDownGraph(self, evt = None): #todo: doesnt work yet correctly
+        self.PopupMenu(ContextMenu(self), evt.GetPosition())
+        evt.Skip()
 
     def _onFrameClose(self, evt: wx.CloseEvent = None):
         if False:
@@ -151,6 +171,26 @@ class GraphCalculatorApplicationFrame(wx.Frame):
                 pass
         self.Destroy()
 
+
+class ContextMenu(wx.Menu):
+    def __init__(self, parent):
+        super().__init__()
+        self._parent = parent
+
+        mmi = wx.MenuItem(self, wx.ID_ANY, 'Minimize')
+        self.Append(mmi)
+        self.Bind(wx.EVT_MENU, self._onMinimize, mmi)
+
+        cmi = wx.MenuItem(self, wx.ID_ANY, 'Close')
+        self.Append(cmi)
+        self.Bind(wx.EVT_MENU, self._onClose, cmi)
+
+    def _onMinimize(self, evt = None):
+        self._parent.Iconize()
+
+    def _onClose(self, evt = None):
+        self._parent._onFrameClose()
+        #self._parent.Close()
 
 if __name__ == "__main__":
     app = wx.App(False)

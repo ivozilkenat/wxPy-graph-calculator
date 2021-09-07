@@ -36,7 +36,6 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
         else:
             super().__init__(parent=parent, size=size, *args, **kwargs)
         self._parent = parent
-
         self.Bind(wx.EVT_PAINT, self._setUpScrolling)
 
     # A decorator which rebuilds the panel, if wrapped method is called
@@ -56,7 +55,8 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
 
     def _setUpScrolling(self, evt=None):
         self.FitInside()
-        self.SetScrollRate(0, 10)
+        #self.SetScrollbars(20, 20, 50, 50)
+        self.SetScrollRate(0, 10) # todo: remove
         evt.Skip()
 
 # Base class for classes which represent a sizer abstraction

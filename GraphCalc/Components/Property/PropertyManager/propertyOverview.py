@@ -15,6 +15,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         self._manager = manager
         self._activePanel = None
         self._categorySizerC = CategoryOverviewComponent(self)
+        self.SetBackgroundColour((250, 250, 250))
         #TODO: implement ordering
         self.build()
 

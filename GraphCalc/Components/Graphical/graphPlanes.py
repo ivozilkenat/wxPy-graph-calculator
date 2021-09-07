@@ -64,8 +64,10 @@ class GraphicalPanel(GenericPanel):
             dc.Clear()
 
             for object in self.layers:
-                object.blitUpdate(dc)
-
+                r = object.blitUpdate(dc)
+                # Performance testing
+                # if r is not None: #todo: remove this
+                #     print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
     # self.bitmap.ConvertToImage().SaveFile("test.png", wx.BITMAP_TYPE_PNG)
     # dc = wx.BufferedPaintDC(self, self.bitmap)
     # dc.DrawBitmap(self.bitmap, 0, 0)

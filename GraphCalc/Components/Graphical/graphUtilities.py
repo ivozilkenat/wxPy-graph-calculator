@@ -16,6 +16,9 @@ class CartesianAxies(GraphicalPanelObject):
         self.addProperty(ToggleProperty("draw_sub_axis", True, updateFunction=self.refreshBasePlane))
         self.addProperty(ToggleProperty("draw_main_axis", True, updateFunction=self.refreshBasePlane))
 
+        for i in range(10):
+            self.addProperty(ToggleProperty(str(i), True)) #todo: remove this
+
     # blitUpdate must be implemented correctly (currently with old deviceContext logic for prototyping)
     # -> new version utilises blit from basePlane
     @GraphicalPanelObject.standardProperties

@@ -25,13 +25,12 @@ def absPathsFromDir(dirName):
 
 
 def timeMethod(method):
-    def inner(object, stopTime=True, **kwargs):
+    def inner(object, *args, stopTime=True, **kwargs):
         if stopTime:
             start = timeit.default_timer()
-            return method(object, **kwargs), timeit.default_timer() - start
+            return method(object, *args, **kwargs), timeit.default_timer() - start
         else:
-            return method(object, **kwargs), None
-
+            return method(object, *args, **kwargs), None
     return inner
 
 

@@ -1,9 +1,10 @@
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import PropertyCategory
+from GraphCalc.Components.Property.property import PropertyCategory, GraphicalPanelObject
+from GraphCalc._core.utilities import timeMethod
 
 import numpy as np
-from GraphCalc.Components.Property.property import GraphicalPanelObject
+
 
 
 # Current implementation only for testing purposes / lacks optimization
@@ -46,17 +47,19 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         self.func = functionAsLambda
         self.definitionArea = definitionArea
 
-        self.valueCoeff = 1
+        self.valueCoeff = 0.3
 
         self.getProperty("name").setValue("Funktion2D")
 
+    @timeMethod
     def calculateValueTuples(self, arguments):
         return [self.func(i) for i in arguments]
 
+    @timeMethod #todo: remove this
     @GraphicalPanelObject.standardProperties
     def blitUpdate(self, deviceContext):
         p = wx.Pen(wx.Colour((255, 0, 0)))
-        p.SetWidth(2)
+        p.SetWidth(3)
         deviceContext.SetPen(p)
 
         valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.valueCoeff))
@@ -64,6 +67,8 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         arguments = np.linspace(*self._basePlane.db, valueAmount)
 
         values = self.calculateValueTuples(arguments)
+
+        values = values[0]
         for i in range(1, len(arguments)):
             deviceContext.DrawLine(*self._basePlane.correctPosition(arguments[i - 1], values[i - 1]),
                                    *self._basePlane.correctPosition(arguments[i], values[i]))

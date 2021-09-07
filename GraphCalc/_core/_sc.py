@@ -16,5 +16,7 @@ ERROR_UPDATE_FUNCTION_MISSING = "update-function of property has not been specif
 ERROR_MISSING_INSPECTION = "propertyManager has not created an inspectionPanel"
 ERROR_MISSING_PROP_MAN = "propertyManager is not set"
 
+# Colors
+
 # Miscellaneous
 
