@@ -6,7 +6,7 @@ from MyWx.Collection.format import expanded
 
 from GraphCalc.Components.Property.PropertyManager.propertyOverview import PropObjectOverviewPanel
 from GraphCalc.Components.Property.PropertyManager.propertyInspection import PropInspectionPanel
-from GraphCalc.Components.Property.property import PropertyObject, ManagerPropertyObject, PropertyCategory, PropCategoryDataClass
+from GraphCalc.Components.Property.property import PropertyObject, ManagerPropertyObject, PropertyObjCategory, PropCategoryDataClass
 
 from typing import Set
 
@@ -48,7 +48,7 @@ class PropertyManager:
 
     # get dict of categories and their property-objects
     def getPropertiesByCategory(self):
-        categoryDic = PropertyCategory.categoryDict()
+        categoryDic = PropertyObjCategory.categoryDict()
         for p in self._propertyObjects:
             categoryDic[p.getCategory()].append(p)
         return categoryDic

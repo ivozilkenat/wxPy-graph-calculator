@@ -8,7 +8,7 @@ from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Graphical.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager, PropertyAddPanel
-from GraphCalc.Components.Property.property import PropertyObject, PropertyCategory
+from GraphCalc.Components.Property.property import PropertyObject, PropertyObjCategory
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 
@@ -59,10 +59,10 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPropertyManager.propertyManager.createInspectionPanel(self.rightWorkspacePanel)
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.propertyManager.getOverviewInspectionPanels()
 
-        self.overviewPanel.createCategory(PropertyCategory.FUNCTION.getName())
-        self.overviewPanel.createCategory(PropertyCategory.SHAPES.getName())
-        self.overviewPanel.createCategory(PropertyCategory.NO_CATEGORY.getName())
-        self.overviewPanel.createCategory(PropertyCategory.CUSTOM_CATEGORY("Test").getName())
+        self.overviewPanel.createCategory(PropertyObjCategory.FUNCTION.getName())
+        self.overviewPanel.createCategory(PropertyObjCategory.SHAPES.getName())
+        self.overviewPanel.createCategory(PropertyObjCategory.NO_CATEGORY.getName())
+        self.overviewPanel.createCategory(PropertyObjCategory.CUSTOM_CATEGORY("Test").getName())
 
         # TESTING---------------
         for i in range(1):

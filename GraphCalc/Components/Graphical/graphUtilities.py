@@ -1,23 +1,35 @@
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import GraphicalPanelObject, ToggleProperty, PropertyCategory
+from GraphCalc.Components.Property.property import ListProperty, GraphicalPanelObject, ToggleProperty, PropertyObjCategory
 from GraphCalc._core.utilities import multiplesInInterval
 
 
 class CartesianAxies(GraphicalPanelObject):
     def __init__(self):
-        super().__init__(category=PropertyCategory.NO_CATEGORY)
+        super().__init__(category=PropertyObjCategory.NO_CATEGORY)
 
         self.getProperty("name").setValue("Cartesian Coordinate-System")
 
     def setBasePlane(self, plane):
         # Properties must be set here, since update function requires panel
+        # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
+        self.getProperty("selectable").setValue(False)
         self.addProperty(ToggleProperty("draw_sub_axis", True, updateFunction=self.refreshBasePlane))
         self.addProperty(ToggleProperty("draw_main_axis", True, updateFunction=self.refreshBasePlane))
-
-        for i in range(10):
-            self.addProperty(ToggleProperty(str(i), True)) #todo: remove this
+        c = self.getProperty("color")
+        c.setValue((0, 0, 0, 255))
+        c.setUpdateFunction(self.refreshBasePlane)
+        self.addProperty(c, override=True)
+        self.addProperty(
+            ListProperty(
+                "color_sub_axis",
+                (122, 122, 122, 255),
+                fixedFieldAmount=4,
+                validityFunction=lambda x: 0 <= x <= 255,
+                updateFunction=self.refreshBasePlane
+            )
+        )
 
     # blitUpdate must be implemented correctly (currently with old deviceContext logic for prototyping)
     # -> new version utilises blit from basePlane
@@ -31,7 +43,7 @@ class CartesianAxies(GraphicalPanelObject):
     def drawSubAxis(self, deviceContext, axisPixelDistance):
         # deviceContext = self.basePlane.memoryDc
 
-        p = wx.Pen(wx.Colour((128, 128, 128)))
+        p = wx.Pen(wx.Colour(self.getProperty("color_sub_axis").getValue()))
         p.SetWidth(1)
         deviceContext.SetPen(p)
         xSubAxis = multiplesInInterval(axisPixelDistance, self._basePlane.db)
@@ -46,7 +58,7 @@ class CartesianAxies(GraphicalPanelObject):
     def drawMainAxis(self, deviceContext):
         # deviceContext = self.basePlane.memoryDc
 
-        p = wx.Pen(wx.Colour((0, 0, 0)))
+        p = wx.Pen(wx.Colour(self.getProperty("color").getValue()))
         p.SetWidth(3)
         deviceContext.SetPen(p)
         if self._basePlane.db[0] < 0 < self._basePlane.db[1]:

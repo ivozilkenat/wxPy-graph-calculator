@@ -1,8 +1,9 @@
 import wx
 
 from MyWx.wx import *
+from GraphCalc.Components.Property.property import GraphicalPanelObject
 
-from typing import Union
+from typing import Union, Tuple
 
 # positions as tuples or individual arguments?
 # add more assertions or further type checking
@@ -192,13 +193,17 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     def objectBelowMouse(self, relativePos):
         dc = wx.ClientDC(self)
-        color = dc.GetPixel(*relativePos)
-        for object, color in self.objectColors():
-            print(object, color)
+        pixColor = dc.GetPixel(*relativePos)
+        for object, objColor in self.objectColors():
+
+            if pixColor == objColor and object.getProperty("selectable").getValue():
+                print(object)
+                self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+
+                return
 
 
-    def objectColors(self):
+    def objectColors(self) -> Tuple[GraphicalPanelObject, Tuple[int, int, int, int]]:
         for o in self.layers:
-            print(o)
-            yield o, o.getProperty("color").getValue()
+            yield o, tuple(o.getProperty("color").getValue())
 

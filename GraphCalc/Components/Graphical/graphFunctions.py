@@ -1,6 +1,6 @@
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import PropertyCategory, GraphicalPanelObject
+from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject
 from GraphCalc._core.utilities import timeMethod
 
 import numpy as np
@@ -42,7 +42,7 @@ class DefinitionArea():
 class GraphFunction2D(GraphicalPanelObject, MathFunction):
     def __init__(self, functionAsLambda, definitionArea=None):
         MathFunction.__init__(self, functionAsLambda)
-        GraphicalPanelObject.__init__(self, category=PropertyCategory.FUNCTION)
+        GraphicalPanelObject.__init__(self, category=PropertyObjCategory.FUNCTION)
 
         self.func = functionAsLambda
         self.definitionArea = definitionArea

@@ -60,11 +60,17 @@ class PropertyCtrl(Property, ABC):
     def validInput(self, inputData):
         pass
 
-    def setValidValue(self, value):
+    def setValidValue(self, value, raiseInvalidTypeError = False):
         if self._validityFunction is not None:
-            if not self._validityFunction(value):
-                self._control.SetValue(self._inputBeforeValidation)
-                return False
+            try:
+                if not self._validityFunction(value):
+                    self._control.SetValue(self._inputBeforeValidation)
+                    return False
+            except TypeError:
+                if raiseInvalidTypeError:
+                    raise TypeError("the validity function has received an invalid argument type")
+                else:
+                    return False
         else:
             self.setValue(value)
             self._inputBeforeValidation = self._control.GetValue()
@@ -140,7 +146,7 @@ class StrProperty(PropertyCtrl):
     def updateValue(self):
         self.setValidValue(self._control.GetValue())
 
-#TODO: not fully implemented yet
+
 class ListProperty(PropertyCtrl):
     DELIMITER = ";"
     def __init__(self,
@@ -158,22 +164,28 @@ class ListProperty(PropertyCtrl):
         self._fieldType = fixedType
 
         if not self.validInput(self._value):
-            raise ValueError(f"the initial value of '{self._value}' does not fit the requirements (e.g. field-amount or fixed-type)")
+            raise ValueError(f"the initial value of '{self._value}' does not fit the requirements (e.g. field-amount, fixed-type or validity-function)")
 
     def getCtrl(self, parent):
         self._control = wx.TextCtrl(parent=parent, value=self.type2StringFormat(), style=wx.TE_PROCESS_ENTER)
         self._control.Bind(wx.EVT_TEXT_ENTER, self.update)
         return self._control
 
-    def validInput(self, inputData):
+    def validInput(self, inputData, raiseInvalidTypeError = False):
         if self._fieldAmount is not None and self._fieldAmount != len(inputData):
             return False
         if self._fieldType != None:
             if any([type(i) != self._fieldType for i in inputData]):
                 return False
         if self._validityFunction is not None:
-            if any([not self._validityFunction(i) for i in inputData]):
-                return False
+            try:
+                if any([not self._validityFunction(i) for i in inputData]):
+                    return False
+            except TypeError:
+                if raiseInvalidTypeError:
+                    raise TypeError("the validity function has received an invalid argument type")
+                else:
+                    return False
         return True
 
     # special override for this class (does not use setValidValue directly)
@@ -212,7 +224,7 @@ class PropCategoryDataClass:
     def getName(self):
         return self.name
 
-class PropertyCategory(Enum):
+class PropertyObjCategory(Enum):
     FUNCTION = PropCategoryDataClass(PROPERTY_CAT_FUNC)
     SHAPES = PropCategoryDataClass(PROPERTY_CAT_SHAPE)
     NO_CATEGORY = PropCategoryDataClass(PROPERTY_CAT_MISC)
@@ -277,7 +289,7 @@ class PropertyObject(ABC):
         return self._category
 
     def setCategory(self, category):
-        assert isinstance(category, (PropCategoryDataClass, PropertyCategory))
+        assert isinstance(category, (PropCategoryDataClass, PropertyObjCategory))
         if isinstance(category, PropCategoryDataClass):
             self._category = category
         else:
@@ -297,7 +309,7 @@ class PropertyObject(ABC):
 #TODO: This class and derived do not account for manager changing and thereby if any property is added dynamically,
 #       they wont update the correct manager if manager is changed -> sol: 1. add support 2. disable dynamic properties
 class ManagerPropertyObject(PropertyObject, ABC):
-    def __init__(self, category: Union[PropCategoryDataClass, PropertyCategory], manager=None):
+    def __init__(self, category: Union[PropCategoryDataClass, PropertyObjCategory], manager=None):
         super().__init__(category)
         self._manager = manager  # TODO: Is this sensible
         self._show = True
@@ -332,7 +344,7 @@ class ManagerPropertyObject(PropertyObject, ABC):
 
 # Baseclass for graphical objects, which lie on top of a base panel
 class GraphicalPanelObject(ManagerPropertyObject, ABC):
-    def __init__(self, basePlane=None, category=PropertyCategory.NO_CATEGORY):
+    def __init__(self, basePlane=None, category=PropertyObjCategory.NO_CATEGORY):
         super().__init__(category=category)
         self._basePlane = basePlane
 
@@ -340,9 +352,18 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         self.clear()
         self._basePlane = plane
         self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))
-        self.addProperty(ToggleProperty("Selectable", True, updateFunction=self.refreshBasePlane))
-        self.addProperty(ListProperty("Color", (255, 0, 0, 0), fixedFieldAmount=4,  updateFunction=self.refreshBasePlane)) #todo custom control for color / custom property class
-        # todo: add new color property, this is only a placeholder until then
+        self.addProperty(ToggleProperty("selectable", True, updateFunction=self.refreshBasePlane))
+        self.addProperty(
+            ListProperty(
+                "color",
+                (255, 0, 0, 255), #<- everything will be colored red if not specified
+                fixedFieldAmount=4,
+                validityFunction= lambda x: 0 <= x <= 255,
+                updateFunction=self.refreshBasePlane
+            )
+        )
+        #todo -custom control for color / custom property class
+        #     -->add new color property, this is only a placeholder until then
 
     def refreshBasePlane(self):
         self._basePlane.Refresh()
