@@ -6,7 +6,7 @@ from MyWx.Collection.format import expanded
 
 from GraphCalc.Components.Property.PropertyManager.propertyOverview import PropObjectOverviewPanel
 from GraphCalc.Components.Property.PropertyManager.propertyInspection import PropInspectionPanel
-from GraphCalc.Components.Property.property import PropertyObject, Property, PropertyCategory, PropCategoryDataClass
+from GraphCalc.Components.Property.property import PropertyObject, ManagerPropertyObject, PropertyCategory, PropCategoryDataClass
 
 from typing import Set
 
@@ -32,10 +32,10 @@ class PropertyManager:
 
     # add property object / if initialized add property-object to the overview panel
     def addPropertyObject(self, propertyObject: PropertyObject, addToOverview = True):
-        assert isinstance(propertyObject, PropertyObject)
+        assert isinstance(propertyObject, ManagerPropertyObject)
         self._propertyObjects.add(propertyObject)
         propertyObject.setManager(self)
-        if self._overviewPanel is not None and addToOverview is True:
+        if self._overviewPanel is not None and addToOverview is True and not propertyObject.isHidden():
             self._overviewPanel.addToCategory(propertyObject)
 
     # remove property object / if initialized remove property-object from overview panel

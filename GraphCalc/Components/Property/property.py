@@ -29,13 +29,20 @@ class Property(ABC):
         return self._name
 
 # Superclass for property extension
-class StandardCtrl(ABC):
-    def __init__(self, updateFunction = None, constant = False):
+class PropertyCtrl(Property, ABC):
+    def __init__(self, propertyName, value, updateFunction = None, validityFunction = None, constant = False):
+        super().__init__(propertyName, value)
         self._parameters: Dict = None
         self._updateFunction: callable = updateFunction
         self._control = None
+        self._validityFunction: callable= validityFunction
+        self._inputBeforeValidation = None
+
         # Constant properties should not update something, that will be deleted!!! TODO: change implementation?
         self._constant: bool = constant # If a property is constant it won't be removed (only a hint, could be implemented differently)
+
+        self.__getCtrl = self.getCtrl
+        self.getCtrl = self.__getCtrlWrapper
 
     # Every child class must defined how the standard control is build
     @abstractmethod
@@ -50,6 +57,20 @@ class StandardCtrl(ABC):
     def setUpdateFunction(self, callable):
         self._updateFunction = callable
 
+    def validInput(self, inputData):
+        pass
+
+    def setValidValue(self, value):
+        if self._validityFunction is not None:
+            if not self._validityFunction(value):
+                self._control.SetValue(self._inputBeforeValidation)
+                return False
+        else:
+            self.setValue(value)
+            self._inputBeforeValidation = self._control.GetValue()
+            return True
+
+
     # Define how control changes updated other dependencies
     def update(self, evt = None):
         self.updateValue()
@@ -63,6 +84,11 @@ class StandardCtrl(ABC):
         else:
             self._updateFunction()
 
+    def __getCtrlWrapper(self, parent):
+        r = self.__getCtrl(parent)
+        self._inputBeforeValidation = r.GetValue() # Set standardized value
+        return r
+
     def isConstant(self):
         return self._constant
 
@@ -72,11 +98,10 @@ class StandardCtrl(ABC):
 
 # implement logic for bounds of properties / further implement necessary logic
 
-class ToggleProperty(Property, StandardCtrl):
+class ToggleProperty(PropertyCtrl):
     def __init__(self, propertyName, value, updateFunction = None, constant = False):
         assert isinstance(value, bool)
-        Property.__init__(self, propertyName, value)
-        StandardCtrl.__init__(self, updateFunction, constant)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction, constant=constant)
 
     def getCtrl(self, parent):
         #del self._control #<- must control be deleted?
@@ -88,12 +113,10 @@ class ToggleProperty(Property, StandardCtrl):
     def updateValue(self):
         self.setValue(self._control.GetValue())
 
-
-class NumProperty(Property, StandardCtrl):
-    def __init__(self, propertyName, value, updateFunction = None, constant = False):
+class NumProperty(PropertyCtrl):
+    def __init__(self, propertyName, value, updateFunction = None, validityFunction=None, constant = False):
         assert isinstance(value, (float, int))
-        Property.__init__(self, propertyName, value)
-        StandardCtrl.__init__(self, updateFunction, constant)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction, validityFunction=validityFunction, constant=constant)
 
     def getCtrl(self, parent):
         self._control = wx.SpinCtrl(parent=parent, min=0, initial=self.getValue())
@@ -101,14 +124,13 @@ class NumProperty(Property, StandardCtrl):
         return self._control
 
     def updateValue(self):
-        self.setValue(self._control.GetValue())# TODO: Not Tested
+        self.setValidValue(self._control.GetValue())# TODO: Not Tested
 
 
-class StrProperty(Property, StandardCtrl):
-    def __init__(self, propertyName, value, updateFunction = None, constant = False):
+class StrProperty(PropertyCtrl):
+    def __init__(self, propertyName, value, updateFunction = None, validityFunction=None, constant = False):
         assert isinstance(value, str)
-        Property.__init__(self, propertyName, value)
-        StandardCtrl.__init__(self, updateFunction, constant)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction, validityFunction=validityFunction, constant=constant)
 
     def getCtrl(self, parent):
         self._control = wx.TextCtrl(parent=parent, value=self.getValue(), style=wx.TE_PROCESS_ENTER) #TODO: Add character limit or change PropertyObjectPanel dynamically
@@ -116,20 +138,71 @@ class StrProperty(Property, StandardCtrl):
         return self._control
 
     def updateValue(self):
-        self.setValue(self._control.GetValue())
+        self.setValidValue(self._control.GetValue())
 
 #TODO: not fully implemented yet
-class ContainerProperty(Property, StandardCtrl):
-    def __init__(self, propertyName, value, updateFunction = None, constant = False):
-        assert isinstance(value, (list, tuple, set))
-        Property.__init__(self, propertyName, value)
-        StandardCtrl.__init__(self, updateFunction, constant)
+class ListProperty(PropertyCtrl):
+    DELIMITER = ";"
+    def __init__(self,
+                 propertyName,
+                 value,
+                 fixedFieldAmount = None,
+                 fixedType: type = None,
+                 updateFunction = None,
+                 validityFunction=None,
+                 constant = False):
+        assert isinstance(value, (list, tuple, set)) #<- automatically converts into list
+        super().__init__(propertyName=propertyName, value=list(value), updateFunction=updateFunction, validityFunction=validityFunction, constant=constant)  # types are not respected afterwards (int as string, will be converted to only int)
+        self._fieldAmount = fixedFieldAmount
+        assert fixedType is None or fixedType is str or fixedType is int or fixedType is float
+        self._fieldType = fixedType
+
+        if not self.validInput(self._value):
+            raise ValueError(f"the initial value of '{self._value}' does not fit the requirements (e.g. field-amount or fixed-type)")
 
     def getCtrl(self, parent):
-        pass#TODO: not implemented yet
+        self._control = wx.TextCtrl(parent=parent, value=self.type2StringFormat(), style=wx.TE_PROCESS_ENTER)
+        self._control.Bind(wx.EVT_TEXT_ENTER, self.update)
+        return self._control
 
+    def validInput(self, inputData):
+        if self._fieldAmount is not None and self._fieldAmount != len(inputData):
+            return False
+        if self._fieldType != None:
+            if any([type(i) != self._fieldType for i in inputData]):
+                return False
+        if self._validityFunction is not None:
+            if any([not self._validityFunction(i) for i in inputData]):
+                return False
+        return True
+
+    # special override for this class (does not use setValidValue directly)
     def updateValue(self):
-        pass#TODO: not implemented yet
+        if self.validInput((data := self.string2TypeFormat())):
+            self.setValue(data)
+            self._inputBeforeValidation = self._control.GetValue()
+            return True
+        else:
+            self._control.SetValue(self._inputBeforeValidation)
+            return False
+
+    def type2StringFormat(self):
+        return self.DELIMITER.join(map(str, self._value))
+
+    def string2TypeFormat(self):
+        content = self._control.GetValue()
+        data = filter(None, content.split(self.DELIMITER))
+        return list(map(self._correctType, data))
+
+    # todo: good implementation?
+    def _correctType(self, string: str):
+        try:
+            return int(string)
+        except ValueError:
+            try:
+                return float(string)
+            except ValueError:
+                return string
 
 class PropCategoryDataClass:
     def __init__(self, categoryName: str):
@@ -227,6 +300,7 @@ class ManagerPropertyObject(PropertyObject, ABC):
     def __init__(self, category: Union[PropCategoryDataClass, PropertyCategory], manager=None):
         super().__init__(category)
         self._manager = manager  # TODO: Is this sensible
+        self._show = True
 
 
     def setManager(self, manager):
@@ -250,6 +324,12 @@ class ManagerPropertyObject(PropertyObject, ABC):
     def updateOverviewPanel(self):
         self.getOverview().updatePropertyPanels()
 
+    def show(self, state:bool=True):
+        self._show = state
+
+    def isHidden(self):
+        return not self._show
+
 # Baseclass for graphical objects, which lie on top of a base panel
 class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def __init__(self, basePlane=None, category=PropertyCategory.NO_CATEGORY):
@@ -260,6 +340,9 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         self.clear()
         self._basePlane = plane
         self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty("Selectable", True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ListProperty("Color", (255, 0, 0, 0), fixedFieldAmount=4,  updateFunction=self.refreshBasePlane)) #todo custom control for color / custom property class
+        # todo: add new color property, this is only a placeholder until then
 
     def refreshBasePlane(self):
         self._basePlane.Refresh()

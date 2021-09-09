@@ -17,16 +17,16 @@ class GraphicalPanel(GenericPanel):
         # self.bitmap = None
         # self.memoryDc = None
 
-        self.Bind(wx.EVT_SIZE, self.resize)
-        self.Bind(wx.EVT_PAINT, self.onPaint)  # Difference EVT_Paint, etc.
-        self.Bind(wx.EVT_MOTION, self.mouseMotion)
-        self.Bind(wx.EVT_LEFT_UP, self.leftMouseUp)
-        self.Bind(wx.EVT_LEAVE_WINDOW, self.leftMouseUp)
-        self.Bind(wx.EVT_MOUSEWHEEL, self.mousewheel)
+        self.Bind(wx.EVT_SIZE, self._resize)
+        self.Bind(wx.EVT_PAINT, self._onPaint)  # Difference EVT_Paint, etc.
+        self.Bind(wx.EVT_MOTION, self._mouseMotion)
+        self.Bind(wx.EVT_LEFT_UP, self._leftMouseUp)
+        self.Bind(wx.EVT_LEAVE_WINDOW, self._leftMouseUp)
+        self.Bind(wx.EVT_MOUSEWHEEL, self._mousewheel)
 
         self.layers = list()  # Exchange with priority queue
 
-        self.SetDoubleBuffered(True)
+        #self.SetDoubleBuffered(True)
 
         self.backgroundColor = (255, 255, 255)
 
@@ -49,28 +49,10 @@ class GraphicalPanel(GenericPanel):
     def removeGraphicalObject(self, graphicalObject):
         self.layers.remove(graphicalObject)
 
-    def onPaint(self, event=None):
+    def _onPaint(self, event=None):
         """
         OnPaint-Event-Receiver
         """
-        if not 0 in self.GetSize():
-            self.updatePlaneData()
-            # self.bitmap = wx.Bitmap(*self.GetSize())
-            # self.memoryDc = wx.MemoryDC(self.bitmap)
-            # self.memoryDc.SetBackground(wx.Brush((255, 255, 255)))
-            # self.memoryDc.Clear() # <- why is this necessary
-            dc = wx.BufferedPaintDC(self, wx.Bitmap(*self.GetSize()))
-            dc.SetBackground(wx.Brush(self.backgroundColor))
-            dc.Clear()
-
-            for object in self.layers:
-                r = object.blitUpdate(dc)
-                # Performance testing
-                # if r is not None: #todo: remove this
-                #     print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
-    # self.bitmap.ConvertToImage().SaveFile("test.png", wx.BITMAP_TYPE_PNG)
-    # dc = wx.BufferedPaintDC(self, self.bitmap)
-    # dc.DrawBitmap(self.bitmap, 0, 0)
 
     # Predefined Event-Receivers (design must be approved of)
     def updatePlaneData(self, event=None):
@@ -79,26 +61,26 @@ class GraphicalPanel(GenericPanel):
         """
         pass
 
-    def mouseMotion(self, event=None):
+    def _mouseMotion(self, event=None):
         """
         Mouse motion receiver
         Updates position of origin and refreshes frame
         """
         pass
 
-    def mousewheel(self, event=None):
+    def _mousewheel(self, event=None):
         """
         Mousewheel movement receiver
         """
         pass
 
-    def leftMouseUp(self, event=None):
+    def _leftMouseUp(self, event=None):
         """
         Left mouse button released receiver
         """
         pass
 
-    def resize(self, event=None):
+    def _resize(self, event=None):
         """
         Plane is resized receiver
         """
@@ -124,8 +106,14 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.Px2LEx = 20 / 1  # 20px on the x-axis correspond to 1LE
         self.Px2LEy = 20 / 1  # 20px on the y-axis correspond to 1LE
 
+        self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
+
+        #self.SetDoubleBuffered(True)
+
+        #self.Bind(wx.EVT_LEFT_DOWN, self._leftMouseDown)
+
     # Update of all important class members
-    def updatePlaneData(self, event=None):
+    def updatePlaneData(self, evt=None):
         self.w, self.h = self.GetSize()  # must be of parent (must be changed for more dynamic behaviour)
         self.origin = (self.origin[0] + self.originUpdate[0], self.origin[1] + self.originUpdate[1])
         self.originUpdate = (0, 0)
@@ -133,28 +121,49 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.db = (oX - 1 / 2 * self.w, oX + 1 / 2 * self.w)  # Definition-Classes
         self.wb = (oY - 1 / 2 * self.h, oY + 1 / 2 * self.h)
 
-    # OnPaint event receiver
-    # def onPaint(self, event = None):
-    # 	# Add logic to eliminate redundant blit-calls
-    # 	# Bitmap logic must be implemented to prevent flickering and lower drawing costs
-    # 	self.updatePlaneData()
-    # 	dc = wx.PaintDC(self)
-    # 	for object in self.layers:
-    # 		object.blitUpdate(dc)
+    def _onPaint(self, evt=None):
+        if 0 not in self.GetSize():
+
+            self.updatePlaneData()
+
+            dc = wx.BufferedPaintDC(self)
+            dc.SetBackground(wx.Brush(self.backgroundColor))
+            dc.Clear()
+
+
+            for object in self.layers:
+                r = object.blitUpdate(dc)
+                # Performance testing
+                if r is not None: #todo: remove this
+                    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+
+                    # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
+                    # draw time is mainly caused by bad graphical object optimization
+
 
     # Mousewheel event receiver (zooming)
-    def mousewheel(self, event=None):
+    def _mousewheel(self, evt=None):
         pass
 
+    # def _leftMouseDown(self, evt=None):
+    #     print("left down")
+
     # Resets mouseBefore-Status for dragging
-    def leftMouseUp(self, event=None):
+    def _leftMouseUp(self, evt=None):
         self.mouseBefore = None
 
     # Adjusts origin shift in proportion to mouse movement
-    def mouseMotion(self, event: wx.MouseEvent=None):
+    def _mouseMotion(self, event: wx.MouseEvent=None): #todo: rename, since handles also left clicks
+
+        relPos = event.GetPosition()
+        self.objectBelowMouse(relPos)
+
+        #if propertyObjectAt(position of mouse):
+        #   change mouse cursor
+        #   event left down? -> select object as currently selected?
+
         self.mouseCounter += 1  # <- current fix to reduce drawCalls when mouseMotion is received
         if self.mouseCounter > 5:  # <- spurious fix / could be adjusted for stepwise scaling
-
             if event.Dragging() and event.leftIsDown:
                 self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
                 mX, mY = event.GetPosition()
@@ -179,3 +188,17 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     # Calculates correct deviation
     def correctPosition(self, x, y):
         return self._centerPosition(*self._adjustedOriginPointPos(x, y))
+
+
+    def objectBelowMouse(self, relativePos):
+        dc = wx.ClientDC(self)
+        color = dc.GetPixel(*relativePos)
+        for object, color in self.objectColors():
+            print(object, color)
+
+
+    def objectColors(self):
+        for o in self.layers:
+            print(o)
+            yield o, o.getProperty("color").getValue()
+
