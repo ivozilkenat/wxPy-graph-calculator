@@ -115,7 +115,6 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.hovered = None
         self.active = None
 
-
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
         #self.SetDoubleBuffered(True)
@@ -140,12 +139,14 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             dc.SetBackground(wx.Brush(self.backgroundColor))
             dc.Clear()
 
+            self.colorManager.idBitmap = wx.Bitmap(*self.GetSize())
+            mdc = wx.MemoryDC(self.colorManager.idBitmap)
 
             for object in self.layers:
-                r = object.blitUpdate(dc)
+                r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object))
                 # Performance testing
-                if r is not None: #todo: remove this
-                    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+                # if r is not None: #todo: remove this
+                #     print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
 
                     # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
                     # draw time is mainly caused by bad graphical object optimization
@@ -214,35 +215,66 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         return self._centerPosition(*self._adjustedOriginPointPos(x, y))
 
     # change parent class to adjust for color restriction when adding objects
-    def addGraphicalObject(self, graphicalObject, priorityIndex=None, **kwargs):
-        graphicalObject.setBasePlane(self)
-        if self.colorManager.colorOfObjectExists(graphicalObject):
-            return False
-        else:
-            super().addGraphicalObject(graphicalObject, priorityIndex, setBasePlane=False)
-            return True
+    def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):
+        super().addGraphicalObject(graphicalObject, priorityIndex, setBasePlane)
+        self.colorManager.addIdObject(graphicalObject)
 
     def objectBelowPos(self, relativePos):
-        dc = wx.ClientDC(self)
-        pixColor = dc.GetPixel(*relativePos)
-        for object, objColor in self.colorManager.objectColors():
-            if pixColor == objColor and object.getProperty("selectable").getValue():
+        if (bmap := self.colorManager.idBitmap) is None:
+            return
+        dc = wx.MemoryDC(bmap)
+        pixColor = dc.GetPixel(*relativePos)[:3]
+        for object, objId in self.colorManager.objectColorsId():
+            if pixColor == objId and object.getProperty("selectable").getValue():
                 return object
 
+    def highlight(self, graphObject: GraphicalPanelObject):
+        pass #todo: implement this
 
 # todo: use alternative system with a second bitmap which uses id's for all objects
-from typing import Set, Tuple
+# creates id's based on colors -> id 1: (1, 0, 0), ... (allows for 255^3 (=16'581'375)combinations, more than enough)
+# todo: implement and optimize
 # Component of graphical Panel
 class PlaneColorHandler:
+    NONE_ID = (0, 0, 0)
     def __init__(self, plane):
-        self._plane = plane
+        self._colorIds = dict()
+        self._idCounter = 0
+
+        self.idBitmap = None
+
+    # def updateIds(self):
+    #     pass
+
+    def idOfObject(self, graphObject: GraphicalPanelObject):
+        return self._colorIds[graphObject]
+
+    def addIdObject(self, graphObject: GraphicalPanelObject):
+        newId = self.createColorId()
+        self._colorIds[graphObject] = newId
+
+    def removeIdObject(self, graphObject: GraphicalPanelObject):
+        del self._colorIds[graphObject]
+
+    def createColorId(self):
+        c = self._idCounter
+
+        #None id should be excluded
+        newId = (c, 255, 0)#TODO think of a valid system of generation these numbers
+
+        self._idCounter += 1
+        return newId
 
     def objectColors(self) -> Tuple[GraphicalPanelObject, Tuple[int, int, int, int]]:
-        for o in self._plane.layers:
+        for o in self._colorIds:
             yield o, tuple(o.getProperty("color").getValue())
 
+    def objectColorsId(self):
+        for o in self._colorIds:
+            yield o, self._colorIds[o]
+
     def getColors(self) -> Tuple[int, int, int, int]:
-        for o in self._plane.layers:
+        for o in self._colorIds:
             yield tuple(o.getProperty("color").getValue())
 
     def colorExists(self, color: Tuple[int, int, int, int]):

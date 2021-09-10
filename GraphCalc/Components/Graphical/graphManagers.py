@@ -46,7 +46,11 @@ class GraphPropertyManager:
 class Dy2DGraphPropertyManager(GraphPropertyManager):
     def __init__(self, parent):
         super().__init__(graphPlane=Dynamic2DGraphicalPlane(parent), propertyManager=PropertyManager())
+        self._graphPlane._setActiveObj = self._setActiveObj
+        # Is this a good implementation?
 
+    def _setActiveObj(self, object):
+        self.propertyManager.setActiveProperty(object)
 
 
 # Panel for adding property objects

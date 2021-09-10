@@ -3,6 +3,8 @@ import wx
 from MyWx.wx import *
 from GraphCalc._core._sc import *
 
+from GraphCalc._core.utilities import timeMethod
+
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Dict, TypeVar, Union
@@ -342,11 +344,16 @@ class ManagerPropertyObject(PropertyObject, ABC):
     def isHidden(self):
         return not self._show
 
+#todo: is it possible to restrict access to change the pen color?
+#       create new class for id system
+
 # Baseclass for graphical objects, which lie on top of a base panel
 class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def __init__(self, basePlane=None, category=PropertyObjCategory.NO_CATEGORY):
         super().__init__(category=category)
         self._basePlane = basePlane
+
+        self._colorOverride = None # mandatory for id system
 
     def setBasePlane(self, plane):
         self.clear()
@@ -356,8 +363,8 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         self.addProperty(
             ListProperty(
                 "color",
-                (255, 0, 0, 255), #<- everything will be colored red if not specified
-                fixedFieldAmount=4,
+                (255, 0, 0), #<- everything will be colored red if not specified
+                fixedFieldAmount=3,
                 validityFunction= lambda x: 0 <= x <= 255, # function will be applied onto every single value
                 updateFunction=self.refreshBasePlane
             )
@@ -369,16 +376,43 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         self._basePlane.Refresh()
 
     # Decorator for blitUpdateMethod to use standardized properties
-    @staticmethod
-    def standardProperties(blitUpdateMethod):
-        def inner(graphicalPanelObject, deviceContext):
+    def standardProperties(blitUpdateMethod: callable):
+        def inner(graphicalPanelObject, deviceContext, **kwargs):
             assert isinstance(graphicalPanelObject, GraphicalPanelObject)
-
             if graphicalPanelObject.getProperty(PROPERTY_DRAW).getValue() is True: #<- standard property
-                blitUpdateMethod(graphicalPanelObject, deviceContext)
+                blitUpdateMethod(graphicalPanelObject, deviceContext, **kwargs)
         return inner
 
-    # Called by basePlane if redraw is necessary
+    # Called by basePlane if redraw is necessary (Pen Color should never be changed inside)
     @abstractmethod
-    def blitUpdate(self, deviceContext):
+    def blitUpdate(self, deviceContext, needValueUpdate = True, **kwargs):
         pass
+
+
+    # Id-System methods
+
+    @timeMethod
+    # A function to allow "drawing" of id's <- actually could be implemented es extra extension of class
+    # only works if functions called by blitUpdate use drawPropertyColor-decorator-else invalid id will be drawn to bitmap todo: fix?
+    #mandatory for id system
+    def blitUpdateCopy(self, deviceContext, memoryDeviceContext, idColor):
+        self.blitUpdate(deviceContext)
+        self._colorOverride = idColor
+        self.blitUpdate(memoryDeviceContext)
+        self._colorOverride = None
+
+    # wraps any deviceContext draw method to handle color selection
+    # mandatory for id-system #todo: what would could go wrong in this implementation
+    def drawPropertyColor(nameOfColorProperty: str):
+        def _draw(drawMethod: callable):
+            def _inner(graphObject, deviceContext, *args, **kwargs):
+                assert isinstance(graphObject, GraphicalPanelObject)
+                if graphObject._colorOverride is None:
+                    color = graphObject.getProperty(nameOfColorProperty).getValue()
+                else:
+                    color = graphObject._colorOverride
+                p = wx.Pen(wx.Colour(color))
+                deviceContext.SetPen(p)
+                drawMethod(graphObject, deviceContext, *args, **kwargs)
+            return _inner
+        return _draw

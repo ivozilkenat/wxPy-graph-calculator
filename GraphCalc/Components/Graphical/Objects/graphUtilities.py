@@ -18,14 +18,14 @@ class CartesianAxies(GraphicalPanelObject):
         self.addProperty(ToggleProperty("draw_sub_axis", True, updateFunction=self.refreshBasePlane))
         self.addProperty(ToggleProperty("draw_main_axis", True, updateFunction=self.refreshBasePlane))
         c = self.getProperty("color")
-        c.setValue((0, 0, 0, 255))
+        c.setValue((0, 0, 0))
         c.setUpdateFunction(self.refreshBasePlane)
         self.addProperty(c, override=True)
         self.addProperty(
             ListProperty(
                 "color_sub_axis",
-                (122, 122, 122, 255),
-                fixedFieldAmount=4,
+                (122, 122, 122),
+                fixedFieldAmount=3,
                 validityFunction=lambda x: 0 <= x <= 255,
                 updateFunction=self.refreshBasePlane
             )
@@ -34,16 +34,15 @@ class CartesianAxies(GraphicalPanelObject):
     # blitUpdate must be implemented correctly (currently with old deviceContext logic for prototyping)
     # -> new version utilises blit from basePlane
     @GraphicalPanelObject.standardProperties
-    def blitUpdate(self, deviceContext):  # TODO: update base class
+    def blitUpdate(self, deviceContext, **kwargs):  # TODO: update base class
         if self.getProperty("draw_sub_axis").getValue() is True:
             self.drawSubAxis(deviceContext, 50)
         if self.getProperty("draw_main_axis").getValue() is True:
             self.drawMainAxis(deviceContext)
 
+    @GraphicalPanelObject.drawPropertyColor("color_sub_axis")
     def drawSubAxis(self, deviceContext, axisPixelDistance):
-        # deviceContext = self.basePlane.memoryDc
-
-        p = wx.Pen(wx.Colour(self.getProperty("color_sub_axis").getValue()))
+        p = deviceContext.GetPen()
         p.SetWidth(1)
         deviceContext.SetPen(p)
         xSubAxis = multiplesInInterval(axisPixelDistance, self._basePlane.db)
@@ -55,10 +54,10 @@ class CartesianAxies(GraphicalPanelObject):
             _, y = self._basePlane.correctPosition(0, y)
             deviceContext.DrawLine(0, y, self._basePlane.w, y)
 
+    @GraphicalPanelObject.drawPropertyColor("color")
     def drawMainAxis(self, deviceContext):
         # deviceContext = self.basePlane.memoryDc
-
-        p = wx.Pen(wx.Colour(self.getProperty("color").getValue()))
+        p = deviceContext.GetPen()
         p.SetWidth(3)
         deviceContext.SetPen(p)
         if self._basePlane.db[0] < 0 < self._basePlane.db[1]:

@@ -49,26 +49,33 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
 
         self.valueCoeff = 0.3
 
+        self.valueAmount = None
+        self.arguments = None
+        self.values = None
+
+
         self.getProperty("name").setValue("Funktion2D")
 
-    @timeMethod
     def calculateValueTuples(self, arguments):
         return [self.func(i) for i in arguments]
 
-    @timeMethod #todo: remove this
+    def calculateData(self):
+        self.valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.valueCoeff))
+        self.arguments = np.linspace(*self._basePlane.db, self.valueAmount)
+        self.values = self.calculateValueTuples(self.arguments)
+
     @GraphicalPanelObject.standardProperties
-    def blitUpdate(self, deviceContext):
-        p = wx.Pen(wx.Colour(self.getProperty("color").getValue()))
+    def blitUpdate(self, deviceContext, **kwargs):
+        # a lot of redundant calculation, since everything is done twice
+        # todo: due to new structure, values should only be recalculated if updated is needed
+        self.calculateData()
+        self.draw(deviceContext)
+
+    @GraphicalPanelObject.drawPropertyColor("color")
+    def draw(self, deviceContext):
+        p = deviceContext.GetPen()
         p.SetWidth(3)
         deviceContext.SetPen(p)
-
-        valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.valueCoeff))
-
-        arguments = np.linspace(*self._basePlane.db, valueAmount)
-
-        values = self.calculateValueTuples(arguments)
-
-        values = values[0]
-        for i in range(1, len(arguments)):
-            deviceContext.DrawLine(*self._basePlane.correctPosition(arguments[i - 1], values[i - 1]),
-                                   *self._basePlane.correctPosition(arguments[i], values[i]))
+        for i in range(1, len(self.arguments)):
+            deviceContext.DrawLine(*self._basePlane.correctPosition(self.arguments[i - 1], self.values[i - 1]),
+                                   *self._basePlane.correctPosition(self.arguments[i], self.values[i]))
