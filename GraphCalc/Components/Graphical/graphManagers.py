@@ -50,7 +50,7 @@ class Dy2DGraphPropertyManager(GraphPropertyManager):
         # Is this a good implementation?
 
     def _setActiveObj(self, object):
-        self.propertyManager.setActiveProperty(object)
+        self.propertyManager.setActiveProperty(object) #todo: potential bugs?
 
 
 # Panel for adding property objects
