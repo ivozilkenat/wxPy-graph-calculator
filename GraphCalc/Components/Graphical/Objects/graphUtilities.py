@@ -31,6 +31,9 @@ class CartesianAxies(GraphicalPanelObject):
             )
         )
 
+    #todo: add update function as paramter, so values are not newly calculated if id draw is happenening
+
+
     # blitUpdate must be implemented correctly (currently with old deviceContext logic for prototyping)
     # -> new version utilises blit from basePlane
     @GraphicalPanelObject.standardProperties
