@@ -58,7 +58,7 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
     @timeMethod #todo: remove this
     @GraphicalPanelObject.standardProperties
     def blitUpdate(self, deviceContext):
-        p = wx.Pen(wx.Colour((255, 0, 0)))
+        p = wx.Pen(wx.Colour(self.getProperty("color").getValue()))
         p.SetWidth(3)
         deviceContext.SetPen(p)
 

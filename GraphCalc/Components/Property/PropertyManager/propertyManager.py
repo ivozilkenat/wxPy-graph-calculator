@@ -1,17 +1,11 @@
-import wx
-
 from MyWx.wx import *
-from MyWx.Collection._core import error, wxUtilities
-from MyWx.Collection.format import expanded
 
 from GraphCalc.Components.Property.PropertyManager.propertyOverview import PropObjectOverviewPanel
 from GraphCalc.Components.Property.PropertyManager.propertyInspection import PropInspectionPanel
-from GraphCalc.Components.Property.property import PropertyObject, ManagerPropertyObject, PropertyObjCategory, PropCategoryDataClass
+from GraphCalc.Components.Property.property import PropertyObject, ManagerPropertyObject, PropertyObjCategory
 
 from typing import Set
 
-from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
-from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
 
 #TODO: -allow for sorting of properties and categorize them
 

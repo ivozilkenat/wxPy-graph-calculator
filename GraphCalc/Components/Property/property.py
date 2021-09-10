@@ -81,7 +81,7 @@ class PropertyCtrl(Property, ABC):
     def update(self, evt = None):
         self.updateValue()
         self.callUpdFunc(mustUpdate=False)
-        evt.Skip()
+        #Skip must not be called on enter
 
     def callUpdFunc(self, mustUpdate = True):
         if self._updateFunction is None:
@@ -317,7 +317,7 @@ class ManagerPropertyObject(PropertyObject, ABC):
 
     def setManager(self, manager):
         self._manager = manager
-        p = self.getProperty(PROPERTY_NAME)
+        p = self.getProperty(PROPERTY_NAME) # standard property
         p.setUpdateFunction(self.updateOverviewPanel)
         self.addProperty(p, override=True)
 
@@ -351,17 +351,17 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def setBasePlane(self, plane):
         self.clear()
         self._basePlane = plane
-        self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))
-        self.addProperty(ToggleProperty("selectable", True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane)) # standard property
+        self.addProperty(ToggleProperty("selectable", True, updateFunction=self.refreshBasePlane))  # standard property
         self.addProperty(
             ListProperty(
                 "color",
                 (255, 0, 0, 255), #<- everything will be colored red if not specified
                 fixedFieldAmount=4,
-                validityFunction= lambda x: 0 <= x <= 255,
+                validityFunction= lambda x: 0 <= x <= 255, # function will be applied onto every single value
                 updateFunction=self.refreshBasePlane
             )
-        )
+        ) # standard property
         #todo -custom control for color / custom property class
         #     -->add new color property, this is only a placeholder until then
 

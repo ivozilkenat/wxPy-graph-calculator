@@ -1,14 +1,10 @@
-import wx
-
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
-from MyWx.Collection.format import expanded
 
-from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
-from GraphCalc.Components.Graphical.graphFunctions import GraphFunction2D
-from GraphCalc.Components.Graphical.graphUtilities import CartesianAxies
+from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
+from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager, PropertyAddPanel
-from GraphCalc.Components.Property.property import PropertyObject, PropertyObjCategory
+from GraphCalc.Components.Property.property import PropertyObjCategory
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 

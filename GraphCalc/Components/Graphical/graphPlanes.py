@@ -40,8 +40,9 @@ class GraphicalPanel(GenericPanel):
     #TODO: Change layer into a propertyObject to manage object order
 
     # adds gpo at desired position in layer-stack
-    def addGraphicalObject(self, graphicalObject, priorityIndex=None):
-        graphicalObject.setBasePlane(self)
+    def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):
+        if setBasePlane:
+            graphicalObject.setBasePlane(self)
         if priorityIndex is None:
             self.layers.append(graphicalObject)
         else:
@@ -92,10 +93,14 @@ class GraphicalPanel(GenericPanel):
 # implement highlighting
 # getRect of plane
 
-# 2D-Base-Plane
+#todo: must have a color handler
+
+# Interactive 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):
     def __init__(self, parent, size=None):
         super().__init__(parent=parent, size=size)
+        self.colorManager = PlaneColorHandler(self)
+
         self.mouseBefore = None
         self.origin = (0, 0)
         self.originUpdate = (0, 0)
@@ -106,6 +111,10 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
         self.Px2LEx = 20 / 1  # 20px on the x-axis correspond to 1LE
         self.Px2LEy = 20 / 1  # 20px on the y-axis correspond to 1LE
+
+        self.hovered = None
+        self.active = None
+
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
@@ -152,12 +161,26 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     # Resets mouseBefore-Status for dragging
     def _leftMouseUp(self, evt=None):
         self.mouseBefore = None
+        if self.hovered is not None:
+            self._setActiveObj(self.hovered)
+        else:
+            self._unsetActiveObj()
+
+    def _setActiveObj(self, graphObject: GraphicalPanelObject):
+        self.active = graphObject
+
+    def _unsetActiveObj(self):
+        self.active = None
 
     # Adjusts origin shift in proportion to mouse movement
     def _mouseMotion(self, event: wx.MouseEvent=None): #todo: rename, since handles also left clicks
 
         relPos = event.GetPosition()
-        self.objectBelowMouse(relPos)
+        if (hovered := self.objectBelowPos(relPos)) is not None:
+            self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+            self.hovered = hovered
+        else:
+            self.hovered = None
 
         #if propertyObjectAt(position of mouse):
         #   change mouse cursor
@@ -190,20 +213,44 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def correctPosition(self, x, y):
         return self._centerPosition(*self._adjustedOriginPointPos(x, y))
 
+    # change parent class to adjust for color restriction when adding objects
+    def addGraphicalObject(self, graphicalObject, priorityIndex=None, **kwargs):
+        graphicalObject.setBasePlane(self)
+        if self.colorManager.colorOfObjectExists(graphicalObject):
+            return False
+        else:
+            super().addGraphicalObject(graphicalObject, priorityIndex, setBasePlane=False)
+            return True
 
-    def objectBelowMouse(self, relativePos):
+    def objectBelowPos(self, relativePos):
         dc = wx.ClientDC(self)
         pixColor = dc.GetPixel(*relativePos)
-        for object, objColor in self.objectColors():
-
+        for object, objColor in self.colorManager.objectColors():
             if pixColor == objColor and object.getProperty("selectable").getValue():
-                print(object)
-                self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+                return object
 
-                return
 
+# todo: use alternative system with a second bitmap which uses id's for all objects
+from typing import Set, Tuple
+# Component of graphical Panel
+class PlaneColorHandler:
+    def __init__(self, plane):
+        self._plane = plane
 
     def objectColors(self) -> Tuple[GraphicalPanelObject, Tuple[int, int, int, int]]:
-        for o in self.layers:
+        for o in self._plane.layers:
             yield o, tuple(o.getProperty("color").getValue())
 
+    def getColors(self) -> Tuple[int, int, int, int]:
+        for o in self._plane.layers:
+            yield tuple(o.getProperty("color").getValue())
+
+    def colorExists(self, color: Tuple[int, int, int, int]):
+        if color in self.getColors():
+            return True
+        return False
+
+    def colorOfObjectExists(self, graphObject: GraphicalPanelObject):
+        if self.colorExists(graphObject.getProperty("color").getValue()):
+            return True
+        return False
