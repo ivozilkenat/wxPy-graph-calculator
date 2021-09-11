@@ -9,30 +9,31 @@ from typing import Union
 
 
 class GraphPropertyManager:
-    _graphPlane: GraphicalPanel #TODO: implement this sort of typing everywhere?
+    _graphPlane: GraphicalPanel  # TODO: implement this sort of typing everywhere?
     propertyManager: PropertyManager
 
-    def __init__(self, graphPlane : GraphicalPanel, propertyManager : PropertyManager):
+    def __init__(self, graphPlane: GraphicalPanel, propertyManager: PropertyManager):
         self._graphPlane = graphPlane
         self.propertyManager = propertyManager
 
     def getGraphPlane(self):
         return self._graphPlane
 
-    def setGraphPlane(self, graphPlane : GraphicalPanel):
+    def setGraphPlane(self, graphPlane: GraphicalPanel):
         self._graphPlane = graphPlane
 
     def getPropertyManager(self):
         return self.propertyManager
 
-    def setPropertyManager(self, propertyManager : PropertyManager):
+    def setPropertyManager(self, propertyManager: PropertyManager):
         self.propertyManager = propertyManager
 
-    def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject], show=True): #TODO: decide if to change property here
+    def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject],
+                          show=True):  # TODO: decide if to change property here
         self.propertyManager.addPropertyObject(propertyObject)
         if isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.addGraphicalObject(propertyObject)
-            if show: #<- let this stay?
+            if show:  # <- let this stay?
                 propertyObject.getProperty("draw").setValue(True)
             else:
                 propertyObject.getProperty("draw").setValue(False)
@@ -42,6 +43,7 @@ class GraphPropertyManager:
         if isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.removeGraphicalObject(propertyObject)
 
+
 # Defines interface between graphPlane and properties -> allows for graphical operations etc.
 class Dy2DGraphPropertyManager(GraphPropertyManager):
     def __init__(self, parent):
@@ -50,7 +52,7 @@ class Dy2DGraphPropertyManager(GraphPropertyManager):
         # Is this a good implementation?
 
     def _setActiveObj(self, object):
-        self.propertyManager.setActiveProperty(object) #todo: potential bugs?
+        self.propertyManager.setActiveProperty(object)  # todo: potential bugs?
 
 
 # Panel for adding property objects

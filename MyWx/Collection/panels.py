@@ -6,7 +6,8 @@ from MyWx.Collection._core.wxUtilities import randomRGBTriple
 from MyWx.Collection.components import ListComponent
 from MyWx.Collection.format import expanded
 
-#TODO: ADD Documentation, Add build() to panels
+
+# TODO: ADD Documentation, Add build() to panels
 
 # Basic Panel, which implements generic buttons and adjacent event method
 # minimizing is a feature preserved for splitter windows
@@ -100,6 +101,7 @@ class SplitterSideViewPanel(GenericPanel):
             self.coveredObject._unminimize()
             event.Skip()
 
+
 # Panel that works as top-bar to hold controls (e.g. minimize button)
 class PanelControlBar(SizerComponent):
     def __init__(self, parent, barHeight=30, color=(200, 200, 200), windowControllers=None):
@@ -156,6 +158,8 @@ class PanelWindowController(GenericPanel):
 
     def _onHover(self, event=None):
         pass
+
+
 # Could use custom hover effects or color highlighting
 
 # A panel that lists given windows

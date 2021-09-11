@@ -6,7 +6,6 @@ from MyWx.Collection.format import expanded
 from typing import Tuple
 
 
-
 # A Class to build very simple forms
 class FormManager(SizerComponentStyle):
     def __init__(self, parent, style=wx.VERTICAL):
@@ -56,6 +55,7 @@ class FormManager(SizerComponentStyle):
         def resetForm(self):
             for i in self._items:
                 i[0].SetValue(i[2])
+
 
 # Simple Component to align items in row or column
 class ListComponent(SizerComponent):

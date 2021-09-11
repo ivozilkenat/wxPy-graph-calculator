@@ -26,15 +26,15 @@ class DynamicMultiSplitter(MultiSplitterWindow):
         self._resizeWhileDragging = False  # <- what does this do
         self._parent = parent
 
-        self.__minPaneSizeLowerBound = 10 #<- if 0, paneSize can be zero and since panes do not unsplit an error will occur
-        self._minimumPaneSize = self.__minPaneSizeLowerBound #<- could be removed if unsplitting is possible
-        #TODO: what if size of pane is set to 0 and not -1
+        self.__minPaneSizeLowerBound = 10  # <- if 0, paneSize can be zero and since panes do not unsplit an error will occur
+        self._minimumPaneSize = self.__minPaneSizeLowerBound  # <- could be removed if unsplitting is possible
+        # TODO: what if size of pane is set to 0 and not -1
 
     # Resizes all windows properly, according to their proportion
     def _onSize(self, event=None):
         self._setSashesProportional()
 
-        self.__refreshAllWindows() #mandatory for multiple windows, else bugs might appear
+        self.__refreshAllWindows()  # mandatory for multiple windows, else bugs might appear
         event.Skip()
 
     def _setSashesProportional(self):
@@ -48,7 +48,7 @@ class DynamicMultiSplitter(MultiSplitterWindow):
             ratio = p[0]
             if ratio != 0:
                 newWidth = totalSpace * (ratio / self._proportions.sum)
-                if newWidth < self._minimumPaneSize: #TODO: maybe rework this fix, to fully rescale everything
+                if newWidth < self._minimumPaneSize:  # TODO: maybe rework this fix, to fully rescale everything
                     newWidth = self._minimumPaneSize
                 self.SetSashRePosition(i, newWidth)
 

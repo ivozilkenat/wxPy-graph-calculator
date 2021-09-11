@@ -3,6 +3,7 @@ from MyWx.wx import *
 from MyWx.Collection.panels import RandomGridPanel
 from MyWx.Collection.panels import SplitterSideViewPanel
 
+
 # TODO: set GraphProptertyManager as content
 class PropertyObjectOverviewPanel(SplitterSideViewPanel):
     def __init__(self, parent):

@@ -5,6 +5,7 @@ from typing import Tuple, List, Dict, Any
 
 from MyWx.Collection._core.error import MyWxException
 
+
 # Extends the wx.Panel-Class and grants a bit of genericity
 class GenericPanel(wx.Panel):
     # can *args be placed after keyword argument?
@@ -22,6 +23,7 @@ class GenericPanel(wx.Panel):
             r = method(obj, *args, **kwargs)
             obj.build()
             return r
+
         return inner
 
     def build(self):
@@ -39,7 +41,7 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_PAINT, self._setUpScrolling)
 
     # A decorator which rebuilds the panel, if wrapped method is called
-    #TODO: is it possible to add @rebuild
+    # TODO: is it possible to add @rebuild
 
     def rebuild(method):
         def inner(obj, *args, **kwargs):
@@ -55,9 +57,10 @@ class GenericMouseScrollPanel(wx.ScrolledWindow):
 
     def _setUpScrolling(self, evt=None):
         self.FitInside()
-        #self.SetScrollbars(20, 20, 50, 50)
-        self.SetScrollRate(0, 10) # todo: remove
+        # self.SetScrollbars(20, 20, 50, 50)
+        self.SetScrollRate(0, 10)  # todo: remove
         evt.Skip()
+
 
 # Base class for classes which represent a sizer abstraction
 # e.g.: A sub-panel, with features, which is outsourced into another class
@@ -84,6 +87,7 @@ class SizerComponent(ABC):
             r = method(obj, *args, **kwargs)
             obj.build()
             return r
+
         return inner
 
     # Wrap method to rebuild and live-update layout of parent (used for user interaction)
@@ -94,19 +98,20 @@ class SizerComponent(ABC):
             obj.build()
             obj.layoutParent()
             return r
+
         return inner
 
     def layoutParent(self):
         self._parent.Layout()
 
     # Detaches all windows and deletes all sizers
-    def clearSizer(self, deleteSizers = False, deleteWindows=False):
+    def clearSizer(self, deleteSizers=False, deleteWindows=False):
         if deleteSizers:
             self._sizer.Clear(deleteWindows)
         else:
-            for i in range(self._sizer.GetItemCount()-1, -1, -1):
+            for i in range(self._sizer.GetItemCount() - 1, -1, -1):
                 self._sizer.Detach(i)
-        #TODO: missing implementation
+        # TODO: missing implementation
 
     def destroy(self):
         self._sizer.Clear(True)
@@ -120,6 +125,7 @@ class SizerComponent(ABC):
     def getSizerAndBuild(self):
         self.build()
         return self.getSizer()
+
 
 # Sizer Component which uses SizerContent to specify sizer building
 # Used if components need different styling
@@ -138,11 +144,12 @@ class SizerComponentStyle(SizerComponent):
         for c in self._components:
             self._sizer.Add(c.comp, c.prop, styleFlags, padding)
 
+
 # Dataclass to hold information about sizer content style
 class SizerContent():
     def __init__(self, component, proportion=0, sizerFlags=wx.EXPAND, padding=5):
         self.comp: wx.Window = component
-        self.prop: int  = proportion
+        self.prop: int = proportion
         self.flags: wx.SizerFlags = sizerFlags
         self.padding: int = padding
 
@@ -172,7 +179,7 @@ class SizerTemplate(SizerComponent, ABC):
         pass
 
     def __buildWrapper(self):
-        if not self._allowEmpty and self._content is None: #TODO: use Enum as none content / maybe emptyPanel as content
+        if not self._allowEmpty and self._content is None:  # TODO: use Enum as none content / maybe emptyPanel as content
             raise MyWxException.MissingContent()
         self.__build()
 

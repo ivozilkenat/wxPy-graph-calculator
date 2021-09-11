@@ -18,7 +18,7 @@ class ThreePanelWorkspace(SizerTemplate):
                  secondSashPos: int = None,
                  splitterProportion: Tuple[int, int, int] = (0, 1, 0),
                  splitterStyle: int = wx.SP_THIN_SASH,
-                *args, **kwargs):
+                 *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self._sizer = wx.BoxSizer(wx.HORIZONTAL)
         self._firstSashPos = firstSashPos
@@ -40,7 +40,7 @@ class ThreePanelWorkspace(SizerTemplate):
         if self._firstSashPos is None:
             self._firstSashPos = self.splitter.GetWidth() * 0.15
         if self._secondSashPos is None:
-            self._secondSashPos = -self.splitter.GetWidth() * 0.25 #TODO: change this?
+            self._secondSashPos = -self.splitter.GetWidth() * 0.25  # TODO: change this?
         self.splitter.SetSashAbsPosition(0, self._firstSashPos)
         self.splitter.SetSashAbsPosition(1, self._secondSashPos)
 
@@ -54,21 +54,22 @@ class ThreePanelWorkspace(SizerTemplate):
         assert len(content) == 3 and all([isinstance(type(i), wx.Window) for i in content])
         self._content = content
 
+
 # Panel with a headline which can have content
 class PanelWithHeader(SizerTemplate):
     def __init__(self, parent=None, headline="Headline", *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
-        self._h : str = headline
-        self._txt : wx.StaticText = None
+        self._h: str = headline
+        self._txt: wx.StaticText = None
         self._backColor: Tuple[int, int, int] = (200, 200, 200)
         self._hHeight: int = 25
-        self._font : wx.Font = wx.Font(15, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
-        self._txtBackground : wx.Panel = wx.Panel(self._parent, size=(0, self._hHeight))
+        self._font: wx.Font = wx.Font(15, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD)
+        self._txtBackground: wx.Panel = wx.Panel(self._parent, size=(0, self._hHeight))
 
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-    #TODO: is building in the constructor redundant
+    # TODO: is building in the constructor redundant
     def build(self):
         self.clearSizer()
         self._txtBackground.Destroy()
@@ -131,9 +132,10 @@ class PanelWithHeader(SizerTemplate):
     def getHeaderHeight(self):
         return self._hHeight
 
+
 # Expansion of PanelWithHeader to allow for tabbing (minimize, maximize content)
 class PanelWithHeaderAccordion(PanelWithHeader):
-    def __init__(self, parent=None, headline="Headline", startOpen = True, *args, **kwargs):
+    def __init__(self, parent=None, headline="Headline", startOpen=True, *args, **kwargs):
         super().__init__(parent, headline=headline, *args, **kwargs)
         self._startOpen = startOpen
 
@@ -146,9 +148,9 @@ class PanelWithHeaderAccordion(PanelWithHeader):
     def setContent(self, content):
         super().setContent(content)
 
-    def _onClick(self, evt = None):
+    def _onClick(self, evt=None):
         if self._content is not None:
-            if self._content.IsShown(): #TODO: maybe replace none condition with panel size zero
+            if self._content.IsShown():  # TODO: maybe replace none condition with panel size zero
                 self.minimize()
             else:
                 self.maximize()
@@ -157,7 +159,7 @@ class PanelWithHeaderAccordion(PanelWithHeader):
     def minimize(self):
         self._content.Show(False)
 
-        #add function to remove content -> Set content None
+        # add function to remove content -> Set content None
 
     @SizerTemplate.rebuildAndLayout
     def maximize(self):

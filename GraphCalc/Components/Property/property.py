@@ -9,10 +9,11 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Dict, TypeVar, Union
 
+
 # Probably unnecessary / Maybe nest Property-classes
 class Property(ABC):
     def __init__(self, propertyName: str, value):
-        self.setName(propertyName) #constant #TODO: Make dynamic
+        self.setName(propertyName)  # constant #TODO: Make dynamic
         self._value = value
 
     def getName(self):
@@ -30,18 +31,19 @@ class Property(ABC):
     def __str__(self):
         return self._name
 
+
 # Superclass for property extension
 class PropertyCtrl(Property, ABC):
-    def __init__(self, propertyName, value, updateFunction = None, validityFunction = None, constant = False):
+    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False):
         super().__init__(propertyName, value)
         self._parameters: Dict = None
         self._updateFunction: callable = updateFunction
         self._control = None
-        self._validityFunction: callable= validityFunction
+        self._validityFunction: callable = validityFunction
         self._inputBeforeValidation = None
 
         # Constant properties should not update something, that will be deleted!!! TODO: change implementation?
-        self._constant: bool = constant # If a property is constant it won't be removed (only a hint, could be implemented differently)
+        self._constant: bool = constant  # If a property is constant it won't be removed (only a hint, could be implemented differently)
 
         self.__getCtrl = self.getCtrl
         self.getCtrl = self.__getCtrlWrapper
@@ -62,7 +64,7 @@ class PropertyCtrl(Property, ABC):
     def validInput(self, inputData):
         pass
 
-    def setValidValue(self, value, raiseInvalidTypeError = False):
+    def setValidValue(self, value, raiseInvalidTypeError=False):
         if self._validityFunction is not None:
             try:
                 if not self._validityFunction(value):
@@ -78,14 +80,13 @@ class PropertyCtrl(Property, ABC):
             self._inputBeforeValidation = self._control.GetValue()
             return True
 
-
     # Define how control changes updated other dependencies
-    def update(self, evt = None):
+    def update(self, evt=None):
         self.updateValue()
         self.callUpdFunc(mustUpdate=False)
-        #Skip must not be called on enter
+        # Skip must not be called on enter
 
-    def callUpdFunc(self, mustUpdate = True):
+    def callUpdFunc(self, mustUpdate=True):
         if self._updateFunction is None:
             if mustUpdate:
                 raise MyWxException.MissingContent(ERROR_UPDATE_FUNCTION_MISSING)
@@ -94,7 +95,7 @@ class PropertyCtrl(Property, ABC):
 
     def __getCtrlWrapper(self, parent):
         r = self.__getCtrl(parent)
-        self._inputBeforeValidation = r.GetValue() # Set standardized value
+        self._inputBeforeValidation = r.GetValue()  # Set standardized value
         return r
 
     def isConstant(self):
@@ -104,15 +105,16 @@ class PropertyCtrl(Property, ABC):
         assert isinstance(state, bool)
         self._constant = state
 
+
 # implement logic for bounds of properties / further implement necessary logic
 
 class ToggleProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction = None, constant = False):
+    def __init__(self, propertyName, value, updateFunction=None, constant=False):
         assert isinstance(value, bool)
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction, constant=constant)
 
     def getCtrl(self, parent):
-        #del self._control #<- must control be deleted?
+        # del self._control #<- must control be deleted?
         self._control = wx.CheckBox(parent=parent)
         self._control.SetValue(self.getValue())
         self._control.Bind(wx.EVT_CHECKBOX, self.update)
@@ -121,28 +123,37 @@ class ToggleProperty(PropertyCtrl):
     def updateValue(self):
         self.setValue(self._control.GetValue())
 
+
 class NumProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction = None, validityFunction=None, constant = False):
+    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False, updateOnEnter=False):
         assert isinstance(value, (float, int))
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction, validityFunction=validityFunction, constant=constant)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+                         validityFunction=validityFunction, constant=constant)
+        self._updateOnlyOnEnter = updateOnEnter
+
 
     def getCtrl(self, parent):
-        self._control = wx.SpinCtrl(parent=parent, min=0, initial=self.getValue())
-        self._control.Bind(wx.EVT_SPINCTRL, self.update)
+        self._control = wx.SpinCtrl(parent=parent, min=0, max=999999999, initial=self.getValue(), style=wx.TE_PROCESS_ENTER)
+        self._control.Bind(wx.EVT_TEXT_ENTER, self.update)
+        if not self._updateOnlyOnEnter:
+            self._control.Bind(wx.EVT_SPINCTRL, self.update)
         return self._control
 
     def updateValue(self):
-        self.setValidValue(self._control.GetValue())# TODO: Not Tested
+        self.setValidValue(self._control.GetValue())  # TODO: Not Tested
 
 
 class StrProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction = None, validityFunction=None, constant = False):
+    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False):
         assert isinstance(value, str)
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction, validityFunction=validityFunction, constant=constant)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+                         validityFunction=validityFunction, constant=constant)
 
     def getCtrl(self, parent):
-        self._control = wx.TextCtrl(parent=parent, value=self.getValue(), style=wx.TE_PROCESS_ENTER) #TODO: Add character limit or change PropertyObjectPanel dynamically
-        self._control.Bind(wx.EVT_TEXT_ENTER, self.update) #TODO: find out if other event might fit better (e.g. EVT_TEXT)
+        self._control = wx.TextCtrl(parent=parent, value=self.getValue(),
+                                    style=wx.TE_PROCESS_ENTER)  # TODO: Add character limit or change PropertyObjectPanel dynamically
+        self._control.Bind(wx.EVT_TEXT_ENTER,
+                           self.update)  # TODO: find out if other event might fit better (e.g. EVT_TEXT)
         return self._control
 
     def updateValue(self):
@@ -151,29 +162,33 @@ class StrProperty(PropertyCtrl):
 
 class ListProperty(PropertyCtrl):
     DELIMITER = ";"
+
     def __init__(self,
                  propertyName,
                  value,
-                 fixedFieldAmount = None,
+                 fixedFieldAmount=None,
                  fixedType: type = None,
-                 updateFunction = None,
+                 updateFunction=None,
                  validityFunction=None,
-                 constant = False):
-        assert isinstance(value, (list, tuple, set)) #<- automatically converts into list
-        super().__init__(propertyName=propertyName, value=list(value), updateFunction=updateFunction, validityFunction=validityFunction, constant=constant)  # types are not respected afterwards (int as string, will be converted to only int)
+                 constant=False):
+        assert isinstance(value, (list, tuple, set))  # <- automatically converts into list
+        super().__init__(propertyName=propertyName, value=list(value), updateFunction=updateFunction,
+                         validityFunction=validityFunction,
+                         constant=constant)  # types are not respected afterwards (int as string, will be converted to only int)
         self._fieldAmount = fixedFieldAmount
         assert fixedType is None or fixedType is str or fixedType is int or fixedType is float
         self._fieldType = fixedType
 
         if not self.validInput(self._value):
-            raise ValueError(f"the initial value of '{self._value}' does not fit the requirements (e.g. field-amount, fixed-type or validity-function)")
+            raise ValueError(
+                f"the initial value of '{self._value}' does not fit the requirements (e.g. field-amount, fixed-type or validity-function)")
 
     def getCtrl(self, parent):
         self._control = wx.TextCtrl(parent=parent, value=self.type2StringFormat(), style=wx.TE_PROCESS_ENTER)
         self._control.Bind(wx.EVT_TEXT_ENTER, self.update)
         return self._control
 
-    def validInput(self, inputData, raiseInvalidTypeError = False):
+    def validInput(self, inputData, raiseInvalidTypeError=False):
         if self._fieldAmount is not None and self._fieldAmount != len(inputData):
             return False
         if self._fieldType != None:
@@ -218,6 +233,7 @@ class ListProperty(PropertyCtrl):
             except ValueError:
                 return string
 
+
 class PropCategoryDataClass:
     def __init__(self, categoryName: str):
         self.name = categoryName
@@ -225,6 +241,7 @@ class PropCategoryDataClass:
     # Convenient-method for readability
     def getName(self):
         return self.name
+
 
 class PropertyObjCategory(Enum):
     FUNCTION = PropCategoryDataClass(PROPERTY_CAT_FUNC)
@@ -247,6 +264,7 @@ class PropertyObjCategory(Enum):
     def getCat(self):
         return self.value
 
+
 ### PROPERTY-OBJECTS
 
 # Baseclass for all objects, with "properties" (will be ui-relevant)
@@ -256,20 +274,22 @@ class PropertyObject(ABC):
         self._properties: Dict[str, Property] = {}  # Exchange with priority queue (or not?)
 
         self.addProperty(StrProperty(PROPERTY_NAME, PROPERTY_NAME_PLACEHOLDER, constant=True))
+
     def _validPropertyKey(method):
         def inner(object, key, *args, **kwargs):
             try:
                 return method(object, key, *args, **kwargs)
             except KeyError:
-                raise MyWxException.MissingContent(f"Property with name '{key}' does not exist") #todo: <- outource such strings?
+                raise MyWxException.MissingContent(
+                    f"Property with name '{key}' does not exist")  # todo: <- outource such strings?
+
         return inner
 
-    def addProperty(self, property: Property, override = False):
+    def addProperty(self, property: Property, override=False):
         if not override:
             if (name := property.getName()) in self._properties:
                 raise MyWxException.AlreadyExists(f"property with name '{name}' already exists")
         self._properties[property._name] = property
-
 
     @_validPropertyKey
     def removeProperty(self, name):
@@ -297,7 +317,7 @@ class PropertyObject(ABC):
         else:
             self._category = category.getCat()
 
-    def clear(self, clearConstant = False):
+    def clear(self, clearConstant=False):
         if clearConstant:
             self._properties = {}
         else:
@@ -305,10 +325,11 @@ class PropertyObject(ABC):
             for i in self._properties:
                 if self._properties[i].isConstant() is False:
                     n.append(i)
-            for  i in n:
+            for i in n:
                 self.removeProperty(i)
 
-#TODO: This class and derived do not account for manager changing and thereby if any property is added dynamically,
+
+# TODO: This class and derived do not account for manager changing and thereby if any property is added dynamically,
 #       they wont update the correct manager if manager is changed -> sol: 1. add support 2. disable dynamic properties
 class ManagerPropertyObject(PropertyObject, ABC):
     def __init__(self, category: Union[PropCategoryDataClass, PropertyObjCategory], manager=None):
@@ -316,10 +337,9 @@ class ManagerPropertyObject(PropertyObject, ABC):
         self._manager = manager  # TODO: Is this sensible
         self._show = True
 
-
     def setManager(self, manager):
         self._manager = manager
-        p = self.getProperty(PROPERTY_NAME) # standard property
+        p = self.getProperty(PROPERTY_NAME)  # standard property
         p.setUpdateFunction(self.updateOverviewPanel)
         self.addProperty(p, override=True)
 
@@ -338,13 +358,14 @@ class ManagerPropertyObject(PropertyObject, ABC):
     def updateOverviewPanel(self):
         self.getOverview().updatePropertyPanels()
 
-    def show(self, state:bool=True):
+    def show(self, state: bool = True):
         self._show = state
 
     def isHidden(self):
         return not self._show
 
-#todo: is it possible to restrict access to change the pen color?
+
+# todo: is it possible to restrict access to change the pen color?
 #       create new class for id system
 
 # Baseclass for graphical objects, which lie on top of a base panel
@@ -353,23 +374,25 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         super().__init__(category=category)
         self._basePlane = basePlane
 
-        self._colorOverride = None # mandatory for id system
+        self._colorOverride = None  # mandatory for id system
+        self._extraWidth = None
 
     def setBasePlane(self, plane):
         self.clear()
         self._basePlane = plane
-        self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane)) # standard property
+        self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))  # standard property
         self.addProperty(ToggleProperty("selectable", True, updateFunction=self.refreshBasePlane))  # standard property
+        self.addProperty(NumProperty("draw_width", 3, updateFunction=self.refreshBasePlane))
         self.addProperty(
             ListProperty(
                 "color",
-                (255, 0, 0), #<- everything will be colored red if not specified
+                (255, 0, 0),  # <- everything will be colored red if not specified
                 fixedFieldAmount=3,
-                validityFunction= lambda x: 0 <= x <= 255, # function will be applied onto every single value
+                validityFunction=lambda x: 0 <= x <= 255,  # function will be applied onto every single value
                 updateFunction=self.refreshBasePlane
             )
-        ) # standard property
-        #todo -custom control for color / custom property class
+        )  # standard property
+        # todo -custom control for color / custom property class
         #     -->add new color property, this is only a placeholder until then
 
     def refreshBasePlane(self):
@@ -379,31 +402,34 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def standardProperties(blitUpdateMethod: callable):
         def inner(graphicalPanelObject, deviceContext, **kwargs):
             assert isinstance(graphicalPanelObject, GraphicalPanelObject)
-            if graphicalPanelObject.getProperty(PROPERTY_DRAW).getValue() is True: #<- standard property
+            if graphicalPanelObject.getProperty(PROPERTY_DRAW).getValue() is True:  # <- standard property
                 blitUpdateMethod(graphicalPanelObject, deviceContext, **kwargs)
+
         return inner
 
     # Called by basePlane if redraw is necessary (Pen Color should never be changed inside)
     @abstractmethod
-    def blitUpdate(self, deviceContext, needValueUpdate = True, **kwargs):
+    def blitUpdate(self, deviceContext, needValueUpdate=True, **kwargs):
         pass
 
-
-    # Id-System methods
+    # !!!Id-System methods!!!
 
     @timeMethod
     # A function to allow "drawing" of id's <- actually could be implemented es extra extension of class
     # only works if functions called by blitUpdate use drawPropertyColor-decorator-else invalid id will be drawn to bitmap todo: fix?
-    #mandatory for id system
-    def blitUpdateCopy(self, deviceContext, memoryDeviceContext, idColor):
+    # mandatory for id system
+    def blitUpdateCopy(self, deviceContext, memoryDeviceContext, idColor, detectableBorderWidth):
         self.blitUpdate(deviceContext)
-        self._colorOverride = idColor
-        self.blitUpdate(memoryDeviceContext)
-        self._colorOverride = None
+        if self.getProperty("selectable").getValue():
+            self._colorOverride = idColor
+            self._extraWidth = detectableBorderWidth
+            self.blitUpdate(memoryDeviceContext)
+            self._colorOverride = None
+            self._extraWidth = None
 
     # wraps any deviceContext draw method to handle color selection
     # mandatory for id-system #todo: what would could go wrong in this implementation
-    def drawPropertyColor(nameOfColorProperty: str):
+    def draw(nameOfColorProperty: str, nameOfWidthProperty: str): #todo: standard constants should be outsourced
         def _draw(drawMethod: callable):
             def _inner(graphObject, deviceContext, *args, **kwargs):
                 assert isinstance(graphObject, GraphicalPanelObject)
@@ -411,8 +437,15 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
                     color = graphObject.getProperty(nameOfColorProperty).getValue()
                 else:
                     color = graphObject._colorOverride
+                if graphObject._extraWidth is None:
+                    width = graphObject.getProperty(nameOfWidthProperty).getValue()
+                else:
+                    width = 2*graphObject._extraWidth + graphObject.getProperty(nameOfWidthProperty).getValue()
                 p = wx.Pen(wx.Colour(color))
+                p.SetWidth(width)
                 deviceContext.SetPen(p)
                 drawMethod(graphObject, deviceContext, *args, **kwargs)
+
             return _inner
+
         return _draw

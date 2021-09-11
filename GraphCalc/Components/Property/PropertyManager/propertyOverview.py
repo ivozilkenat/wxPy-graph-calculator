@@ -8,6 +8,7 @@ from GraphCalc._core._sc import *
 from GraphCalc.Components.Property.PropertyManager.propertyInspection import PropInspectionPanel
 from GraphCalc.Components.Property.property import PropertyObject, PropCategoryDataClass
 
+
 # Panel to Show PropertyObjects by Category
 class PropObjectOverviewPanel(GenericMouseScrollPanel):
     def __init__(self, manager, parent=None):
@@ -16,7 +17,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         self._activePanel = None
         self._categorySizerC = CategoryOverviewComponent(self)
         self.SetBackgroundColour((250, 250, 250))
-        #TODO: implement ordering
+        # TODO: implement ordering
         self.build()
 
     def build(self):
@@ -27,8 +28,8 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
     def updatePropertyPanels(self):
         for p in self.getPropertyPanels():
             p.build()
-        self.Refresh() #TODO: Is this a hacky solution?
-        #TODO: not working correctly, problem with text boxes
+        self.Refresh()  # TODO: Is this a hacky solution?
+        # TODO: not working correctly, problem with text boxes
 
     # get all panels that represent property-objects
     def getPropertyPanels(self):
@@ -51,7 +52,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
     # add a valid category panel
     @GenericMouseScrollPanel.rebuild
     def addCategoryPanel(self, category: PanelWithHeaderAccordion):
-        assert isinstance(category, PanelWithHeaderAccordion) #todo: add further type checking?
+        assert isinstance(category, PanelWithHeaderAccordion)  # todo: add further type checking?
         self._categorySizerC.addCategoryComponent(category)
 
     # remove a valid category panel
@@ -73,12 +74,13 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
 
     # Add a propertyObj to its correlated category (toggle adding if category has not been created yet)
     # or create new category by string as target
-    def addToCategory(self, propertyEntry: PropertyObject, createCategory: bool = True, targetCategory: PropCategoryDataClass = None):
+    def addToCategory(self, propertyEntry: PropertyObject, createCategory: bool = True,
+                      targetCategory: PropCategoryDataClass = None):
         assert isinstance(propertyEntry, PropertyObject)
         if targetCategory is None:
             categoryName = propertyEntry.getCategory().getName()
         else:
-            categoryName = targetCategory.getName() #<- could potentially cause conflicts in the future
+            categoryName = targetCategory.getName()  # <- could potentially cause conflicts in the future
             propertyEntry.setCategory(targetCategory)
         if not self.categoryExits(categoryName) and createCategory:
             self.createCategory(categoryName)
@@ -91,7 +93,8 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
             categoryTemp.setContent(lp)
 
         lp: ListPanel = categoryTemp.getContent()
-        panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry, size=(0, 50))#TODO: unfinished / does not display anything yet
+        panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry,
+                                 size=(0, 50))  # TODO: unfinished / does not display anything yet
         panel._text.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
 
         lp.add(panel)
@@ -154,10 +157,10 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
             self._activePanel.SetBackgroundColour(PropertyObjPanel.STD_COLOR)
         panel.SetBackgroundColour(PropertyObjPanel.SELECT_COLOR)
         self._activePanel = panel
-        self.Refresh() #<- should this be called here?
+        self.Refresh()  # <- should this be called here?
 
     # Event handler for propertyObj selection
-    def _changeActiveProperty(self, evt: wx.MouseEvent=None):
+    def _changeActiveProperty(self, evt: wx.MouseEvent = None):
         txt = evt.GetEventObject()
         panel = txt.GetParent()
         self._manager.setActiveProperty(panel.getPropertyObj())
@@ -196,21 +199,24 @@ class CategoryOverviewComponent(SizerComponent):
     def categoryNameDict(self):
         return {i.getLabelTxt(): i for i in self._categories}
 
+
 # Panel to represent PropertyObjects
 class PropertyObjPanel(GenericPanel):
     STD_COLOR = (250, 250, 250)
-    SELECT_COLOR = (220, 220, 220) #<- TODO: outsource values
+    SELECT_COLOR = (220, 220, 220)  # <- TODO: outsource values
+
     def __init__(self, parent, propertyObject: PropertyObject, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
         self._property = propertyObject
         self.SetBackgroundColour(self.STD_COLOR)
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self._text = wx.StaticText(self, label=self._property._properties[PROPERTY_NAME].getValue(), style=wx.ALIGN_CENTER)
+        self._text = wx.StaticText(self, label=self._property._properties[PROPERTY_NAME].getValue(),
+                                   style=wx.ALIGN_CENTER)
 
         self.build()
 
-    #TODO: should be expanded in the future
+    # TODO: should be expanded in the future
     def build(self):
         self._sizer.Clear()
         name = self._property._properties[PROPERTY_NAME].getValue()
@@ -219,7 +225,6 @@ class PropertyObjPanel(GenericPanel):
         self._text.SetFont(font)
         self._sizer.Add(self._text, 1, wx.EXPAND)
         self.SetSizer(self._sizer)
-
 
     def getPropertyObj(self):
         return self._property

@@ -5,13 +5,15 @@ import random
 def randomRGBTriple():
     return random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)
 
+
 # Detaches all windows and deletes all sizers
-def clearAllFromSizer(sizer, deleteSizers = False):
+def clearAllFromSizer(sizer, deleteSizers=False):
     if deleteSizers:
         sizer.Clear()
     else:
-        for i in range(sizer.GetItemCount()-1, -1, -1):
+        for i in range(sizer.GetItemCount() - 1, -1, -1):
             sizer.Detach(i)
+
 
 def adjustForNegIndex(indexedIterableObjectName):
     def callable(method):

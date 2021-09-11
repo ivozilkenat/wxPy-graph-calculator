@@ -7,13 +7,13 @@ from GraphCalc.Components.Property.property import PropertyObject, ManagerProper
 from typing import Set
 
 
-#TODO: -allow for sorting of properties and categorize them
+# TODO: -allow for sorting of properties and categorize them
 
 # Base class to handle everything related to propertyObject organization
 class PropertyManager:
     def __init__(self):
         self._propertyObjects: Set[PropertyObject] = set()
-        self._activeProperty = None #<- shown in the inspection panel / highlighted in the managed object (if possible)
+        self._activeProperty = None  # <- shown in the inspection panel / highlighted in the managed object (if possible)
 
         self._overviewPanel: PropObjectOverviewPanel = None
         self._inspectionPanel: PropInspectionPanel = None
@@ -25,7 +25,7 @@ class PropertyManager:
         return self._propertyObjects
 
     # add property object / if initialized add property-object to the overview panel
-    def addPropertyObject(self, propertyObject: PropertyObject, addToOverview = True):
+    def addPropertyObject(self, propertyObject: PropertyObject, addToOverview=True):
         assert isinstance(propertyObject, ManagerPropertyObject)
         self._propertyObjects.add(propertyObject)
         propertyObject.setManager(self)

@@ -5,6 +5,7 @@ from GraphCalc.Components.Property.property import GraphicalPanelObject
 
 from typing import Union, Tuple
 
+
 # positions as tuples or individual arguments?
 # add more assertions or further type checking
 # add interactive selection of displayed objects
@@ -27,7 +28,7 @@ class GraphicalPanel(GenericPanel):
 
         self.layers = list()  # Exchange with priority queue
 
-        #self.SetDoubleBuffered(True)
+        # self.SetDoubleBuffered(True)
 
         self.backgroundColor = (255, 255, 255)
 
@@ -37,7 +38,7 @@ class GraphicalPanel(GenericPanel):
     def getLayerOrder(self):
         return [(0, self)] + [(c + 1, o) for c, o in enumerate(self.layers)]
 
-    #TODO: Change layer into a propertyObject to manage object order
+    # TODO: Change layer into a propertyObject to manage object order
 
     # adds gpo at desired position in layer-stack
     def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):
@@ -93,7 +94,7 @@ class GraphicalPanel(GenericPanel):
 # implement highlighting
 # getRect of plane
 
-#todo: must have a color handler
+# todo: must have a color handler
 
 # Interactive 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):
@@ -117,9 +118,9 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
-        #self.SetDoubleBuffered(True)
+        # self.SetDoubleBuffered(True)
 
-        #self.Bind(wx.EVT_LEFT_DOWN, self._leftMouseDown)
+        # self.Bind(wx.EVT_LEFT_DOWN, self._leftMouseDown)
 
     # Update of all important class members
     def updatePlaneData(self, evt=None):
@@ -143,14 +144,13 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             mdc = wx.MemoryDC(self.colorManager.idBitmap)
 
             for object in self.layers:
-                r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object))
+                r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6) #todo: add this constant
                 # Performance testing
                 # if r is not None: #todo: remove this
                 #     print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
 
-                    # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
-                    # draw time is mainly caused by bad graphical object optimization
-
+                # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
+                # draw time is mainly caused by bad graphical object optimization
 
     # Mousewheel event receiver (zooming)
     def _mousewheel(self, evt=None):
@@ -174,7 +174,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.active = None
 
     # Adjusts origin shift in proportion to mouse movement
-    def _mouseMotion(self, event: wx.MouseEvent=None): #todo: rename, since handles also left clicks
+    def _mouseMotion(self, event: wx.MouseEvent = None):  # todo: rename, since handles also left clicks
 
         relPos = event.GetPosition()
         if (hovered := self.objectBelowPos(relPos)) is not None:
@@ -183,7 +183,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         else:
             self.hovered = None
 
-        #if propertyObjectAt(position of mouse):
+        # if propertyObjectAt(position of mouse):
         #   change mouse cursor
         #   event left down? -> select object as currently selected?
 
@@ -229,7 +229,8 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
                 return object
 
     def highlight(self, graphObject: GraphicalPanelObject):
-        pass #todo: implement this
+        pass  # todo: implement this
+
 
 # todo: use alternative system with a second bitmap which uses id's for all objects
 # creates id's based on colors -> id 1: (1, 0, 0), ... (allows for 255^3 (=16'581'375)combinations, more than enough)
@@ -237,6 +238,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 # Component of graphical Panel
 class PlaneColorHandler:
     NONE_ID = (0, 0, 0)
+
     def __init__(self, plane):
         self._colorIds = dict()
         self._idCounter = 0
@@ -259,8 +261,8 @@ class PlaneColorHandler:
     def createColorId(self):
         c = self._idCounter
 
-        #None id should be excluded
-        newId = (c, 255, 0)#TODO think of a valid system of generation these numbers
+        # None id should be excluded
+        newId = (c, 255, 0)  # TODO think of a valid system of generation these numbers
 
         self._idCounter += 1
         return newId

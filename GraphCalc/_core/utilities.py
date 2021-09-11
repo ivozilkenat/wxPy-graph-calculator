@@ -31,6 +31,7 @@ def timeMethod(method):
             return method(object, *args, **kwargs), timeit.default_timer() - start
         else:
             return method(object, *args, **kwargs), None
+
     return inner
 
 

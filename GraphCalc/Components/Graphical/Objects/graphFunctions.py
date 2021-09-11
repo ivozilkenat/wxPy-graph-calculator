@@ -6,7 +6,6 @@ from GraphCalc._core.utilities import timeMethod
 import numpy as np
 
 
-
 # Current implementation only for testing purposes / lacks optimization
 
 class MathFunction():
@@ -53,7 +52,6 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         self.arguments = None
         self.values = None
 
-
         self.getProperty("name").setValue("Funktion2D")
 
     def calculateValueTuples(self, arguments):
@@ -71,11 +69,8 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         self.calculateData()
         self.draw(deviceContext)
 
-    @GraphicalPanelObject.drawPropertyColor("color")
+    @GraphicalPanelObject.draw("color", "draw_width")
     def draw(self, deviceContext):
-        p = deviceContext.GetPen()
-        p.SetWidth(3)
-        deviceContext.SetPen(p)
         for i in range(1, len(self.arguments)):
             deviceContext.DrawLine(*self._basePlane.correctPosition(self.arguments[i - 1], self.values[i - 1]),
                                    *self._basePlane.correctPosition(self.arguments[i], self.values[i]))

@@ -1,6 +1,7 @@
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import ListProperty, GraphicalPanelObject, ToggleProperty, PropertyObjCategory
+from GraphCalc.Components.Property.property import NumProperty, ListProperty, GraphicalPanelObject, ToggleProperty, \
+    PropertyObjCategory
 from GraphCalc._core.utilities import multiplesInInterval
 
 
@@ -30,9 +31,9 @@ class CartesianAxies(GraphicalPanelObject):
                 updateFunction=self.refreshBasePlane
             )
         )
+        self.addProperty(NumProperty("sub_axis_draw_width", 1, self.refreshBasePlane))
 
-    #todo: add update function as paramter, so values are not newly calculated if id draw is happenening
-
+    # todo: add update function as paramter, so values are not newly calculated if id draw is happenening
 
     # blitUpdate must be implemented correctly (currently with old deviceContext logic for prototyping)
     # -> new version utilises blit from basePlane
@@ -43,11 +44,8 @@ class CartesianAxies(GraphicalPanelObject):
         if self.getProperty("draw_main_axis").getValue() is True:
             self.drawMainAxis(deviceContext)
 
-    @GraphicalPanelObject.drawPropertyColor("color_sub_axis")
+    @GraphicalPanelObject.draw("color_sub_axis", "sub_axis_draw_width")
     def drawSubAxis(self, deviceContext, axisPixelDistance):
-        p = deviceContext.GetPen()
-        p.SetWidth(1)
-        deviceContext.SetPen(p)
         xSubAxis = multiplesInInterval(axisPixelDistance, self._basePlane.db)
         ySubAxis = multiplesInInterval(axisPixelDistance, self._basePlane.wb)
         for x in xSubAxis:
@@ -57,12 +55,9 @@ class CartesianAxies(GraphicalPanelObject):
             _, y = self._basePlane.correctPosition(0, y)
             deviceContext.DrawLine(0, y, self._basePlane.w, y)
 
-    @GraphicalPanelObject.drawPropertyColor("color")
+    @GraphicalPanelObject.draw("color", "draw_width")
     def drawMainAxis(self, deviceContext):
         # deviceContext = self.basePlane.memoryDc
-        p = deviceContext.GetPen()
-        p.SetWidth(3)
-        deviceContext.SetPen(p)
         if self._basePlane.db[0] < 0 < self._basePlane.db[1]:
             x0, _ = self._basePlane.correctPosition(0, 0)  # combine functions
             deviceContext.DrawLine(x0, 0, x0, self._basePlane.h)

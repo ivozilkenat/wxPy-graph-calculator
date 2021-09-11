@@ -19,4 +19,3 @@ ERROR_MISSING_PROP_MAN = "propertyManager is not set"
 # Colors
 
 # Miscellaneous
-

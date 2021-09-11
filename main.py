@@ -48,9 +48,10 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.rightWorkspacePanel = GenericPanel(self.workspace.splitter)
         self.rightWorkspacePanelSizer = wx.BoxSizer(wx.VERTICAL)
 
-        self.graphPropertyManager = Dy2DGraphPropertyManager(self.workspace.splitter) #<- move parent into getter method
+        self.graphPropertyManager = Dy2DGraphPropertyManager(
+            self.workspace.splitter)  # <- move parent into getter method
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
-        #self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self.workspace.splitter)
+        # self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self.workspace.splitter)
         self.graphPropertyManager.propertyManager.createOverviewPanel(self.leftWorkspacePanel)
         self.graphPropertyManager.propertyManager.createInspectionPanel(self.rightWorkspacePanel)
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.propertyManager.getOverviewInspectionPanels()
@@ -69,9 +70,12 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             self.graphPropertyManager.addPropertyObject(axis)
 
         self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x))
-        self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x**2*0.005))
+        self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x ** 2 * 0.005))
 
-        self.addPropertyPanel = PropertyAddPanel(self.graphPropertyManager, self.leftWorkspacePanel) #<- define as special control / also other controls that effect manager
+        self.addPropertyPanel = PropertyAddPanel(
+            self.graphPropertyManager,
+            self.leftWorkspacePanel
+        )  # <- define as special control / also other controls that effect manager
 
         self.leftWorkspacePanelSizer.Add(self.addPropertyPanel, 1, wx.EXPAND | wx.TOP, 5)
         self.leftWorkspacePanelSizer.Add(self.overviewPanel, 3, wx.EXPAND | wx.TOP, 5)
@@ -89,10 +93,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.rightWorkspacePanel.SetBackgroundColour((100, 100, 100))
         self.workspace.setWindows(self.leftWorkspacePanel, self.graphPanel, self.rightWorkspacePanel)
         self.workspace.build()
-        #self.workspace.splitter.SetMinimumPaneSize(100)
+        # self.workspace.splitter.SetMinimumPaneSize(100)
 
-        toolbarPlaceholder = RandomPanel(self, size=(0, 50)) #todo: implement
-
+        toolbarPlaceholder = RandomPanel(self, size=(0, 50))  # todo: implement
 
         self.mainSizer.Add(toolbarPlaceholder, 0, wx.EXPAND)
         self.mainSizer.Add(self.workspace.getSizer(), 1, wx.EXPAND)
@@ -141,21 +144,21 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.CreateStatusBar()
         self.SetStatusText("Wer das ließt kann lesen")
 
-    def _onExit(self, evt = None):
+    def _onExit(self, evt=None):
         """Close the frame, terminating the application."""
         self.Close(True)
 
-    def _onHello(self, evt = None):
+    def _onHello(self, evt=None):
         """Say hello to the user."""
         wx.MessageBox("Hello again from wxPython")
 
-    def _onAbout(self, evt = None):
+    def _onAbout(self, evt=None):
         """Display an About Dialog"""
         wx.MessageBox("This is a wxPython Hello World sample",
                       "About Hello World 2",
                       wx.OK | wx.ICON_INFORMATION)
 
-    def _onRightDownGraph(self, evt = None): #todo: doesnt work yet correctly
+    def _onRightDownGraph(self, evt=None):  # todo: doesnt work yet correctly
         self.PopupMenu(ContextMenu(self), evt.GetPosition())
         evt.Skip()
 
@@ -181,12 +184,13 @@ class ContextMenu(wx.Menu):
         self.Append(cmi)
         self.Bind(wx.EVT_MENU, self._onClose, cmi)
 
-    def _onMinimize(self, evt = None):
+    def _onMinimize(self, evt=None):
         self._parent.Iconize()
 
-    def _onClose(self, evt = None):
+    def _onClose(self, evt=None):
         self._parent._onFrameClose()
-        #self._parent.Close()
+        # self._parent.Close()
+
 
 if __name__ == "__main__":
     app = wx.App(False)
