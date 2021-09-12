@@ -91,6 +91,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.leftWorkspacePanel.SetBackgroundColour((255, 255, 255))
         self.rightWorkspacePanel.SetBackgroundColour((100, 100, 100))
+        #todo: right panel must have a minimum size, else contents can go out of view in the scroll panel
         self.workspace.setWindows(self.leftWorkspacePanel, self.graphPanel, self.rightWorkspacePanel)
         self.workspace.build()
         # self.workspace.splitter.SetMinimumPaneSize(100)

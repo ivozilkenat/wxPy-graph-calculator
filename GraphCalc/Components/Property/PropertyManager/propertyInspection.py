@@ -61,8 +61,8 @@ class PropInspectionPanel(GenericPanel):
             ctrl = p.getCtrl(parent=self._contentPanel)
 
             s1 = wx.BoxSizer(wx.HORIZONTAL)
-            s1.Add(txt, 0, wx.EXPAND | wx.LEFT | wx.TOP | wx.BOTTOM, 5)
-            s1.Add(ctrl, 1, wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, 5)  # TODO: export proportions into separate file
+            s1.Add(txt, 1, wx.EXPAND | wx.LEFT | wx.TOP | wx.BOTTOM, 5)
+            s1.Add(ctrl, 0, wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, 5)  # TODO: export proportions into separate file
 
             self._sizerComponent.addComponent(s1)
             if i < valueAmount - 1:
