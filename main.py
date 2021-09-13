@@ -60,7 +60,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel.createCategory(PropertyObjCategory.FUNCTION.getName())
         self.overviewPanel.createCategory(PropertyObjCategory.SHAPES.getName())
         self.overviewPanel.createCategory(PropertyObjCategory.NO_CATEGORY.getName())
-        self.overviewPanel.createCategory(PropertyObjCategory.CUSTOM_CATEGORY("Test").getName())
+        #self.overviewPanel.createCategory(PropertyObjCategory.CUSTOM_CATEGORY("Test").getName())
 
         # TESTING---------------
         for i in range(1):
@@ -85,8 +85,8 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         graphToolPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
         inputPromptPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
 
-        self.rightWorkspacePanelSizer.Add(self.inspectionPanel, 10, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
-        self.rightWorkspacePanelSizer.Add(graphToolPlaceholder, 11, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.rightWorkspacePanelSizer.Add(self.inspectionPanel, 20, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.rightWorkspacePanelSizer.Add(graphToolPlaceholder, 12, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.rightWorkspacePanelSizer.Add(inputPromptPlaceholder, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.rightWorkspacePanel.SetSizer(self.rightWorkspacePanelSizer)
 

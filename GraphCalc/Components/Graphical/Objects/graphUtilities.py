@@ -2,6 +2,8 @@ from MyWx.wx import *
 
 from GraphCalc.Components.Property.property import IntProperty, ListProperty, GraphicalPanelObject, ToggleProperty, \
     PropertyObjCategory
+from GraphCalc._core import vc
+
 from GraphCalc._core.utilities import multiplesInInterval
 
 
@@ -9,29 +11,29 @@ class CartesianAxies(GraphicalPanelObject):
     def __init__(self):
         super().__init__(category=PropertyObjCategory.NO_CATEGORY)
 
-        self.getProperty("name").setValue("Cartesian Coordinate-System")
+        self.getProperty(vc.PROPERTY_NAME).setValue("Cartesian Coordinate-System")
 
     def setBasePlane(self, plane):
         # Properties must be set here, since update function requires panel
         # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
-        self.getProperty("selectable").setValue(False)
-        self.addProperty(ToggleProperty("draw_sub_axis", True, updateFunction=self.refreshBasePlane))
-        self.addProperty(ToggleProperty("draw_main_axis", True, updateFunction=self.refreshBasePlane))
-        c = self.getProperty("color")
-        c.setValue((0, 0, 0))
+        self.getProperty(vc.PROPERTY_SELECTABLE).setValue(False)
+        self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_SUB_AXIS, True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_MAIN_AXIS, True, updateFunction=self.refreshBasePlane))
+        c = self.getProperty(vc.PROPERTY_COLOR)
+        c.setValue(vc.COLOR_BLACK)
         c.setUpdateFunction(self.refreshBasePlane)
         self.addProperty(c, override=True)
         self.addProperty(
             ListProperty(
-                "color_sub_axis",
-                (122, 122, 122),
+                vc.PROPERTY_COL_SUB_AXIS,
+                vc.COLOR_GRAY,
                 fixedFieldAmount=3,
                 validityFunction=lambda x: 0 <= x <= 255,
                 updateFunction=self.refreshBasePlane
             )
         )
-        self.addProperty(IntProperty("sub_axis_draw_width", 1, self.refreshBasePlane))
+        self.addProperty(IntProperty(vc.PROPERTY_SUB_AXIS_DRAW_WIDTH, 1, self.refreshBasePlane))
 
     # todo: add update function as paramter, so values are not newly calculated if id draw is happenening
 
@@ -39,12 +41,12 @@ class CartesianAxies(GraphicalPanelObject):
     # -> new version utilises blit from basePlane
     @GraphicalPanelObject.standardProperties
     def blitUpdate(self, deviceContext, **kwargs):  # TODO: update base class
-        if self.getProperty("draw_sub_axis").getValue() is True:
+        if self.getProperty(vc.PROPERTY_DRAW_SUB_AXIS).getValue() is True:
             self.drawSubAxis(deviceContext, 50)
-        if self.getProperty("draw_main_axis").getValue() is True:
+        if self.getProperty(vc.PROPERTY_DRAW_MAIN_AXIS).getValue() is True:
             self.drawMainAxis(deviceContext)
 
-    @GraphicalPanelObject.draw("color_sub_axis", "sub_axis_draw_width")
+    @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawSubAxis(self, deviceContext, axisPixelDistance):
         xSubAxis = multiplesInInterval(axisPixelDistance, self._basePlane.db)
         ySubAxis = multiplesInInterval(axisPixelDistance, self._basePlane.wb)
@@ -55,7 +57,7 @@ class CartesianAxies(GraphicalPanelObject):
             _, y = self._basePlane.correctPosition(0, y)
             deviceContext.DrawLine(0, y, self._basePlane.w, y)
 
-    @GraphicalPanelObject.draw("color", "draw_width")
+    @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_DRAW_WIDTH)
     def drawMainAxis(self, deviceContext):
         # deviceContext = self.basePlane.memoryDc
         if self._basePlane.db[0] < 0 < self._basePlane.db[1]:

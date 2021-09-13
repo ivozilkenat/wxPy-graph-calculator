@@ -3,7 +3,7 @@ import wx
 from MyWx.wx import *
 from MyWx.Collection.templates import PanelWithHeaderAccordion
 from MyWx.Collection.panels import ListPanel, ListComponent
-from GraphCalc._core._sc import *
+from GraphCalc._core import vc
 
 from GraphCalc.Components.Property.PropertyManager.propertyInspection import PropInspectionPanel
 from GraphCalc.Components.Property.property import PropertyObject, PropCategoryDataClass
@@ -63,7 +63,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
 
     # Create a new Category by string
     def createCategory(self, name: str):
-        newCategory = PanelWithHeaderAccordion(self, headline=name)
+        newCategory = CategoryAccordion(self, title=name)
         newCategory.setAllowEmpty(True)
         newCategory.build()
         self.addCategoryPanel(newCategory)
@@ -94,7 +94,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
 
         lp: ListPanel = categoryTemp.getContent()
         panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry,
-                                 size=(0, 50))  # TODO: unfinished / does not display anything yet
+                                 size=(0, 50))  # TODO: only has fixed size -> should be generic or generally outsourced constant
         panel._text.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
 
         lp.add(panel)
@@ -165,7 +165,6 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         panel = txt.GetParent()
         self._manager.setActiveProperty(panel.getPropertyObj())
 
-
 # SizerComponent to manage accordionPanels
 class CategoryOverviewComponent(SizerComponent):
     def __init__(self, parent):
@@ -199,11 +198,22 @@ class CategoryOverviewComponent(SizerComponent):
     def categoryNameDict(self):
         return {i.getLabelTxt(): i for i in self._categories}
 
+class CategoryAccordion(PanelWithHeaderAccordion):
+    def __init__(self, parent, title):
+        super().__init__(parent=parent, headline=title)
+
+    def build(self):
+        # highlighting
+        if self._content is not None:
+            self._backColor = vc.COL_OVERVIEW_NOCONTENT
+        else:
+            self._backColor = vc.COL_OVERVIEW_HASCONTENT
+        super().build()
 
 # Panel to represent PropertyObjects
 class PropertyObjPanel(GenericPanel):
-    STD_COLOR = (250, 250, 250)
-    SELECT_COLOR = (220, 220, 220)  # <- TODO: outsource values
+    STD_COLOR = vc.COL_PROPOBJ_PANEL_STD
+    SELECT_COLOR = vc.COL_PROPOBJ_PANEL_SELECTED
 
     def __init__(self, parent, propertyObject: PropertyObject, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
@@ -211,7 +221,7 @@ class PropertyObjPanel(GenericPanel):
         self.SetBackgroundColour(self.STD_COLOR)
         self._sizer = wx.BoxSizer(wx.VERTICAL)
 
-        self._text = wx.StaticText(self, label=self._property._properties[PROPERTY_NAME].getValue(),
+        self._text = wx.StaticText(self, label=self._property._properties[vc.PROPERTY_NAME].getValue(),
                                    style=wx.ALIGN_CENTER)
 
         self.build()
@@ -219,7 +229,7 @@ class PropertyObjPanel(GenericPanel):
     # TODO: should be expanded in the future
     def build(self):
         self._sizer.Clear()
-        name = self._property._properties[PROPERTY_NAME].getValue()
+        name = self._property._properties[vc.PROPERTY_NAME].getValue()
         self._text.SetLabel(name)
         font = wx.Font(13, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self._text.SetFont(font)

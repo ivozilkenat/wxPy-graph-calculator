@@ -5,6 +5,8 @@ from MyWx.wx import *
 from GraphCalc.Components.Graphical.graphPlanes import GraphicalPanel, Dynamic2DGraphicalPlane
 from GraphCalc.Components.Property.PropertyManager.propertyManager import PropertyManager
 from GraphCalc.Components.Property.property import PropertyObject, GraphicalPanelObject
+from GraphCalc._core import vc
+
 from typing import Union
 
 
@@ -34,9 +36,9 @@ class GraphPropertyManager:
         if isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.addGraphicalObject(propertyObject)
             if show:  # <- let this stay?
-                propertyObject.getProperty("draw").setValue(True)
+                propertyObject.getProperty(vc.PROPERTY_DRAW).setValue(True)
             else:
-                propertyObject.getProperty("draw").setValue(False)
+                propertyObject.getProperty(vc.PROPERTY_DRAW).setValue(False)
             #todo: add feedback if object could be created or not, considering SeedException
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
@@ -62,7 +64,7 @@ class PropertyAddPanel(GenericPanel):
         super().__init__(parent=parent, size=size)
         self._manager = manager
         self._sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetBackgroundColour((255, 255, 255))
+        self.SetBackgroundColour(vc.COLOR_WHITE)
 
         self.build()
 

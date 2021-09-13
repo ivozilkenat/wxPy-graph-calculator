@@ -2,6 +2,7 @@ import wx
 
 from MyWx.wx import *
 from GraphCalc.Components.Property.property import GraphicalPanelObject
+from GraphCalc._core import vc
 
 from typing import Union, Tuple
 
@@ -303,7 +304,7 @@ class PlaneColorHandler:
 
     def objectColors(self) -> Tuple[GraphicalPanelObject, Tuple[int, int, int, int]]:
         for o in self._colorIds:
-            yield o, tuple(o.getProperty("color").getValue())
+            yield o, tuple(o.getProperty(vc.PROPERTY_COLOR).getValue())
 
     def objectColorsId(self):
         for o in self._colorIds:
@@ -311,7 +312,7 @@ class PlaneColorHandler:
 
     def getColors(self) -> Tuple[int, int, int, int]:
         for o in self._colorIds:
-            yield tuple(o.getProperty("color").getValue())
+            yield tuple(o.getProperty(vc.PROPERTY_COLOR).getValue())
 
     def colorExists(self, color: Tuple[int, int, int, int]):
         if color in self.getColors():
@@ -319,7 +320,7 @@ class PlaneColorHandler:
         return False
 
     def colorOfObjectExists(self, graphObject: GraphicalPanelObject):
-        if self.colorExists(graphObject.getProperty("color").getValue()):
+        if self.colorExists(graphObject.getProperty(vc.PROPERTY_COLOR).getValue()):
             return True
         return False
 

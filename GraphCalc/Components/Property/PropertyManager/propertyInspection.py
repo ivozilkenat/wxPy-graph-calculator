@@ -3,6 +3,7 @@ import wx
 from MyWx.wx import *
 from MyWx.Collection.panels import ListComponent
 from MyWx.Collection.format import expanded
+from GraphCalc._core import vc
 
 from GraphCalc.Components.Property.property import PropertyObject
 
@@ -16,10 +17,10 @@ class PropInspectionPanel(GenericPanel):
         self._contentPanel = GenericMouseScrollPanel(self)
 
         self._sizerComponent = ListComponent(self._contentPanel, sizerFlags=wx.EXPAND | wx.BOTTOM)
-        self.SetBackgroundColour((250, 250, 250))
+        self.SetBackgroundColour(vc.COL_PROP_INSPECTION)
 
         self._layoutSizer = wx.BoxSizer(wx.VERTICAL)
-        self._headline = wx.StaticText(self, label="Properties", style=wx.ALIGN_CENTER)
+        self._headline = wx.StaticText(self, label=vc.LABEL_PROPERTY, style=wx.ALIGN_CENTER)
         font = wx.Font(10, wx.DECORATIVE, wx.ITALIC, wx.BOLD)
         self._headline.SetFont(font)
         self._layoutSizer.Add(self._headline, 0, wx.EXPAND | wx.ALL, 5)

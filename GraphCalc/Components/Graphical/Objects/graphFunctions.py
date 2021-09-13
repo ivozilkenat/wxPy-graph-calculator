@@ -3,6 +3,7 @@ from MyWx.wx import *
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject, FloatProperty
 from GraphCalc._core.utilities import timeMethod
+from GraphCalc._core import vc
 
 import numpy as np
 
@@ -52,20 +53,20 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         self.arguments = None
         self.values = None
 
-        self.getProperty("name").setValue("Funktion2D")
+        self.getProperty(vc.PROPERTY_NAME).setValue("Funktion2D")
 
     def setBasePlane(self, plane):
         # Properties must be set here, since update function requires panel
         # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
-        self.addProperty(FloatProperty("value_coefficient", 0.1, updateFunction=self.refreshBasePlane, increment=0.01))
+        self.addProperty(FloatProperty(vc.PROPERTY_FUNC_COEFF, 0.1, updateFunction=self.refreshBasePlane, increment=0.01))
         #todo: distinguish by type of function (e.g linear functions can be drawn with less detail)
 
     def calculateValueTuples(self, arguments):
         return [self.func(i) for i in arguments]
 
     def calculateData(self):
-        self.valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.getProperty("value_coefficient").getValue()))
+        self.valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.getProperty(vc.PROPERTY_FUNC_COEFF).getValue()))
         self.arguments = np.linspace(*self._basePlane.db, self.valueAmount)
         self.values = self.calculateValueTuples(self.arguments)
 
@@ -76,7 +77,7 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         self.calculateData()
         self.draw(deviceContext)
 
-    @GraphicalPanelObject.draw("color", "draw_width")
+    @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_DRAW_WIDTH)
     def draw(self, deviceContext):
         for i in range(1, len(self.arguments)):
             x1, y1 = self.arguments[i - 1], self.values[i - 1]

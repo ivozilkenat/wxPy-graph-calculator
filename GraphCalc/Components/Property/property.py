@@ -1,7 +1,7 @@
 import wx
 
 from MyWx.wx import *
-from GraphCalc._core._sc import *
+from GraphCalc._core import vc
 
 from GraphCalc._core.utilities import timeMethod
 
@@ -89,7 +89,7 @@ class PropertyCtrl(Property, ABC):
     def callUpdFunc(self, mustUpdate=True):
         if self._updateFunction is None:
             if mustUpdate:
-                raise MyWxException.MissingContent(ERROR_UPDATE_FUNCTION_MISSING)
+                raise MyWxException.MissingContent(vc.ERROR_UPDATE_FUNCTION_MISSING)
         else:
             self._updateFunction()
 
@@ -261,9 +261,9 @@ class PropCategoryDataClass:
 
 
 class PropertyObjCategory(Enum):
-    FUNCTION = PropCategoryDataClass(PROPERTY_CAT_FUNC)
-    SHAPES = PropCategoryDataClass(PROPERTY_CAT_SHAPE)
-    NO_CATEGORY = PropCategoryDataClass(PROPERTY_CAT_MISC)
+    FUNCTION = PropCategoryDataClass(vc.PROPERTY_CAT_FUNC)
+    SHAPES = PropCategoryDataClass(vc.PROPERTY_CAT_SHAPE)
+    NO_CATEGORY = PropCategoryDataClass(vc.PROPERTY_CAT_MISC)
 
     # Needed for the object manager to sort by category
     @classmethod
@@ -290,7 +290,7 @@ class PropertyObject(ABC):
         self.setCategory(category)
         self._properties: Dict[str, Property] = {}  # Exchange with priority queue (or not?)
 
-        self.addProperty(StrProperty(PROPERTY_NAME, PROPERTY_NAME_PLACEHOLDER, constant=True))
+        self.addProperty(StrProperty(vc.PROPERTY_NAME, vc.PROPERTY_NAME_PLACEHOLDER, constant=True))
 
     def _validPropertyKey(method):
         def inner(object, key, *args, **kwargs):
@@ -356,7 +356,7 @@ class ManagerPropertyObject(PropertyObject, ABC):
 
     def setManager(self, manager):
         self._manager = manager
-        p = self.getProperty(PROPERTY_NAME)  # standard property
+        p = self.getProperty(vc.PROPERTY_NAME)  # standard property
         p.setUpdateFunction(self.updateOverviewPanel)
         self.addProperty(p, override=True)
 
@@ -368,9 +368,9 @@ class ManagerPropertyObject(PropertyObject, ABC):
             if self._manager.hasOverviewPanel():
                 return self._manager.getOverviewPanel()
             else:
-                raise MyWxException.MissingContent(ERROR_MISSING_INSPECTION)
+                raise MyWxException.MissingContent(vc.ERROR_MISSING_INSPECTION)
         else:
-            raise MyWxException.MissingContent(ERROR_MISSING_PROP_MAN)
+            raise MyWxException.MissingContent(vc.ERROR_MISSING_PROP_MAN)
 
     def updateOverviewPanel(self):
         self.getOverview().updatePropertyPanels()
@@ -397,12 +397,12 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def setBasePlane(self, plane):
         self.clear()
         self._basePlane = plane
-        self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))  # standard property
-        self.addProperty(ToggleProperty("selectable", True, updateFunction=self.refreshBasePlane))  # standard property
-        self.addProperty(IntProperty("draw_width", 3, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty(vc.PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))  # standard property
+        self.addProperty(ToggleProperty(vc.PROPERTY_SELECTABLE, True, updateFunction=self.refreshBasePlane))  # standard property
+        self.addProperty(IntProperty(vc.PROPERTY_DRAW_WIDTH, 3, updateFunction=self.refreshBasePlane))
         self.addProperty(
             ListProperty(
-                "color",
+                vc.PROPERTY_COLOR,
                 (255, 0, 0),  # <- everything will be colored red if not specified
                 fixedFieldAmount=3,
                 validityFunction=lambda x: 0 <= x <= 255,  # function will be applied onto every single value
@@ -419,7 +419,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def standardProperties(blitUpdateMethod: callable):
         def inner(graphicalPanelObject, deviceContext, **kwargs):
             assert isinstance(graphicalPanelObject, GraphicalPanelObject)
-            if graphicalPanelObject.getProperty(PROPERTY_DRAW).getValue() is True:  # <- standard property
+            if graphicalPanelObject.getProperty(vc.PROPERTY_DRAW).getValue() is True:  # <- standard property
                 blitUpdateMethod(graphicalPanelObject, deviceContext, **kwargs)
 
         return inner
@@ -437,7 +437,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     # mandatory for id system
     def blitUpdateCopy(self, deviceContext, memoryDeviceContext, idColor, detectableBorderWidth):
         self.blitUpdate(deviceContext)
-        if self.getProperty("selectable").getValue():
+        if self.getProperty(vc.PROPERTY_SELECTABLE).getValue():
             self._colorOverride = idColor
             self._extraWidth = detectableBorderWidth
             self.blitUpdate(memoryDeviceContext, needValueUpdate=False)
