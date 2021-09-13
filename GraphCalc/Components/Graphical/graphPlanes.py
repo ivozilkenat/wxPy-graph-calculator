@@ -192,6 +192,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     # Mousewheel event receiver (zooming)
     def _mousewheel(self, evt=None):
+        #todo: should zoom towards mouse cursor
         if evt.GetWheelRotation() > 0:
             self.zoomFactorY += self.ZOOMING_CONST
             self.zoomFactorX += self.ZOOMING_CONST
@@ -199,6 +200,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             self.zoomFactorY -= self.ZOOMING_CONST
             self.zoomFactorX -= self.ZOOMING_CONST
         self.Refresh()
+        evt.Skip()
 
     # def _leftMouseDown(self, evt=None):
     #     print("left down")

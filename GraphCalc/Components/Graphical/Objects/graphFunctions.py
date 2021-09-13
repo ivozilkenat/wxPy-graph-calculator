@@ -75,6 +75,7 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         # a lot of redundant calculation, since everything is done twice
         # todo: due to new structure, values should only be recalculated if updated is needed
         if needValueUpdate:
+            #todo: optimization for values, which don't have to be computed
             self.calculateData()
         self.draw(deviceContext)
 
