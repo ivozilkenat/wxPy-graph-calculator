@@ -1,4 +1,4 @@
-from GraphCalc.Components.Property.property import Property, ToggleProperty, NumProperty
+from GraphCalc.Components.Property.property import Property, ToggleProperty, IntProperty
 
 
 # A class that allows for any Object to bind a Property to it, which can be manipulated due to that
@@ -18,7 +18,7 @@ class TogglePropertyController(PropertyController):
 
 class SliderPropertyController(PropertyController):
     def __init__(self, assignProperty=None):
-        assert isinstance(assignProperty, NumProperty)
+        assert isinstance(assignProperty, IntProperty)
         super().__init__(assignProperty)
 
 

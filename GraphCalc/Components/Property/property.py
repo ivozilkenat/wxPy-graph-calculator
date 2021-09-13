@@ -124,9 +124,9 @@ class ToggleProperty(PropertyCtrl):
         self.setValue(self._control.GetValue())
 
 
-class NumProperty(PropertyCtrl):
+class IntProperty(PropertyCtrl):
     def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False, updateOnEnter=False):
-        assert isinstance(value, (float, int))
+        assert isinstance(value, int)
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
                          validityFunction=validityFunction, constant=constant)
         self._updateOnlyOnEnter = updateOnEnter
@@ -137,6 +137,22 @@ class NumProperty(PropertyCtrl):
         self._control.Bind(wx.EVT_TEXT_ENTER, self.update)
         if not self._updateOnlyOnEnter:
             self._control.Bind(wx.EVT_SPINCTRL, self.update)
+        return self._control
+
+    def updateValue(self):
+        self.setValidValue(self._control.GetValue())  # TODO: Not Tested
+
+class FloatProperty(PropertyCtrl):
+    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False, increment=0.1):
+        assert isinstance(value, float)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+                         validityFunction=validityFunction, constant=constant)
+        self._inc = increment
+
+
+    def getCtrl(self, parent):
+        self._control = wx.SpinCtrlDouble(parent=parent, min=0, max=999999999, initial=self.getValue(), inc=self._inc)
+        self._control.Bind(wx.EVT_SPINCTRLDOUBLE, self.update)
         return self._control
 
     def updateValue(self):
@@ -382,7 +398,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         self._basePlane = plane
         self.addProperty(ToggleProperty(PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))  # standard property
         self.addProperty(ToggleProperty("selectable", True, updateFunction=self.refreshBasePlane))  # standard property
-        self.addProperty(NumProperty("draw_width", 3, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("draw_width", 3, updateFunction=self.refreshBasePlane))
         self.addProperty(
             ListProperty(
                 "color",
@@ -409,7 +425,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
 
     # Called by basePlane if redraw is necessary (Pen Color should never be changed inside)
     @abstractmethod
-    def blitUpdate(self, deviceContext, needValueUpdate=True, **kwargs):
+    def blitUpdate(self, deviceContext, needValueUpdate=True):
         pass
 
     # !!!Id-System methods!!!
@@ -423,7 +439,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         if self.getProperty("selectable").getValue():
             self._colorOverride = idColor
             self._extraWidth = detectableBorderWidth
-            self.blitUpdate(memoryDeviceContext)
+            self.blitUpdate(memoryDeviceContext, needValueUpdate=False)
             self._colorOverride = None
             self._extraWidth = None
 

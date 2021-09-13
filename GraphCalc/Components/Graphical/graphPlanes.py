@@ -204,15 +204,33 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     # Calculates relative position to (updated) origin
     def _adjustedOriginPointPos(self, x, y):
-        return x - self.origin[0], y - self.origin[1]
+        return self._adjustOriginX(x), self._adjustOriginY(y)
+
+    def _adjustOriginX(self, x):
+        return x - self.origin[0]
+
+    def _adjustOriginY(self, y):
+        return y - self.origin[1]
 
     # Calculates position from upper left origin system to origin panel center system
     def _centerPosition(self, x, y):
-        return x + 1 / 2 * self.w, y + 1 / 2 * self.h
+        return self._centerX(x), self._centerY(y)
+
+    def _centerX(self, x):
+        return x + 1 / 2 * self.w
+
+    def _centerY(self, y):
+        return y + 1 / 2 * self.h
 
     # Calculates correct deviation
     def correctPosition(self, x, y):
         return self._centerPosition(*self._adjustedOriginPointPos(x, y))
+
+    def correctY(self, y):
+        return self._centerY(self._adjustOriginY(y))
+
+    def correctX(self, x):
+        return self._centerX(self._adjustOriginX(x))
 
     # change parent class to adjust for color restriction when adding objects
     def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):

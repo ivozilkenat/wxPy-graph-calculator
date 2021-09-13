@@ -1,6 +1,6 @@
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import NumProperty, ListProperty, GraphicalPanelObject, ToggleProperty, \
+from GraphCalc.Components.Property.property import IntProperty, ListProperty, GraphicalPanelObject, ToggleProperty, \
     PropertyObjCategory
 from GraphCalc._core.utilities import multiplesInInterval
 
@@ -31,7 +31,7 @@ class CartesianAxies(GraphicalPanelObject):
                 updateFunction=self.refreshBasePlane
             )
         )
-        self.addProperty(NumProperty("sub_axis_draw_width", 1, self.refreshBasePlane))
+        self.addProperty(IntProperty("sub_axis_draw_width", 1, self.refreshBasePlane))
 
     # todo: add update function as paramter, so values are not newly calculated if id draw is happenening
 

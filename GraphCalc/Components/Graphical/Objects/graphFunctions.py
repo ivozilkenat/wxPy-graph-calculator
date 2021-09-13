@@ -1,6 +1,7 @@
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject
+from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
+from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject, FloatProperty
 from GraphCalc._core.utilities import timeMethod
 
 import numpy as np
@@ -39,6 +40,7 @@ class DefinitionArea():
 
 
 class GraphFunction2D(GraphicalPanelObject, MathFunction):
+    _basePlane: Dynamic2DGraphicalPlane
     def __init__(self, functionAsLambda, definitionArea=None):
         MathFunction.__init__(self, functionAsLambda)
         GraphicalPanelObject.__init__(self, category=PropertyObjCategory.FUNCTION)
@@ -46,24 +48,29 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         self.func = functionAsLambda
         self.definitionArea = definitionArea
 
-        self.valueCoeff = 0.3
-
         self.valueAmount = None
         self.arguments = None
         self.values = None
 
         self.getProperty("name").setValue("Funktion2D")
 
+    def setBasePlane(self, plane):
+        # Properties must be set here, since update function requires panel
+        # todo: is there a design that makes implementing the super method redundant?
+        super().setBasePlane(plane)
+        self.addProperty(FloatProperty("value_coefficient", 0.1, updateFunction=self.refreshBasePlane, increment=0.01))
+        #todo: distinguish by type of function (e.g linear functions can be drawn with less detail)
+
     def calculateValueTuples(self, arguments):
         return [self.func(i) for i in arguments]
 
     def calculateData(self):
-        self.valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.valueCoeff))
+        self.valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.getProperty("value_coefficient").getValue()))
         self.arguments = np.linspace(*self._basePlane.db, self.valueAmount)
         self.values = self.calculateValueTuples(self.arguments)
 
     @GraphicalPanelObject.standardProperties
-    def blitUpdate(self, deviceContext, **kwargs):
+    def blitUpdate(self, deviceContext, needValueUpdate=True):
         # a lot of redundant calculation, since everything is done twice
         # todo: due to new structure, values should only be recalculated if updated is needed
         self.calculateData()
@@ -72,5 +79,16 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
     @GraphicalPanelObject.draw("color", "draw_width")
     def draw(self, deviceContext):
         for i in range(1, len(self.arguments)):
-            deviceContext.DrawLine(*self._basePlane.correctPosition(self.arguments[i - 1], self.values[i - 1]),
-                                   *self._basePlane.correctPosition(self.arguments[i], self.values[i]))
+            x1, y1 = self.arguments[i - 1], self.values[i - 1]
+            x2, y2 = self.arguments[i], self.values[i]
+
+            #todo: just a quick implementation for testing purposes
+            #todo: implement after using logical coordinates
+            yBottom, yTop = self._basePlane.wb
+            # only check if y, since x is always in db-area
+            if yBottom <= y1 <= yTop or yBottom <= y2 <= yTop:
+                deviceContext.DrawLine(
+                    *self._basePlane.correctPosition(x1, y1),
+                    *self._basePlane.correctPosition(x2, y2)
+                )
+
