@@ -71,7 +71,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             self.graphPropertyManager.addPropertyObject(axis)
 
         self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x))
-        self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x ** 2 * 0.005))
+        self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: -x ** 2))
 
         self.addPropertyPanel = PropertyAddPanel(
             self.graphPropertyManager,

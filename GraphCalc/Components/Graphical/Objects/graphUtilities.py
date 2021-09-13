@@ -42,14 +42,17 @@ class CartesianAxies(GraphicalPanelObject):
     @GraphicalPanelObject.standardProperties
     def blitUpdate(self, deviceContext, **kwargs):  # TODO: update base class
         if self.getProperty(vc.PROPERTY_DRAW_SUB_AXIS).getValue() is True:
-            self.drawSubAxis(deviceContext, 50)
+            self.drawSubAxis(deviceContext)
         if self.getProperty(vc.PROPERTY_DRAW_MAIN_AXIS).getValue() is True:
             self.drawMainAxis(deviceContext)
 
     @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
-    def drawSubAxis(self, deviceContext, axisPixelDistance):
-        xSubAxis = multiplesInInterval(axisPixelDistance, self._basePlane.db)
-        ySubAxis = multiplesInInterval(axisPixelDistance, self._basePlane.wb)
+    def drawSubAxis(self, deviceContext):
+        xSubAxis = multiplesInInterval(
+            self._basePlane.logicalXToPx(1), self._basePlane.db
+        )
+        ySubAxis = multiplesInInterval(self._basePlane.logicalYToPx(1), self._basePlane.wb)
+
         for x in xSubAxis:
             x, _ = self._basePlane.correctPosition(x, 0)
             deviceContext.DrawLine(x, 0, x, self._basePlane.h)

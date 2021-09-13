@@ -144,7 +144,7 @@ class IntProperty(PropertyCtrl):
 
 class FloatProperty(PropertyCtrl):
     def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False, increment=0.1):
-        assert isinstance(value, float)
+        assert isinstance(value, (float, int))
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
                          validityFunction=validityFunction, constant=constant)
         self._inc = increment

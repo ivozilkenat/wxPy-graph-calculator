@@ -99,6 +99,7 @@ class GraphicalPanel(GenericPanel):
 
 # Interactive 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):
+    ZOOMING_CONST = 0.15
     def __init__(self, parent, size=None):
         super().__init__(parent=parent, size=size)
         self.colorManager = PlaneColorHandler()
@@ -111,8 +112,11 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
         self.mouseCounter = 0
 
-        self.Px2LEx = 20 / 1  # 20px on the x-axis correspond to 1LE
-        self.Px2LEy = 20 / 1  # 20px on the y-axis correspond to 1LE
+        self.Px2LEx = 50 / 1  # 20px on the x-axis correspond to 1LE
+        self.Px2LEy = 50 / 1  # 20px on the y-axis correspond to 1LE
+
+        self.zoomFactorX = 1
+        self.zoomFactorY = 1
 
         self.hovered = None
         self.active = None
@@ -132,6 +136,39 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.db = (oX - 1 / 2 * self.w, oX + 1 / 2 * self.w)  # Definition-Classes
         self.wb = (oY - 1 / 2 * self.h, oY + 1 / 2 * self.h)
 
+    def getLogicalWidth(self):
+        return self.pxXToLogical(self.w)
+
+    def getLogicalHeight(self):
+        return self.pxYToLogical(self.h)
+
+    def getLogicalOrigin(self):
+        return self.pxXToLogical(self.origin[0]), self.pxXToLogical(self.origin[1])
+
+    def getLogicalDB(self):
+        return self.pxXToLogical(self.db[0]), self.pxXToLogical(self.db[1])
+
+    def getLogicalWB(self):
+        return self.pxXToLogical(self.wb[0]), self.pxXToLogical(self.wb[1])
+
+    def logicalPointToPx(self, x, y):
+        return self.logicalXToPx(x), self.logicalYToPx(y)
+
+    def logicalXToPx(self, value):
+        return value * self.Px2LEx * self.zoomFactorX
+
+    def logicalYToPx(self, value):
+        return value * self.Px2LEy * self.zoomFactorY
+
+    def pxPointToLogical(self, x, y):
+        return self.pxXToLogical(x), self.pxYToLogical(y)
+
+    def pxXToLogical(self, value):
+        return value / (self.Px2LEx * self.zoomFactorX)
+
+    def pxYToLogical(self, value):
+        return value / (self.Px2LEy * self.zoomFactorY)
+
     def _onPaint(self, evt=None):
         if 0 not in self.GetSize():
 
@@ -147,15 +184,21 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             for object in self.layers:
                 r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6) #todo: add this constant
                 # Performance testing
-                # if r is not None: #todo: remove this
-                #     print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+                if r is not None: #todo: remove this
+                    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
 
                 # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
                 # draw time is mainly caused by bad graphical object optimization
 
     # Mousewheel event receiver (zooming)
     def _mousewheel(self, evt=None):
-        pass
+        if evt.GetWheelRotation() > 0:
+            self.zoomFactorY += self.ZOOMING_CONST
+            self.zoomFactorX += self.ZOOMING_CONST
+        else:
+            self.zoomFactorY -= self.ZOOMING_CONST
+            self.zoomFactorX -= self.ZOOMING_CONST
+        self.Refresh()
 
     # def _leftMouseDown(self, evt=None):
     #     print("left down")
