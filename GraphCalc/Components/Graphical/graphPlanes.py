@@ -260,6 +260,8 @@ class PlaneColorHandler:
         del self._colorIds[graphObject]
 
     # Method to create color-format-based id's
+    # todo: Wenn Zeit vorhanden, neue Implementierung über dirkete arithmetische Operation (Logik bereits vorhanden)
+    #       (-> Ähnlichkeit zur Umwandlungen vom römischen Zahlenformat)
     def createColorId(self):
         cId = list(self.NONE_ID)
         seed = self._idCounter
