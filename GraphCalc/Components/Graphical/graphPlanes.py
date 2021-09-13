@@ -100,7 +100,7 @@ class GraphicalPanel(GenericPanel):
 class Dynamic2DGraphicalPlane(GraphicalPanel):
     def __init__(self, parent, size=None):
         super().__init__(parent=parent, size=size)
-        self.colorManager = PlaneColorHandler(self)
+        self.colorManager = PlaneColorHandler()
 
         self.mouseBefore = None
         self.origin = (0, 0)
@@ -233,15 +233,16 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
 
 # todo: use alternative system with a second bitmap which uses id's for all objects
-# creates id's based on colors -> id 1: (1, 0, 0), ... (allows for 255^3 (=16'581'375)combinations, more than enough)
+# creates id's based on colors -> id 1: (1, 0, 0), ... (allows for 256^3 (=16'777'216)combinations, more than enough)
 # todo: implement and optimize
 # Component of graphical Panel
 class PlaneColorHandler:
     NONE_ID = (0, 0, 0)
+    MAX_COL_VAL = 256
 
-    def __init__(self, plane):
+    def __init__(self):
         self._colorIds = dict()
-        self._idCounter = 0
+        self._idCounter = 2 # Starts at 2, since 1 returns NONE_ID
 
         self.idBitmap = None
 
@@ -258,14 +259,27 @@ class PlaneColorHandler:
     def removeIdObject(self, graphObject: GraphicalPanelObject):
         del self._colorIds[graphObject]
 
+    # Method to create color-format-based id's
     def createColorId(self):
-        c = self._idCounter
-
-        # None id should be excluded
-        newId = (c, 255, 0)  # TODO think of a valid system of generation these numbers
-
+        cId = list(self.NONE_ID)
+        seed = self._idCounter
+        while True:
+            if seed > self.MAX_COL_VAL:
+                seed -= self.MAX_COL_VAL
+                for i, v in enumerate(cId[1:], 1):
+                    if v < self.MAX_COL_VAL - 1:
+                        cId[i] += 1
+                        break
+                    else:
+                        if i < len(cId) - 1:
+                            cId[i] = 0
+                        else:
+                            raise SeedException("The possible seed range of 16'777'215 has been exceeded")
+            else:
+                cId[0] = seed - 1
+                break
         self._idCounter += 1
-        return newId
+        return tuple(cId)
 
     def objectColors(self) -> Tuple[GraphicalPanelObject, Tuple[int, int, int, int]]:
         for o in self._colorIds:
@@ -288,3 +302,7 @@ class PlaneColorHandler:
         if self.colorExists(graphObject.getProperty("color").getValue()):
             return True
         return False
+
+class SeedException(Exception):
+    def __init__(self, message="The maximum seed range has been exceeded"):
+        super().__init__(message)
