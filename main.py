@@ -19,6 +19,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # allow prompt interaction
 # add graph information below
 # add context menu
+# graph plane threading?
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.2.0"

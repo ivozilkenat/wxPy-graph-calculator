@@ -140,7 +140,7 @@ class IntProperty(PropertyCtrl):
         return self._control
 
     def updateValue(self):
-        self.setValidValue(self._control.GetValue())  # TODO: Not Tested
+        self.setValidValue(self._control.GetValue())
 
 class FloatProperty(PropertyCtrl):
     def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False, increment=0.1):
@@ -151,12 +151,13 @@ class FloatProperty(PropertyCtrl):
 
 
     def getCtrl(self, parent):
+        # todo: Bug - ctrl not displayed after the program has been started; size of control slightly incorrect
         self._control = wx.SpinCtrlDouble(parent=parent, min=0, max=999999999, initial=self.getValue(), inc=self._inc)
         self._control.Bind(wx.EVT_SPINCTRLDOUBLE, self.update)
         return self._control
 
     def updateValue(self):
-        self.setValidValue(self._control.GetValue())  # TODO: Not Tested
+        self.setValidValue(self._control.GetValue())
 
 
 class StrProperty(PropertyCtrl):
