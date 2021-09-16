@@ -59,14 +59,14 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         # Properties must be set here, since update function requires panel
         # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
-        self.addProperty(FloatProperty(vc.PROPERTY_FUNC_COEFF, 3.5, updateFunction=self.refreshBasePlane, increment=0.1))
+        self.addProperty(FloatProperty(vc.PROPERTY_FUNC_COEFF, 0.1, updateFunction=self.refreshBasePlane, increment=0.01))
         #todo: distinguish by type of function (e.g linear functions can be drawn with less detail)
 
     def calculateValueTuples(self, arguments):
         return [self.func(i) for i in arguments]
 
     def calculateData(self):
-        self.valueAmount = abs(int((self._basePlane.getLogicalDB()[0] - self._basePlane.getLogicalDB()[1]) * self.getProperty(vc.PROPERTY_FUNC_COEFF).getValue()))
+        self.valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.getProperty(vc.PROPERTY_FUNC_COEFF).getValue()))
         self.arguments = np.linspace(*self._basePlane.getLogicalDB(), self.valueAmount)
         self.values = self.calculateValueTuples(self.arguments)
 
