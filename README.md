@@ -3,3 +3,5 @@
 ### Modules:
 
 > pip install wxPython
+
+> pip install sympy
