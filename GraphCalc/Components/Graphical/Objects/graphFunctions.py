@@ -69,6 +69,7 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         self.valueAmount = abs(int((self._basePlane.db[0] - self._basePlane.db[1]) * self.getProperty(vc.PROPERTY_FUNC_COEFF).getValue()))
         self.arguments = np.linspace(*self._basePlane.getLogicalDB(), self.valueAmount)
         self.values = self.calculateValueTuples(self.arguments)
+        print(self.arguments)
 
     @GraphicalPanelObject.standardProperties
     def blitUpdate(self, deviceContext, needValueUpdate=True):

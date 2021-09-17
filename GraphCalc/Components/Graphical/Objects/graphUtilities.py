@@ -46,6 +46,7 @@ class CartesianAxies(GraphicalPanelObject):
         if self.getProperty(vc.PROPERTY_DRAW_MAIN_AXIS).getValue() is True:
             self.drawMainAxis(deviceContext)
 
+    #todo: sub axis cause crash
     @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawSubAxis(self, deviceContext):
         xSubAxis = multiplesInInterval(
