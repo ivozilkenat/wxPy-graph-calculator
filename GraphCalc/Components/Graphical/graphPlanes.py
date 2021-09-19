@@ -151,6 +151,13 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def getLogicalWB(self):
         return self.pxXToLogical(self.wb[0]), self.pxXToLogical(self.wb[1])
 
+    def getLogicalDBLength(self): #todo: test if getDBLength can be calculated in to logical
+        db = self.getLogicalDB()
+        return db[-1]-db[0]
+
+    def getDBLength(self):
+        return self.db[-1]-self.db[0]
+
     def logicalPointToPx(self, x, y):
         return self.logicalXToPx(x), self.logicalYToPx(y)
 
@@ -194,11 +201,11 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def _mousewheel(self, evt=None):
         #todo: should zoom towards mouse cursor
         if evt.GetWheelRotation() > 0:
-            self.zoomFactorY += self.ZOOMING_CONST
-            self.zoomFactorX += self.ZOOMING_CONST
+            self.zoomFactorY *= 1 + self.ZOOMING_CONST
+            self.zoomFactorX *= 1 + self.ZOOMING_CONST
         else:
-            self.zoomFactorY -= self.ZOOMING_CONST
-            self.zoomFactorX -= self.ZOOMING_CONST
+            self.zoomFactorY *= 1 - self.ZOOMING_CONST
+            self.zoomFactorX *= 1 - self.ZOOMING_CONST
         self.Refresh()
         evt.Skip()
 

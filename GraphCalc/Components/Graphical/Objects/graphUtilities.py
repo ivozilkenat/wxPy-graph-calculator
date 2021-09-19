@@ -49,10 +49,18 @@ class CartesianAxies(GraphicalPanelObject):
     #todo: sub axis cause crash
     @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawSubAxis(self, deviceContext):
+
+        zoom = self._basePlane.zoomFactorX
+
+        interval = 1
+        print("interval: ", interval)
+
         xSubAxis = multiplesInInterval(
-            self._basePlane.logicalXToPx(1), self._basePlane.db
+            self._basePlane.logicalXToPx(interval), self._basePlane.db
         )
-        ySubAxis = multiplesInInterval(self._basePlane.logicalYToPx(1), self._basePlane.wb)
+        ySubAxis = multiplesInInterval(
+            self._basePlane.logicalYToPx(interval), self._basePlane.wb
+        )
 
         for x in xSubAxis:
             x, _ = self._basePlane.correctPosition(x, 0)
