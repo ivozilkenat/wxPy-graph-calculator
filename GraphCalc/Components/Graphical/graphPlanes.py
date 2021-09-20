@@ -299,7 +299,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     def _adjustOriginYMirror(self, y):
 
-
+        #todo: fix here
         return -self._adjustOriginY(y)
 
     # Calculates correct deviation
