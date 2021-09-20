@@ -187,6 +187,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             self.updatePlaneData()
 
             dc = wx.BufferedPaintDC(self)
+
             dc.SetBackground(wx.Brush(self.backgroundColor))
             dc.Clear()
 
@@ -196,8 +197,8 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             for object in self.layers:
                 r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6) #todo: add this constant
                 # Performance testing
-                #if r is not None: #todo: remove this
-                #    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+                if r is not None: #todo: remove this
+                   print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
 
                 # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
                 # draw time is mainly caused by bad graphical object optimization
@@ -296,12 +297,27 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def _centerY(self, y):
         return y + 1 / 2 * self.h
 
+    def _adjustOriginYMirror(self, y):
+
+
+        return -self._adjustOriginY(y)
+
     # Calculates correct deviation
     def correctPosition(self, x, y):
         return self._centerPosition(*self._adjustedOriginPointPos(x, y))
 
+    def correctPositionMirrorY(self, x, y):
+        return self.correctX(x), self.correctYMirror(y)
+
     def correctY(self, y):
         return self._centerY(self._adjustOriginY(y))
+
+    def correctYMirror(self, y):
+        return self._centerY(self._adjustOriginYMirror(y))
+
+
+        return self._centerY(self._adjustOriginY(y))
+
 
     def correctX(self, x):
         return self._centerX(self._adjustOriginX(x))
