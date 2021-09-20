@@ -71,14 +71,39 @@ class CartesianAxies(GraphicalPanelObject):
         #
         # print("interval: ", interval)
 
+
+
         # todo: implement this fully / make window size dependent
-        lowerLimit = 6
-        upperLimit = 10
+
+        print("zoom:", self._basePlane.zoomFactorX)
+
+        cellWidth = self._basePlane.Px2LEx
+
+
+        lowerLimit = int(self._basePlane.getDBLength()/cellWidth/3)
+
+        print("lower limit", lowerLimit)
+
+        upperLimit = 2 * lowerLimit
         logicalWidth = self._basePlane.getLogicalDBLength() / 2
+        print("logische Breite:", logicalWidth)
         #does current interval fit
         possibleLines = logicalWidth / self._subAxisInterval
-        if not lowerLimit < possibleLines < upperLimit:
-            self._subAxisInterval = logicalWidth / ((lowerLimit+upperLimit)/2)
+
+        if possibleLines < lowerLimit:
+            self._subAxisInterval = logicalWidth / upperLimit
+        elif possibleLines > upperLimit:
+            self._subAxisInterval = logicalWidth / lowerLimit
+
+
+
+        print("sub axis interval", self._subAxisInterval)
+
+
+        #if not lowerLimit < possibleLines < upperLimit:
+        #    self._subAxisInterval = logicalWidth / lowerLimit
+
+
 
         xSubAxis = multiplesInInterval(
             self._basePlane.logicalXToPx(self._subAxisInterval), self._basePlane.db
@@ -89,7 +114,7 @@ class CartesianAxies(GraphicalPanelObject):
 
         #todo: outsource this
         dxLabel = 15
-        dyLabel = 25
+        dyLabel = 30
         labels = list()
         coords = list()
 

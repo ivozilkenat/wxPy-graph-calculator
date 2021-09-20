@@ -6,6 +6,7 @@ from GraphCalc._core import vc
 
 from typing import Union, Tuple
 
+from decimal import Decimal
 
 # positions as tuples or individual arguments?
 # add more assertions or further type checking
@@ -99,7 +100,7 @@ class GraphicalPanel(GenericPanel):
 
 # Interactive 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):
-    ZOOMING_CONST = 0.15
+    ZOOMING_CONST = 0.05
     def __init__(self, parent, size=None):
         super().__init__(parent=parent, size=size)
         self.colorManager = PlaneColorHandler()
@@ -117,6 +118,10 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
         self.zoomFactorX = 1
         self.zoomFactorY = 1
+
+        #todo: experimental
+        self.zoomXCounter = 0
+        self.zoomYCounter = 0
 
         self.hovered = None
         self.active = None
@@ -191,8 +196,8 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             for object in self.layers:
                 r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6) #todo: add this constant
                 # Performance testing
-                if r is not None: #todo: remove this
-                    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+                #if r is not None: #todo: remove this
+                #    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
 
                 # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
                 # draw time is mainly caused by bad graphical object optimization
@@ -201,13 +206,29 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def _mousewheel(self, evt=None):
         #todo: should zoom towards mouse cursor
         if evt.GetWheelRotation() > 0:
-            self.zoomFactorY *= 1 + self.ZOOMING_CONST
-            self.zoomFactorX *= 1 + self.ZOOMING_CONST
+            # self.zoomFactorY *= 1 + self.ZOOMING_CONST
+            # self.zoomFactorX *= 1 + self.ZOOMING_CONST
+            self.zoomXCounter += 1
+            self.zoomYCounter += 1
         else:
-            self.zoomFactorY *= 1 - self.ZOOMING_CONST
-            self.zoomFactorX *= 1 - self.ZOOMING_CONST
+            self.zoomXCounter -= 1
+            self.zoomYCounter -= 1
+            # self.zoomFactorY *= 1 - self.ZOOMING_CONST
+            # self.zoomFactorX *= 1 - self.ZOOMING_CONST
+
+        self.zoomFactorX = self._zoomFunction(self.zoomXCounter)
+        self.zoomFactorY = self._zoomFunction(self.zoomYCounter)
+
+        print("zoom factors:", self.zoomFactorY, self.zoomFactorX)
+
+
+
         self.Refresh()
         evt.Skip()
+
+    def _zoomFunction(self, value):
+        from math import exp
+        return 2**(value*0.1)
 
     # def _leftMouseDown(self, evt=None):
     #     print("left down")
