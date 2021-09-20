@@ -59,15 +59,15 @@ class CartesianAxies(GraphicalPanelObject):
         if self.getProperty("draw_axle_labels").getValue() is True:
             self.drawAxisLabels(deviceContext)
 
-    #todo: sub axis cause crash
+
     @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawSubAxis(self, deviceContext):
 
-        intervalUpdateFactor = 2
+        intervalUpdateFactor = 2 # interval always becomes a multiple of this, if update is necessary
 
         if self._basePlane.logicalXToPx(self._subAxisInterval) > self._basePlane.Px2LEx * intervalUpdateFactor:
             self._subAxisInterval /= intervalUpdateFactor
-        elif self._basePlane.logicalXToPx(self._subAxisInterval) < self._basePlane.Px2LEx / intervalUpdateFactor:
+        elif self._basePlane.logicalXToPx(self._subAxisInterval) < self._basePlane.Px2LEx:
             self._subAxisInterval *= intervalUpdateFactor
 
         xSubAxisLog = multiplesInInterval(
@@ -87,7 +87,7 @@ class CartesianAxies(GraphicalPanelObject):
         labels = list()
         coords = list()
 
-        #todo: fix labeling orientation bug
+        #todo: fix labeling orientation bug / make transition smoother
         # Draw sub axis
         for x in xSubAxisPx:
             if x == 0:
@@ -100,18 +100,23 @@ class CartesianAxies(GraphicalPanelObject):
                 round(self._basePlane.pxXToLogical(x), decimalPlaces)
             )
             tw, _ = deviceContext.GetTextExtent(v)
-            if self._basePlane.wb[0] < 0 < self._basePlane.wb[1]:
-                labels.append(v)
-                coords.append((
-                    cx - 1/2 * tw,
-                    self._basePlane.correctY(0)-dxLabel
-                ))
-            else:
-                labels.append(v)
-                coords.append((
-                    cx - 1 / 2 * tw,
-                    self._basePlane.correctY(self._basePlane.wb[-1]) - dxLabel
-                ))
+
+            wbStart, wbEnd = self._basePlane.wb
+
+            labelY = self._basePlane.correctY(0) - dxLabel
+
+            labelX = cx - 1 / 2 * tw
+
+            if labelY - dxLabel / 2 <= 0:
+                labelY = self._basePlane.correctY(wbStart) + dxLabel / 2
+            elif wbEnd < 0:
+                labelY = self._basePlane.correctY(wbEnd) - dxLabel
+
+            labels.append(v)
+            coords.append((
+                labelX,
+                labelY
+            ))
 
         for y in ySubAxisPx:
             if y == 0:
@@ -124,18 +129,23 @@ class CartesianAxies(GraphicalPanelObject):
                 round(self._basePlane.pxYToLogical(y), decimalPlaces)
             )
             _, th = deviceContext.GetTextExtent(v)
-            if self._basePlane.db[0] < 0 < self._basePlane.db[1]:
-                labels.append(v)
-                coords.append((
-                    self._basePlane.correctX(0) - dyLabel,
-                    cy - 1 / 2 * th
-                ))
-            else:
-                labels.append(v)
-                coords.append((
-                    self._basePlane.correctX(self._basePlane.db[-1]) - dyLabel,
-                    cy - 1 / 2 * th
-                ))
+
+            dbStart, dbEnd = self._basePlane.db
+
+            labelY = cy - 1 / 2 * th
+
+            labelX = self._basePlane.correctX(0) - dyLabel
+
+            if labelX - dyLabel/2 <= 0:
+                labelX = self._basePlane.correctX(dbStart) + dyLabel/2
+            elif dbEnd < 0:
+                labelX = self._basePlane.correctX(dbEnd) - dyLabel
+
+            labels.append(v)
+            coords.append((
+                labelX,
+                labelY
+            ))
 
         #todo: can this be implemented without calculation overhead?
         if self.getProperty("draw_values").getValue() is True:

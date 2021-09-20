@@ -113,8 +113,8 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
         self.mouseCounter = 0
 
-        self.Px2LEx = 70 / 1  # 20px on the x-axis correspond to 1LE
-        self.Px2LEy = 70 / 1  # 20px on the y-axis correspond to 1LE
+        self.Px2LEx = 50 / 1  # 20px on the x-axis correspond to 1LE
+        self.Px2LEy = 50 / 1  # 20px on the y-axis correspond to 1LE
 
         self.zoomFactorX = 1
         self.zoomFactorY = 1
