@@ -7,7 +7,7 @@ def multiplesInInterval(base, interval):
     multiples = set()
     intervalStart, intervalEnd = interval[0], interval[-1]
     rest = intervalStart % base
-    if int(rest) == 0:
+    if rest == 0:
         firstMultiple = intervalStart
     else:
         firstMultiple = (intervalStart // base + 1) * base

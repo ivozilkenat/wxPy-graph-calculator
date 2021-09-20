@@ -63,66 +63,33 @@ class CartesianAxies(GraphicalPanelObject):
     @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawSubAxis(self, deviceContext):
 
-        # zoom = self._basePlane.zoomFactorX
-        #
-        # print("zoom", zoom)
-        #
-        # interval = zoom**-1
-        #
-        # print("interval: ", interval)
+        intervalUpdateFactor = 2
 
+        if self._basePlane.logicalXToPx(self._subAxisInterval) > self._basePlane.Px2LEx * intervalUpdateFactor:
+            self._subAxisInterval /= intervalUpdateFactor
+        elif self._basePlane.logicalXToPx(self._subAxisInterval) < self._basePlane.Px2LEx / intervalUpdateFactor:
+            self._subAxisInterval *= intervalUpdateFactor
 
-
-        # todo: implement this fully / make window size dependent
-
-        print("zoom:", self._basePlane.zoomFactorX)
-
-        cellWidth = self._basePlane.Px2LEx
-
-
-        lowerLimit = int(self._basePlane.getDBLength()/cellWidth/3)
-
-        print("lower limit", lowerLimit)
-
-        upperLimit = 2 * lowerLimit
-        logicalWidth = self._basePlane.getLogicalDBLength() / 2
-        print("logische Breite:", logicalWidth)
-        #does current interval fit
-        possibleLines = logicalWidth / self._subAxisInterval
-
-        if possibleLines < lowerLimit:
-            self._subAxisInterval = logicalWidth / upperLimit
-        elif possibleLines > upperLimit:
-            self._subAxisInterval = logicalWidth / lowerLimit
-
-
-
-        print("sub axis interval", self._subAxisInterval)
-
-
-        #if not lowerLimit < possibleLines < upperLimit:
-        #    self._subAxisInterval = logicalWidth / lowerLimit
-
-
-
-        xSubAxis = multiplesInInterval(
-            self._basePlane.logicalXToPx(self._subAxisInterval), self._basePlane.db
+        xSubAxisLog = multiplesInInterval(
+            self._subAxisInterval, self._basePlane.getLogicalDB()
         )
-        ySubAxis = multiplesInInterval(
-            self._basePlane.logicalYToPx(self._subAxisInterval), self._basePlane.wb
+        ySubAxisLog = multiplesInInterval(
+            self._subAxisInterval, self._basePlane.getLogicalWB()
         )
+
+        xSubAxisPx = [self._basePlane.logicalXToPx(x) for x in xSubAxisLog]
+        ySubAxisPx =[self._basePlane.logicalYToPx(y) for y in ySubAxisLog]
 
         #todo: outsource this
+        decimalPlaces = 8
         dxLabel = 15
         dyLabel = 30
         labels = list()
         coords = list()
 
-        xSubAxis = list(map(int, xSubAxis))
-        ySubAxis = list(map(int, ySubAxis))
-
+        #todo: fix labeling orientation bug
         # Draw sub axis
-        for x in xSubAxis:
+        for x in xSubAxisPx:
             if x == 0:
                 continue
             cx, _ = self._basePlane.correctPosition(x, 0)
@@ -130,7 +97,7 @@ class CartesianAxies(GraphicalPanelObject):
 
             # add labeling
             v = str(
-                round(self._basePlane.pxXToLogical(x), 2)
+                round(self._basePlane.pxXToLogical(x), decimalPlaces)
             )
             tw, _ = deviceContext.GetTextExtent(v)
             if self._basePlane.wb[0] < 0 < self._basePlane.wb[1]:
@@ -146,7 +113,7 @@ class CartesianAxies(GraphicalPanelObject):
                     self._basePlane.correctY(self._basePlane.wb[-1]) - dxLabel
                 ))
 
-        for y in ySubAxis:
+        for y in ySubAxisPx:
             if y == 0:
                 continue
             _, cy = self._basePlane.correctPosition(0, y)
@@ -154,7 +121,7 @@ class CartesianAxies(GraphicalPanelObject):
 
             # add labeling
             v = str(
-                round(self._basePlane.pxYToLogical(y), 2)
+                round(self._basePlane.pxYToLogical(y), decimalPlaces)
             )
             _, th = deviceContext.GetTextExtent(v)
             if self._basePlane.db[0] < 0 < self._basePlane.db[1]:
