@@ -2,8 +2,7 @@ import wx
 
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import IntProperty, ListProperty, GraphicalPanelObject, ToggleProperty, \
-    PropertyObjCategory
+from GraphCalc.Components.Property.property import IntProperty, ListProperty, GraphicalPanelObject, ToggleProperty, PropertyObjCategory, StrProperty
 from GraphCalc._core import vc
 
 from GraphCalc._core.utilities import multiplesInInterval
@@ -25,9 +24,26 @@ class CartesianAxies(GraphicalPanelObject):
         self.getProperty(vc.PROPERTY_SELECTABLE).setValue(False)
         self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_SUB_AXIS, True, updateFunction=self.refreshBasePlane))
         self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_MAIN_AXIS, True, updateFunction=self.refreshBasePlane))
+
         self.addProperty(ToggleProperty("draw_axle_labels", True, updateFunction=self.refreshBasePlane))
         self.addProperty(ToggleProperty("draw_axle_arrows", True, updateFunction=self.refreshBasePlane))
         self.addProperty(ToggleProperty("draw_values", True, updateFunction=self.refreshBasePlane))
+
+        self.addProperty(IntProperty("arrow_head_height", 10, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("arrow_head_length", 15, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("arrow_head_overlapping", 4, updateFunction=self.refreshBasePlane))
+
+        self.addProperty(StrProperty("y_label", "Y", updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("y_axis_label_axis_distance", 15, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("y_axis_label_border_distance", 10, updateFunction=self.refreshBasePlane))
+        self.addProperty(StrProperty("x_label", "X", updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("x_axis_label_axis_distance", 15, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("x_axis_label_border_distance", 10, updateFunction=self.refreshBasePlane))
+
+        self.addProperty(IntProperty("value_label_x_axis_distance", 15, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("value_label_y_axis_distance", 30, updateFunction=self.refreshBasePlane))
+
+
         c = self.getProperty(vc.PROPERTY_COLOR)
         c.setValue(vc.COLOR_BLACK)
         c.setUpdateFunction(self.refreshBasePlane)
@@ -80,10 +96,9 @@ class CartesianAxies(GraphicalPanelObject):
         xSubAxisPx = [self._basePlane.logicalXToPx(x) for x in xSubAxisLog]
         ySubAxisPx =[self._basePlane.logicalYToPx(y) for y in ySubAxisLog]
 
-        #todo: outsource this
         decimalPlaces = 8
-        dxLabel = 15
-        dyLabel = 30
+        dxLabel = self.getProperty("value_label_x_axis_distance").getValue()
+        dyLabel = self.getProperty("value_label_y_axis_distance").getValue()
         labels = list()
         coords = list()
 
@@ -100,11 +115,8 @@ class CartesianAxies(GraphicalPanelObject):
                 round(self._basePlane.pxXToLogical(x), decimalPlaces)
             )
             tw, _ = deviceContext.GetTextExtent(v)
-
             wbStart, wbEnd = self._basePlane.wb
-
             labelY = self._basePlane.correctY(0) - dxLabel
-
             labelX = cx - 1 / 2 * tw
 
             if labelY - dxLabel / 2 <= 0:
@@ -129,11 +141,8 @@ class CartesianAxies(GraphicalPanelObject):
                 round(self._basePlane.pxYToLogical(y), decimalPlaces)
             )
             _, th = deviceContext.GetTextExtent(v)
-
             dbStart, dbEnd = self._basePlane.db
-
             labelY = cy - 1 / 2 * th
-
             labelX = self._basePlane.correctX(0) - dyLabel
 
             if labelX - dyLabel/2 <= 0:
@@ -153,7 +162,6 @@ class CartesianAxies(GraphicalPanelObject):
 
     @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_DRAW_WIDTH)
     def drawMainAxis(self, deviceContext):
-        # deviceContext = self.basePlane.memoryDc
         if self._basePlane.db[0] < 0 < self._basePlane.db[1]:
             x0, _ = self._basePlane.correctPosition(0, 0)  # combine functions
             deviceContext.DrawLine(x0, 0, x0, self._basePlane.h)
@@ -163,9 +171,9 @@ class CartesianAxies(GraphicalPanelObject):
 
     @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawArrowHeads(self, deviceContext):
-        headHeight = 10 # todo: outsource constants
-        headLength = 15
-        headOverlapping = 4
+        headHeight = self.getProperty("arrow_head_height").getValue()
+        headLength = self.getProperty("arrow_head_length").getValue()
+        headOverlapping = self.getProperty("arrow_head_overlapping").getValue()
 
         # Vector-operations
         tipX = self._basePlane.correctPosition(self._basePlane.db[-1], 0)
@@ -190,17 +198,19 @@ class CartesianAxies(GraphicalPanelObject):
 
     @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawAxisLabels(self, deviceContext):
-        dAxle = 15 # todo: outsource constants
-        dBorder = 10
-        yLabel = "Y"
-        _, th = deviceContext.GetTextExtent(yLabel)
+        label = self.getProperty("y_label").getValue()
+        _, th = deviceContext.GetTextExtent(label)
         deviceContext.DrawText(
-            yLabel,
-            *self._basePlane.correctPosition(dAxle, self._basePlane.wb[-1] - th - dBorder)
+            label,
+            *self._basePlane.correctPosition(
+                self.getProperty("y_axis_label_axis_distance").getValue(),
+                self._basePlane.wb[-1] - th - self.getProperty("y_axis_label_border_distance").getValue())
         )
-        xLabel = "X"
-        tw, _ = deviceContext.GetTextExtent(xLabel)
+        label = self.getProperty("x_label").getValue()
+        tw, _ = deviceContext.GetTextExtent(label)
         deviceContext.DrawText(
-            xLabel,
-            *self._basePlane.correctPosition(self._basePlane.db[-1] - tw - dBorder, dAxle)
+            label,
+            *self._basePlane.correctPosition(
+                self._basePlane.db[-1] - tw - self.getProperty("x_axis_label_border_distance").getValue(),
+                self.getProperty("x_axis_label_axis_distance").getValue())
         )
