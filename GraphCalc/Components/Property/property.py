@@ -426,7 +426,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
 
     # Called by basePlane if redraw is necessary (Pen Color should never be changed inside)
     @abstractmethod
-    def blitUpdate(self, deviceContext, needValueUpdate=True):
+    def blitUpdate(self, deviceContext: wx.DC, needValueUpdate=True):
         pass
 
     # !!!Id-System methods!!!
@@ -435,7 +435,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     # A function to allow "drawing" of id's <- actually could be implemented es extra extension of class
     # only works if functions called by blitUpdate use drawPropertyColor-decorator-else invalid id will be drawn to bitmap todo: fix?
     # mandatory for id system
-    def blitUpdateCopy(self, deviceContext, memoryDeviceContext, idColor, detectableBorderWidth):
+    def blitUpdateCopy(self, deviceContext: wx.DC, memoryDeviceContext, idColor, detectableBorderWidth):
         self.blitUpdate(deviceContext)
         if self.getProperty(vc.PROPERTY_SELECTABLE).getValue():
             self._colorOverride = idColor
@@ -448,7 +448,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     # mandatory for id-system #todo: what would could go wrong in this implementation
     def draw(nameOfColorProperty: str, nameOfWidthProperty: str): #todo: standard constants should be outsourced
         def _draw(drawMethod: callable):
-            def _inner(graphObject, deviceContext, *args, **kwargs):
+            def _inner(graphObject, deviceContext: wx.DC, *args, **kwargs):
                 assert isinstance(graphObject, GraphicalPanelObject)
                 if graphObject._colorOverride is None:
                     color = graphObject.getProperty(nameOfColorProperty).getValue()
@@ -461,6 +461,8 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
                 p = wx.Pen(wx.Colour(color))
                 p.SetWidth(width)
                 deviceContext.SetPen(p)
+                deviceContext.SetBrush(wx.Brush(wx.Colour(color)))
+
                 drawMethod(graphObject, deviceContext, *args, **kwargs)
 
             return _inner

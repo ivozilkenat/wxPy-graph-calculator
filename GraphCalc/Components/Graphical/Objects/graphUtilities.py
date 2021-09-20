@@ -1,3 +1,5 @@
+import wx
+
 from MyWx.wx import *
 
 from GraphCalc.Components.Property.property import IntProperty, ListProperty, GraphicalPanelObject, ToggleProperty, \
@@ -13,6 +15,9 @@ class CartesianAxies(GraphicalPanelObject):
 
         self.getProperty(vc.PROPERTY_NAME).setValue("Cartesian Coordinate-System")
 
+
+        self._subAxisInterval = 1
+
     def setBasePlane(self, plane):
         # Properties must be set here, since update function requires panel
         # todo: is there a design that makes implementing the super method redundant?
@@ -20,6 +25,9 @@ class CartesianAxies(GraphicalPanelObject):
         self.getProperty(vc.PROPERTY_SELECTABLE).setValue(False)
         self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_SUB_AXIS, True, updateFunction=self.refreshBasePlane))
         self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_MAIN_AXIS, True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty("draw_axle_labels", True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty("draw_axle_arrows", True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty("draw_values", True, updateFunction=self.refreshBasePlane))
         c = self.getProperty(vc.PROPERTY_COLOR)
         c.setValue(vc.COLOR_BLACK)
         c.setUpdateFunction(self.refreshBasePlane)
@@ -46,28 +54,100 @@ class CartesianAxies(GraphicalPanelObject):
         if self.getProperty(vc.PROPERTY_DRAW_MAIN_AXIS).getValue() is True:
             self.drawMainAxis(deviceContext)
 
+        if self.getProperty("draw_axle_arrows").getValue() is True:
+            self.drawArrowHeads(deviceContext)
+        if self.getProperty("draw_axle_labels").getValue() is True:
+            self.drawAxisLabels(deviceContext)
+
     #todo: sub axis cause crash
     @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawSubAxis(self, deviceContext):
 
-        zoom = self._basePlane.zoomFactorX
+        # zoom = self._basePlane.zoomFactorX
+        #
+        # print("zoom", zoom)
+        #
+        # interval = zoom**-1
+        #
+        # print("interval: ", interval)
 
-        interval = 1
-        print("interval: ", interval)
+        # todo: implement this fully / make window size dependent
+        lowerLimit = 6
+        upperLimit = 10
+        logicalWidth = self._basePlane.getLogicalDBLength() / 2
+        #does current interval fit
+        possibleLines = logicalWidth / self._subAxisInterval
+        if not lowerLimit < possibleLines < upperLimit:
+            self._subAxisInterval = logicalWidth / ((lowerLimit+upperLimit)/2)
 
         xSubAxis = multiplesInInterval(
-            self._basePlane.logicalXToPx(interval), self._basePlane.db
+            self._basePlane.logicalXToPx(self._subAxisInterval), self._basePlane.db
         )
         ySubAxis = multiplesInInterval(
-            self._basePlane.logicalYToPx(interval), self._basePlane.wb
+            self._basePlane.logicalYToPx(self._subAxisInterval), self._basePlane.wb
         )
 
+        #todo: outsource this
+        dxLabel = 15
+        dyLabel = 25
+        labels = list()
+        coords = list()
+
+        xSubAxis = list(map(int, xSubAxis))
+        ySubAxis = list(map(int, ySubAxis))
+
+        # Draw sub axis
         for x in xSubAxis:
-            x, _ = self._basePlane.correctPosition(x, 0)
-            deviceContext.DrawLine(x, 0, x, self._basePlane.h)
+            if x == 0:
+                continue
+            cx, _ = self._basePlane.correctPosition(x, 0)
+            deviceContext.DrawLine(cx, 0, cx, self._basePlane.h)
+
+            # add labeling
+            v = str(
+                round(self._basePlane.pxXToLogical(x), 2)
+            )
+            tw, _ = deviceContext.GetTextExtent(v)
+            if self._basePlane.wb[0] < 0 < self._basePlane.wb[1]:
+                labels.append(v)
+                coords.append((
+                    cx - 1/2 * tw,
+                    self._basePlane.correctY(0)-dxLabel
+                ))
+            else:
+                labels.append(v)
+                coords.append((
+                    cx - 1 / 2 * tw,
+                    self._basePlane.correctY(self._basePlane.wb[-1]) - dxLabel
+                ))
+
         for y in ySubAxis:
-            _, y = self._basePlane.correctPosition(0, y)
-            deviceContext.DrawLine(0, y, self._basePlane.w, y)
+            if y == 0:
+                continue
+            _, cy = self._basePlane.correctPosition(0, y)
+            deviceContext.DrawLine(0, cy, self._basePlane.w, cy)
+
+            # add labeling
+            v = str(
+                round(self._basePlane.pxYToLogical(y), 2)
+            )
+            _, th = deviceContext.GetTextExtent(v)
+            if self._basePlane.db[0] < 0 < self._basePlane.db[1]:
+                labels.append(v)
+                coords.append((
+                    self._basePlane.correctX(0) - dyLabel,
+                    cy - 1 / 2 * th
+                ))
+            else:
+                labels.append(v)
+                coords.append((
+                    self._basePlane.correctX(self._basePlane.db[-1]) - dyLabel,
+                    cy - 1 / 2 * th
+                ))
+
+        #todo: can this be implemented without calculation overhead?
+        if self.getProperty("draw_values").getValue() is True:
+            deviceContext.DrawTextList(labels, coords)
 
     @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_DRAW_WIDTH)
     def drawMainAxis(self, deviceContext):
@@ -78,3 +158,47 @@ class CartesianAxies(GraphicalPanelObject):
         if self._basePlane.wb[0] < 0 < self._basePlane.wb[1]:
             _, y0 = self._basePlane.correctPosition(0, 0)  # combine functions
             deviceContext.DrawLine(0, y0, self._basePlane.w, y0)
+
+    @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
+    def drawArrowHeads(self, deviceContext):
+        headHeight = 10 # todo: outsource constants
+        headLength = 15
+        headOverlapping = 4
+
+        # Vector-operations
+        tipX = self._basePlane.correctPosition(self._basePlane.db[-1], 0)
+        xArrow = [
+            tipX,
+            (tipX[0] - headLength - headOverlapping, tipX[1] + headHeight),
+            (tipX[0] - headLength, tipX[1]),
+            (tipX[0] - headLength - headOverlapping, tipX[1] - headHeight),
+        ]
+
+        tipY = self._basePlane.correctPosition(0, self._basePlane.wb[-1])
+        yArrow = [
+            tipY,
+            (tipY[0]-headHeight, tipY[1]-headLength-headOverlapping),
+            (tipY[0], tipY[1]-headLength),
+            (tipY[0] + headHeight, tipY[1] - headLength - headOverlapping)
+        ]
+
+        deviceContext.DrawPolygon(xArrow)
+        deviceContext.DrawPolygon(yArrow)
+
+
+    @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
+    def drawAxisLabels(self, deviceContext):
+        dAxle = 15 # todo: outsource constants
+        dBorder = 10
+        yLabel = "Y"
+        _, th = deviceContext.GetTextExtent(yLabel)
+        deviceContext.DrawText(
+            yLabel,
+            *self._basePlane.correctPosition(dAxle, self._basePlane.wb[-1] - th - dBorder)
+        )
+        xLabel = "X"
+        tw, _ = deviceContext.GetTextExtent(xLabel)
+        deviceContext.DrawText(
+            xLabel,
+            *self._basePlane.correctPosition(self._basePlane.db[-1] - tw - dBorder, dAxle)
+        )
