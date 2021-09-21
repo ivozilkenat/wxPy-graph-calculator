@@ -32,6 +32,8 @@ class CartesianAxies(GraphicalPanelObject):
         self.addProperty(IntProperty("arrow_head_height", 10, updateFunction=self.refreshBasePlane))
         self.addProperty(IntProperty("arrow_head_length", 15, updateFunction=self.refreshBasePlane))
         self.addProperty(IntProperty("arrow_head_overlapping", 4, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("arrow_draw_width", 1, updateFunction=self.refreshBasePlane))
+
 
         self.addProperty(StrProperty("y_label", "Y", updateFunction=self.refreshBasePlane))
         self.addProperty(IntProperty("y_axis_label_axis_distance", 15, updateFunction=self.refreshBasePlane))
@@ -114,15 +116,19 @@ class CartesianAxies(GraphicalPanelObject):
             v = str(
                 round(self._basePlane.pxXToLogical(x), decimalPlaces)
             )
-            tw, _ = deviceContext.GetTextExtent(v)
+            tw, th = deviceContext.GetTextExtent(v)
             wbStart, wbEnd = self._basePlane.wb
             labelY = self._basePlane.correctY(0) - dxLabel
             labelX = cx - 1 / 2 * tw
 
             if labelY - dxLabel / 2 <= 0:
-                labelY = self._basePlane.correctY(wbStart) + dxLabel / 2
-            elif wbEnd < 0:
-                labelY = self._basePlane.correctY(wbEnd) - dxLabel
+                labelY = self._basePlane.correctY((wbEnd if self._basePlane.yIsMirrored() else wbStart)) + dxLabel / 2
+            else:
+                if self._basePlane.yIsMirrored():
+                    if wbStart > 0:
+                        labelY = self._basePlane.correctY(wbStart) - dxLabel
+                elif wbEnd < 0:
+                    labelY = self._basePlane.correctY(wbEnd) - dxLabel
 
             labels.append(v)
             coords.append((
@@ -169,7 +175,7 @@ class CartesianAxies(GraphicalPanelObject):
             _, y0 = self._basePlane.correctPosition(0, 0)  # combine functions
             deviceContext.DrawLine(0, y0, self._basePlane.w, y0)
 
-    @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
+    @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, "arrow_draw_width")
     def drawArrowHeads(self, deviceContext):
         headHeight = self.getProperty("arrow_head_height").getValue()
         headLength = self.getProperty("arrow_head_length").getValue()
@@ -193,7 +199,10 @@ class CartesianAxies(GraphicalPanelObject):
         ]
 
         deviceContext.DrawPolygon(xArrow)
-        deviceContext.DrawPolygon(yArrow)
+        if self._basePlane.yIsMirrored():
+            deviceContext.DrawPolygon(self._basePlane.mirrorPointsY(yArrow, tipY[1]))
+        else:
+            deviceContext.DrawPolygon(yArrow)
 
 
     @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
@@ -204,13 +213,13 @@ class CartesianAxies(GraphicalPanelObject):
             label,
             *self._basePlane.correctPosition(
                 self.getProperty("y_axis_label_axis_distance").getValue(),
-                self._basePlane.wb[-1] - th - self.getProperty("y_axis_label_border_distance").getValue())
+                self._basePlane.wb[-1] - (0 if self._basePlane.yIsMirrored() else th) - self.getProperty("y_axis_label_border_distance").getValue())
         )
         label = self.getProperty("x_label").getValue()
-        tw, _ = deviceContext.GetTextExtent(label)
+        tw, th = deviceContext.GetTextExtent(label)
         deviceContext.DrawText(
             label,
             *self._basePlane.correctPosition(
                 self._basePlane.db[-1] - tw - self.getProperty("x_axis_label_border_distance").getValue(),
-                self.getProperty("x_axis_label_axis_distance").getValue())
+                self.getProperty("x_axis_label_axis_distance").getValue() + (th if self._basePlane.yIsMirrored() else 0))
         )

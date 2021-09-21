@@ -98,7 +98,7 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
             # only check if y, since x is always in db-area
             if yBottom <= y1 <= yTop or yBottom <= y2 <= yTop:
                 deviceContext.DrawLine(
-                    *self._basePlane.correctPositionMirrorY(x1, y1),
-                    *self._basePlane.correctPositionMirrorY(x2, y2)
+                    *self._basePlane.correctPosition(x1, y1),
+                    *self._basePlane.correctPosition(x2, y2)
                 )
 

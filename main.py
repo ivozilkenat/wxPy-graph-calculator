@@ -52,6 +52,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPropertyManager = Dy2DGraphPropertyManager(
             self.workspace.splitter)  # <- move parent into getter method
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
+        self.graphPanel.mirrorY(True)
         # self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self.workspace.splitter)
         self.graphPropertyManager.propertyManager.createOverviewPanel(self.leftWorkspacePanel)
         self.graphPropertyManager.propertyManager.createInspectionPanel(self.rightWorkspacePanel)

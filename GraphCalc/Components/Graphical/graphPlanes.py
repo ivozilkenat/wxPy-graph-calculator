@@ -223,7 +223,6 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         #print("zoom factors:", self.zoomFactorY, self.zoomFactorX)
 
 
-
         self.Refresh()
         evt.Skip()
 
@@ -269,13 +268,22 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
                 mX, mY = event.GetPosition()
                 if self.mouseBefore is None:
                     self.mouseBefore = (mX, mY)
-                self.originUpdate = self.mouseBefore[0] - mX, self.mouseBefore[1] - mY
+                self.originUpdate = self.mouseBefore[0] - mX, mY - self.mouseBefore[1] if self.yMirror else self.mouseBefore[1] - mY
                 self.mouseBefore = (mX, mY)
                 self.Refresh()
             else:
                 self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
             self.mouseCounter = 0
+
+    # setup y-axis orientation
+    def mirrorY(self, state: bool):
+        if state:
+            self._adjustOriginY = self.__adjustOriginYMirror
+            self.yMirror = True
+        else:
+            self._adjustOriginY = self.__adjustOriginYStandard
+            self.yMirror = False
 
     # Calculates relative position to (updated) origin
     def _adjustedOriginPointPos(self, x, y):
@@ -285,7 +293,13 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         return x - self.origin[0]
 
     def _adjustOriginY(self, y):
+        return self.__adjustOriginYStandard(y)
+
+    def __adjustOriginYStandard(self, y):
         return y - self.origin[1]
+
+    def __adjustOriginYMirror(self, y):
+        return -self.__adjustOriginYStandard(y)
 
     # Calculates position from upper left origin system to origin panel center system
     def _centerPosition(self, x, y):
@@ -297,30 +311,32 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def _centerY(self, y):
         return y + 1 / 2 * self.h
 
-    def _adjustOriginYMirror(self, y):
-
-        #todo: fix here
-        return -self._adjustOriginY(y)
-
     # Calculates correct deviation
     def correctPosition(self, x, y):
         return self._centerPosition(*self._adjustedOriginPointPos(x, y))
 
-    def correctPositionMirrorY(self, x, y):
-        return self.correctX(x), self.correctYMirror(y)
-
     def correctY(self, y):
         return self._centerY(self._adjustOriginY(y))
 
-    def correctYMirror(self, y):
-        return self._centerY(self._adjustOriginYMirror(y))
-
-
-        return self._centerY(self._adjustOriginY(y))
-
-
     def correctX(self, x):
         return self._centerX(self._adjustOriginX(x))
+
+    # y-mirror methods
+    def mirrorPointsY(self, points, mY):
+        return [(x, 2*mY-y) for x, y in points]
+
+    def mirrorPoints(self, points, mirrorPoint):
+        xm, ym = mirrorPoint
+        return [(2*xm-y, 2*ym-y) for x, y in points]
+
+    def yIsMirrored(self):
+        return self.yMirror
+
+    def _correctPositionMirrorY(self, x, y):
+        return self.correctX(x), self._correctYMirror(y)
+
+    def _correctYMirror(self, y):
+        return self._centerY(self.__adjustOriginYMirror(y))
 
     # change parent class to adjust for color restriction when adding objects
     def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):
