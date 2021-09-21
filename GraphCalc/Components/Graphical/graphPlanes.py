@@ -126,6 +126,8 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.hovered = None
         self.active = None
 
+        self.yMirror = False
+
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
         # self.SetDoubleBuffered(True)
@@ -214,7 +216,6 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     # method to manipulate the origin in a way that a graph point is at target position of plane
     def focusPxPointOnTarget(self, vx, vy, tx, ty):
         rx, ry = self.absPosToOrigin(tx, ty) # position of target, relative to origin
-        print(rx ,ry)
         vt = self.pxPointToLogical(rx, ry) # value of target
         deltaV = vx-vt[0], vy-vt[1]
         cx, cy = self.logicalPointToPx(*deltaV) # position change in px

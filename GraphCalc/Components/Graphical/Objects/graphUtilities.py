@@ -100,6 +100,7 @@ class CartesianAxies(GraphicalPanelObject):
         xSubAxisPx = [self._basePlane.logicalXToPx(x) for x in xSubAxisLog]
         ySubAxisPx =[self._basePlane.logicalYToPx(y) for y in ySubAxisLog]
 
+        # todo: display numbers with more spacing
         decimalPlaces = 8
         dxLabel = self.getProperty("value_label_x_axis_distance").getValue()
         dyLabel = self.getProperty("value_label_y_axis_distance").getValue()
