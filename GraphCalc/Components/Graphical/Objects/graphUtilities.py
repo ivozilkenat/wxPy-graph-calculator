@@ -76,8 +76,10 @@ class CartesianAxies(GraphicalPanelObject):
             self.drawArrowHeads(deviceContext)
         if self.getProperty("draw_axle_labels").getValue() is True:
             self.drawAxisLabels(deviceContext)
-
-
+        # print(self._basePlane.logicalYToPx(10))
+        # print(self._basePlane.logicalYToPx(-10))
+        # print(self._basePlane.pxYToLogical(500))
+        # print()
     @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawSubAxis(self, deviceContext):
 
@@ -121,6 +123,7 @@ class CartesianAxies(GraphicalPanelObject):
             labelY = self._basePlane.correctY(0) - dxLabel
             labelX = cx - 1 / 2 * tw
 
+            # todo: maybe add more logic to make y mirroring more easily usable -> would make code extension more easily
             if labelY - dxLabel / 2 <= 0:
                 labelY = self._basePlane.correctY((wbEnd if self._basePlane.yIsMirrored() else wbStart)) + dxLabel / 2
             else:

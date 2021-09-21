@@ -197,31 +197,44 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             for object in self.layers:
                 r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6) #todo: add this constant
                 # Performance testing
-                if r is not None: #todo: remove this
-                   print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+                #if r is not None: #todo: remove this
+                 #  print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
 
                 # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
                 # draw time is mainly caused by bad graphical object optimization
 
+    def centerLogicalPoint(self, x, y):
+        self.centerPxPoint(*self.logicalPointToPx(x, y))
+
+    def centerPxPoint(self, x, y):
+        vx, vy = self.correctPosition(x, y)
+        cx, cy = vx - 1 / 2 * self.w, vy - 1 / 2 * self.h
+        self.originUpdate = cx, cy
+
+    # method to manipulate the origin in a way that a graph point is at target position of plane
+    def focusPxPointOnTarget(self, vx, vy, tx, ty):
+        rx, ry = self.absPosToOrigin(tx, ty) # position of target, relative to origin
+        print(rx ,ry)
+        vt = self.pxPointToLogical(rx, ry) # value of target
+        deltaV = vx-vt[0], vy-vt[1]
+        cx, cy = self.logicalPointToPx(*deltaV) # position change in px
+        self.originUpdate = (cx, cy)
+
     # Mousewheel event receiver (zooming)
-    def _mousewheel(self, evt=None):
-        #todo: should zoom towards mouse cursor
+    def _mousewheel(self, evt: wx.MouseEvent = None):
         if evt.GetWheelRotation() > 0:
-            # self.zoomFactorY *= 1 + self.ZOOMING_CONST
-            # self.zoomFactorX *= 1 + self.ZOOMING_CONST
             self.zoomXCounter += 1
             self.zoomYCounter += 1
         else:
             self.zoomXCounter -= 1
             self.zoomYCounter -= 1
-            # self.zoomFactorY *= 1 - self.ZOOMING_CONST
-            # self.zoomFactorX *= 1 - self.ZOOMING_CONST
+
+        originalValue = self.pxPointToLogical(*self.absPosToOrigin(*evt.GetPosition()))
 
         self.zoomFactorX = self._zoomFunction(self.zoomXCounter)
         self.zoomFactorY = self._zoomFunction(self.zoomYCounter)
 
-        #print("zoom factors:", self.zoomFactorY, self.zoomFactorX)
-
+        self.focusPxPointOnTarget(*originalValue, *evt.GetPosition())
 
         self.Refresh()
         evt.Skip()
@@ -280,9 +293,11 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def mirrorY(self, state: bool):
         if state:
             self._adjustOriginY = self.__adjustOriginYMirror
+            self.absYToPlane = self._absYToPlaneMirror
             self.yMirror = True
         else:
             self._adjustOriginY = self.__adjustOriginYStandard
+            self.absYToPlane = self._absYToPlaneMirror
             self.yMirror = False
 
     # Calculates relative position to (updated) origin
@@ -337,6 +352,23 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     def _correctYMirror(self, y):
         return self._centerY(self.__adjustOriginYMirror(y))
+
+    # absolut pixel pos to relative pos
+    # todo: does not take any mirroring into account
+    def absPosToOrigin(self, x, y):
+        return self.absXToPlane(x), self.absYToPlane(y)
+
+    def absXToPlane(self, x):
+        return x - self.correctX(0)
+
+    def absYToPlane(self, y):
+        return self._absYToPlaneStandard(y)
+
+    def _absYToPlaneStandard(self, y):
+        return y - self.correctY(0)
+
+    def _absYToPlaneMirror(self, y):
+        return self.correctY(0) - y
 
     # change parent class to adjust for color restriction when adding objects
     def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):
