@@ -185,11 +185,12 @@ class StrProperty(PropertyCtrl):
 
 #todo: validity function behaviour not tested
 class ExprProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, graphCalculator, updateFunction=None, validityFunction=None, constant=False):
+    def __init__(self, propertyName, value, graphCalculator, updateExprFunction = None, updateFunction=None, validityFunction=None, constant=False):
         assert isinstance(value, ExprObj)
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
                          validityFunction=validityFunction, constant=constant)
         self._graphCalc = graphCalculator
+        self._updateExprFunc = updateExprFunction
 
     def getCtrl(self, parent):
         self._control = wx.TextCtrl(parent=parent, value=self.getValue().original(),
@@ -217,17 +218,29 @@ class ExprProperty(PropertyCtrl):
         expr = self.getValue()
         exprType, exprName = type(expr), expr.name()
 
-        successful = self._graphCalc.define(
-            exprType, exprName, newExprStr, raiseDefExceptions=True #todo: raise exceptions later on, when they can be catched and viewed as user feedback
-        )
-
-        if not successful:
+        if not self.redefineAs(exprType, exprName, newExprStr):
             self._control.SetValue(self._inputBeforeValidation)
             return False
         else:
             self.setValue(self._graphCalc.get(exprName))
+            if self._updateExprFunc is not None:
+                self._updateExprFunc() #<- hook to update other expressions
             self._inputBeforeValidation = newExprStr
             return True
+
+    # Allows to define expression newly
+    def redefineAs(self, exprType, exprName, exprStr):
+        return self._graphCalc.define(
+            exprType, exprName, exprStr, raiseDefExceptions=True #todo: raise exceptions later on, when they can be catched and viewed as user feedback
+        )
+
+    # Redefines expression (necessary if namespace changes -> e.g. other expression is changed)
+    def redefineExisting(self):
+        expr = self.getValue()
+        self._graphCalc.define(
+            type(expr), expr.name(), expr.original(), raiseDefExceptions=True
+        )
+        self.setValue(self._graphCalc.get(expr.name()))
 
 
 class ListProperty(PropertyCtrl):
@@ -390,8 +403,11 @@ class PropertyObject(ABC):
     def getProperty(self, name):
         return self._properties[name]
 
-    def getProperties(self):
+    def getPropertyNames(self):
         return tuple(self._properties.values())
+
+    def getPropertyDict(self):
+        return self._properties
 
     @_validPropertyKey
     def setPropertyName(self, oldName, newName):
@@ -491,8 +507,21 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         # todo -custom control for color / custom property class
         #     -->add new color property, this is only a placeholder until then
 
+    ### predefined update functions
+
     def refreshBasePlane(self):
-        self._basePlane.Refresh()
+        if self._basePlane is not None:
+            self._basePlane.Refresh()
+
+    def redefineAllExpressions(self): #todo: check runtime performance here
+        if self._basePlane is not None:
+            for o in self._basePlane.layers:
+                if o != self and isinstance(o, IExprProperty):
+                    for p in o.getPropertyDict().values():
+                        if isinstance(p, ExprProperty):
+                            print(o)
+                            p.redefineExisting()
+    ###
 
     # Decorator for blitUpdateMethod to use standardized properties
     def standardProperties(blitUpdateMethod: callable):

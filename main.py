@@ -82,8 +82,14 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphCalcObjInterface.addExprObj(
             Function2DExpr,
             "f",
-            "a*x+n+5"
+            "x"
         )
+        self.graphCalcObjInterface.addExprObj(
+            Function2DExpr,
+            "g",
+            "f(x) * 2"
+        )
+        print(self.graphCalculator.parser._namespace)
 
         # TESTING---------------
         for i in range(1, 2):

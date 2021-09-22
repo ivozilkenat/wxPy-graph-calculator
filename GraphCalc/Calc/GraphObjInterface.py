@@ -1,6 +1,7 @@
 from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, Function2DExpr, InvalidExpression
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
+from GraphCalc.Components.Property.property import IExprProperty
 
 class GraphObj2DInterface:
 	typeAssignments = {
@@ -29,5 +30,11 @@ class GraphObj2DInterface:
 
 		targetObject = self.typeAssignments[exprType]
 		newObj = targetObject(self._graphCalc, self._graphCalc.get(name))
+
+		for p in self._graphPropManager.propertyManager.getPropertyObjects():
+			if isinstance(p, IExprProperty):
+				if p._exprObj.name() == name: # object was defined before and is already in property manager
+					self._graphPropManager.removePropertyObject(p) # prevents accidental multi definition
+					break
 
 		self._graphPropManager.addPropertyObject(newObj)

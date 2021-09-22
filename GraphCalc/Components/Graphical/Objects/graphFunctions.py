@@ -69,7 +69,8 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                "function_definition",
                self._exprObj,
                self._graphCalc,
-               updateFunction=self.refreshBasePlane
+               updateFunction=self.refreshBasePlane,
+               updateExprFunction=self.redefineAllExpressions
         ))
 
     def exprIsEvaluable(self):
