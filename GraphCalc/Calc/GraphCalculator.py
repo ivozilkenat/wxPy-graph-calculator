@@ -7,8 +7,8 @@ class InvalidExpression(Exception):
 	def __init__(self, message="Invalid Expression"):
 		super().__init__(message)
 
-class UncompatibleTypes(Exception):
-	def __init__(self, message="Uncompatible types"):
+class IncompatibleTypes(Exception):
+	def __init__(self, message="Incompatible types"):
 		super().__init__(message)
 
 class ExprObj(ABC):
@@ -88,20 +88,27 @@ class GraphCalculator2D:
 			return self._objects[name]
 		return None
 
-	def define(self, objectType, name: str,  expressionAsString: str) -> bool:
-		assert objectType in self.allowedTypes
-		#try:
-		exp, org = self.parser.parse(expressionAsString, original=True)
-		# except (InvalidExpression, GeometryError):
-		# 	return False
+	def define(self, exprType, name: str, expressionAsString: str, raiseDefExceptions = True) -> bool:
+		assert exprType in self.allowedTypes
+		try:
+			exp, org = self.parser.parse(expressionAsString, original=True)
+		except (InvalidExpression, GeometryError) as e:
+			raise e #todo: not catched here currently
 
-		self._objects[name] = objectType(name, exp, org)
+		try:
+			self._objects[name] = exprType(name, exp, org)
+		except InvalidExpression as e:
+			if raiseDefExceptions:
+				raise e
+			else:
+				return False
 
-		if objectType is Function2DExpr:
+		# todo: potentially simplify by conversion
+		if exprType is Function2DExpr:
 			self.parser.addDefinition(name, lambda x: exp)
-		elif objectType is Point2DExpr:
+		elif exprType is Point2DExpr:
 			self.parser.addDefinition(name, Point(exp))
-		elif objectType is ValueExpr:
+		elif exprType is ValueExpr:
 			self.parser.addDefinition(name, exp)
 
 		return True
@@ -115,7 +122,7 @@ class ExpressionStrParser:
 
 	def parse(self, string: str, original:bool = False):
 		try:
-			e = sympify(string, locals=self._namespace)
+			e = sympify(string, locals=self._namespace)#rational=True?
 		except (TypeError, SympifyError) as e:
 			raise InvalidExpression(f"Invalid expression: '{string}' -> {e}")
 
@@ -140,45 +147,46 @@ class ExpressionStrParser:
 	def getValue(self, var: str):
 		return self._namespace[var]
 
-calc = GraphCalculator2D()
+if __name__ == "__main__":
+	calc = GraphCalculator2D()
 
-# calc.define(Point2DExpr, "c", "(a, b)")
-# print(calc.get("c").expr())
-# print(calc.parser._namespace)
+	# calc.define(Point2DExpr, "c", "(a, b)")
+	# print(calc.get("c").expr())
+	# print(calc.parser._namespace)
 
-calc.define(Point2DExpr, "a", "(1, 5)")
-# calc.define(Point2DExpr, "b", "(5, 3)")
+	calc.define(Point2DExpr, "a", "(1, 5)")
+	# calc.define(Point2DExpr, "b", "(5, 3)")
 
-calc.define(ValueExpr, "a", "2") #<= overrides old definition
+	calc.define(ValueExpr, "a", "2") #<= overrides old definition
 
-print(calc.parser._namespace)
-
-
-if calc.define(Function2DExpr, "p", "a + b + x"):
-	print("could define!")
-	#=Testing===========================
-
-	print(calc.get("p").expr().evalf())
-	print(calc.get("p").expr().diff("x"))
-
-	#print(calc.parser._namespace)
+	print(calc.parser._namespace)
 
 
-	#===================================
-else:
-	print("could not define!")
+	if calc.define(Function2DExpr, "p", "a + b + x"):
+		print("could define!")
+		#=Testing===========================
+
+		print(calc.get("p").expr().evalf())
+		print(calc.get("p").expr().diff("x"))
+
+		#print(calc.parser._namespace)
 
 
-# calc.parser.addDefinition("func", lambda x: x**2)
-# calc.define("f", "a+b+c+x+sin(x)+func(x)")
-#
-# print("f:", calc.get("f").original())
-# print("f:", calc.get("f").expr())
-# print()
-#
-# calc.define("g", "f(x)")
-# print("g:", calc.get("g").original())
-# print("g:", calc.get("g").expr())
-# print()
-#
-# print(calc.get("g").expr())
+		#===================================
+	else:
+		print("could not define!")
+
+
+	# calc.parser.addDefinition("func", lambda x: x**2)
+	# calc.define("f", "a+b+c+x+sin(x)+func(x)")
+	#
+	# print("f:", calc.get("f").original())
+	# print("f:", calc.get("f").expr())
+	# print()
+	#
+	# calc.define("g", "f(x)")
+	# print("g:", calc.get("g").original())
+	# print("g:", calc.get("g").expr())
+	# print()
+	#
+	# print(calc.get("g").expr())

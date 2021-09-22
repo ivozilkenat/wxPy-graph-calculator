@@ -5,12 +5,15 @@ from GraphCalc._core import vc
 
 from GraphCalc._core.utilities import timeMethod
 
+from GraphCalc.Calc.GraphCalculator import ExprObj
+
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Dict, TypeVar, Union
 
 
 # Probably unnecessary / Maybe nest Property-classes
+#todo: add priority to display in specified order
 class Property(ABC):
     def __init__(self, propertyName: str, value):
         self.setName(propertyName)  # constant #TODO: Make dynamic
@@ -64,7 +67,11 @@ class PropertyCtrl(Property, ABC):
     def validInput(self, inputData):
         pass
 
+    # general method for validity checking, does not have to be implemented
+    # -> logic can be implemented "manually" in setValue method
     def setValidValue(self, value, raiseInvalidTypeError=False):
+        if value == self._inputBeforeValidation:
+            return False #todo: should this be False?
         if self._validityFunction is not None:
             try:
                 if not self._validityFunction(value):
@@ -176,6 +183,52 @@ class StrProperty(PropertyCtrl):
     def updateValue(self):
         self.setValidValue(self._control.GetValue())
 
+#todo: validity function behaviour not tested
+class ExprProperty(PropertyCtrl):
+    def __init__(self, propertyName, value, graphCalculator, updateFunction=None, validityFunction=None, constant=False):
+        assert isinstance(value, ExprObj)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+                         validityFunction=validityFunction, constant=constant)
+        self._graphCalc = graphCalculator
+
+    def getCtrl(self, parent):
+        self._control = wx.TextCtrl(parent=parent, value=self.getValue().original(),
+                                    style=wx.TE_PROCESS_ENTER)
+        self._control.Bind(wx.EVT_TEXT_ENTER,
+                           self.update)
+        return self._control
+
+    def updateValue(self, raiseInvalidTypeError=False):
+        newExprStr = self._control.GetValue()
+        if newExprStr == self._inputBeforeValidation:
+            return False
+
+        if self._validityFunction is not None:
+            try:
+                if not self._validityFunction(newExprStr):
+                    self._control.SetValue(self._inputBeforeValidation)
+                    return False
+            except TypeError:
+                if raiseInvalidTypeError:
+                    raise TypeError("the validity function has received an invalid argument type")
+                else:
+                    return False
+
+        expr = self.getValue()
+        exprType, exprName = type(expr), expr.name()
+
+        successful = self._graphCalc.define(
+            exprType, exprName, newExprStr, raiseDefExceptions=True #todo: raise exceptions later on, when they can be catched and viewed as user feedback
+        )
+
+        if not successful:
+            self._control.SetValue(self._inputBeforeValidation)
+            return False
+        else:
+            self.setValue(self._graphCalc.get(exprName))
+            self._inputBeforeValidation = newExprStr
+            return True
+
 
 class ListProperty(PropertyCtrl):
     DELIMITER = ";"
@@ -270,6 +323,7 @@ class ColorProperty(PropertyCtrl):
     def updateValue(self):
         self.setValidValue(self._control.GetValue())
 
+### Property Categories
 
 class PropCategoryDataClass:
     def __init__(self, categoryName: str):
@@ -414,6 +468,11 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         self._colorOverride = None  # mandatory for id system
         self._extraWidth = None
 
+        self._drawable = True
+
+    def isDrawable(self):
+        return self._drawable
+
     def setBasePlane(self, plane):
         self.clear()
         self._basePlane = plane
@@ -488,3 +547,9 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
             return _inner
 
         return _draw
+
+# interface for uniformed object instantiation with expression property objects (objects, that *have* to define a graph calculator and expression)
+class IExprProperty:
+    def __init__(self, graphCalculator, expression):
+        self._graphCalc = graphCalculator
+        self._exprObj = expression

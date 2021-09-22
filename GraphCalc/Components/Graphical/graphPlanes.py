@@ -199,8 +199,9 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             for object in self.layers:
                 r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6) #todo: add this constant
                 # Performance testing
-                #if r is not None: #todo: remove this
-                 #  print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+                if r is not None: #todo: remove this
+                  print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+            print()
 
                 # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
                 # draw time is mainly caused by bad graphical object optimization

@@ -6,6 +6,9 @@ from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager, PropertyAddPanel
 from GraphCalc.Components.Property.property import PropertyObjCategory
 
+from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, Function2DExpr
+from GraphCalc.Calc.GraphObjInterface import GraphObj2DInterface
+
 from MyWx.Collection.templates import ThreePanelWorkspace
 
 
@@ -20,9 +23,12 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # add graph information below
 # add context menu
 # graph plane threading?
+# multi language support
+# buttons in ui to change plane background (zooming, scaling, etc.)
+# optimize function drawing, by precalculating values -> use idle handler and intern optimization
 
 class GraphCalculatorApplicationFrame(wx.Frame):
-    version = "0.2.0"
+    version = "0.5.0"
     title = "Ivo's Grafikrechner"
 
     def __init__(self, parent=None, id=wx.ID_ANY, title=""):
@@ -50,7 +56,15 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.rightWorkspacePanelSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.graphPropertyManager = Dy2DGraphPropertyManager(
-            self.workspace.splitter)  # <- move parent into getter method
+            self.workspace.splitter # <- move parent into getter method
+        )
+        self.graphCalculator = GraphCalculator2D()
+
+        self.graphCalcObjInterface = GraphObj2DInterface(
+            graphCalculator=self.graphCalculator,
+            graphPropertyManager=self.graphPropertyManager
+        )
+
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
         self.graphPanel.mirrorY(True)
         # self.graphPropertyManager.propertyManager.createOverviewInspectionPanels(self.workspace.splitter)
@@ -63,19 +77,24 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel.createCategory(PropertyObjCategory.NO_CATEGORY.getName())
         #self.overviewPanel.createCategory(PropertyObjCategory.CUSTOM_CATEGORY("Test").getName())
 
+        # Overview-panel and Inspection-panel have been created
+
+        self.graphCalcObjInterface.addExprObj(
+            Function2DExpr,
+            "f",
+            "a*x+n+5"
+        )
+
         # TESTING---------------
-        for i in range(1):
+        for i in range(1, 2):
             axis = CartesianAxies()
             p = axis.getProperty("name")
             p.setValue("Cartesian-Plane - " + str(i))
             axis.addProperty(p, override=True)
             self.graphPropertyManager.addPropertyObject(axis)
 
-        self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: x))
-        self.graphPropertyManager.addPropertyObject(GraphFunction2D(lambda x: x ** 2))
-
         self.addPropertyPanel = PropertyAddPanel(
-            self.graphPropertyManager,
+            self.graphPropertyManager, #todo: parent should come first | needs to be connected to the interface
             self.leftWorkspacePanel
         )  # <- define as special control / also other controls that effect manager
 
