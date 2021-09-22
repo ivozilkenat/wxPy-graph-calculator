@@ -251,6 +251,26 @@ class ListProperty(PropertyCtrl):
                 return string
 
 
+class ColorProperty(PropertyCtrl):
+    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False):
+        assert isinstance(value, tuple)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+                         validityFunction=validityFunction, constant=constant)
+
+    def getCtrl(self, parent):
+        self._control = wx.ColourPickerCtrl(parent=parent, colour=self.getValue())
+        self._control.Bind(wx.EVT_COLOURPICKER_CHANGED,
+                           self.update)  # TODO: find out if other event might fit better (e.g. EVT_TEXT)
+        self._control.GetValue = self.__getValueOverride # override method <- hacky solution?
+        return self._control
+
+    def __getValueOverride(self):
+        return self._control.GetColour()[:3]
+
+    def updateValue(self):
+        self.setValidValue(self._control.GetValue())
+
+
 class PropCategoryDataClass:
     def __init__(self, categoryName: str):
         self.name = categoryName

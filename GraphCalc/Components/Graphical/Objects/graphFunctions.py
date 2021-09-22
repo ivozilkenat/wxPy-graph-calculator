@@ -1,7 +1,7 @@
 from MyWx.wx import *
 
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
-from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject, FloatProperty
+from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject, FloatProperty, ColorProperty
 from GraphCalc._core.utilities import timeMethod
 from GraphCalc._core import vc
 
@@ -57,6 +57,7 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
 
     def setBasePlane(self, plane):
         # Properties must be set here, since update function requires panel
+        # todo: use color property
         # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
         self.addProperty(FloatProperty(vc.PROPERTY_FUNC_COEFF, 0.1, updateFunction=self.refreshBasePlane, increment=0.01))
