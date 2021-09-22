@@ -67,6 +67,7 @@ class GraphFunction2D(GraphicalPanelObject, MathFunction):
         return [self.func(i) for i in arguments]
 
     def calculateData(self):
+        #todo: optimize -> calculate values based on dominant areas of point density
         self.valueAmount = int(self._basePlane.getDBLength() * self.getProperty(vc.PROPERTY_FUNC_COEFF).getValue())
         self.arguments = np.linspace(*self._basePlane.getLogicalDB(), self.valueAmount)
         self.values = self.calculateValueTuples(self.arguments)

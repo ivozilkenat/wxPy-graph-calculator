@@ -45,8 +45,6 @@ class CartesianAxies(GraphicalPanelObject):
         self.addProperty(IntProperty("value_label_x_axis_distance", 15, updateFunction=self.refreshBasePlane))
         self.addProperty(IntProperty("value_label_y_axis_distance", 30, updateFunction=self.refreshBasePlane))
 
-        self.addProperty(ColorProperty("color_test", (0, 255, 0), updateFunction=self.refreshBasePlane))
-
 
         c = self.getProperty(vc.PROPERTY_COLOR)
         c.setValue(vc.COLOR_BLACK)

@@ -260,7 +260,7 @@ class ColorProperty(PropertyCtrl):
     def getCtrl(self, parent):
         self._control = wx.ColourPickerCtrl(parent=parent, colour=self.getValue())
         self._control.Bind(wx.EVT_COLOURPICKER_CHANGED,
-                           self.update)  # TODO: find out if other event might fit better (e.g. EVT_TEXT)
+                           self.update)
         self._control.GetValue = self.__getValueOverride # override method <- hacky solution?
         return self._control
 
