@@ -12,6 +12,7 @@ from decimal import Decimal
 # add more assertions or further type checking
 # add interactive selection of displayed objects
 # 3 coordinate system
+# wb should turn when using y-mirroring
 
 # Baseclass for Base-Panels
 # -> Foundation of every layer-system
@@ -105,6 +106,8 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         super().__init__(parent=parent, size=size)
         self.colorManager = PlaneColorHandler()
 
+        self.yMirror = False
+
         self.mouseBefore = None
         self.origin = (0, 0)
         self.originUpdate = (0, 0)
@@ -126,7 +129,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.hovered = None
         self.active = None
 
-        self.yMirror = False
+
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
