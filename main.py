@@ -84,11 +84,11 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             "f",
             "x"
         )
-        # self.graphCalcObjInterface.addExprObj(
-        #     Function2DExpr,
-        #     "g",
-        #     "f(x) * 2"
-        # )
+        self.graphCalcObjInterface.addExprObj(
+            Function2DExpr,
+            "g",
+            "f(x) * 2"
+        )
         print(self.graphCalculator.parser._namespace)
 
         # TESTING---------------

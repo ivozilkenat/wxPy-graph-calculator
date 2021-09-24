@@ -66,6 +66,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         super().setBasePlane(plane)
         self.addProperty(FloatProperty(vc.PROPERTY_FUNC_COEFF, 0.1, updateFunction=self.refreshBasePlane, increment=0.01))
         #todo: distinguish by type of function (e.g linear functions can be drawn with less detail)
+        #       -> optimize draw speed
 
         self.addProperty(
            ExprProperty(
@@ -82,6 +83,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         res = expr.expr().subs(Function2DExpr.argumentSymbol, 1)
         return res.is_number #todo: test this
 
+    @timeMethod
     def calculateData(self):
         if self.exprIsEvaluable():
             #todo: optimize -> calculate values based on dominant areas of point density
@@ -99,8 +101,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
 
             expr = lambdify(Function2DExpr.argumentSymbol, expr)
 
-            visibleIntervals = self.findArgsInVisible(expr, 150, precision=0.25)
-            print(visibleIntervals)
+            visibleIntervals = self.findArgsInVisible(expr, 150, precision=0.01)
             if (visibleAmount := len(visibleIntervals)) == 0:
                 self.values = None
                 return
@@ -114,6 +115,8 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             self.values = [
                np.fromiter(map(lambda x: expr(x), interval), dtype=np.float)  for interval in self.arguments
             ]
+            # todo: decide by average value, if function should be drawn
+            #       or by size of interval
         else:
             self.values = None
 
@@ -126,7 +129,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         return any([lowerWb <= v <= upperWb for v in values])
 
 
-    def findArgsInVisible(self, callableExpr, checkAmount, precision = 0.01, approximationThreshold=0.1):
+    def findArgsInVisible(self, callableExpr, checkAmount, precision = 0.05, approximationThreshold=0.1):
         #todo: approxThreshold necessary?
         lowerLimit, upperLimit = self._basePlane.getLogicalDB()
         deltaX = self._basePlane.getLogicalDBLength() / checkAmount
@@ -168,11 +171,12 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                     newDelta = deltaA / k
                     while abs(newDelta) > threshold:
                         newArg -= newDelta
-                        newDelta = deltaA / k
                         if self.inLogicalWb(callableExpr(newArg)):
-                            k = -2*k
-                        else:
                             k = 2*k
+                        else:
+                            k = -2*k
+                        newDelta = deltaA / k
+
 
                 interval.append(newArg)
 
@@ -196,11 +200,11 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                     newDelta = deltaA / k
                     while abs(newDelta) > threshold:
                         newArg += newDelta
-                        newDelta = deltaA / k
                         if self.inLogicalWb(callableExpr(newArg)):
                             k = 2*k
                         else:
                             k = -2*k
+                        newDelta = deltaA / k
 
                 interval.append(newArg)
                 visibleIntervals.append(interval)
@@ -238,7 +242,8 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         # todo: due to new structure, values should only be recalculated if updated is needed
         if needValueUpdate:
             #todo: optimization for values, which don't have to be computed
-            self.calculateData()
+            r = self.calculateData()
+            print(f"time needed: {r}s")
         if self.values is None:
             self._drawable = False
             return #-> expression is not evaluable
@@ -249,8 +254,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
 
     @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_DRAW_WIDTH)
     def draw(self, deviceContext):
+        points = list()
         for i, interval in enumerate(self.values):
-            for j in range(1, len(interval) - 1):
+            for j in range(1, len(interval)):
 
                 a0, ax, = self.arguments[i][j-1], self.arguments[i][j]
                 v0, vx = self.values[i][j-1], self.values[i][j]
@@ -270,8 +276,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                 yBottom, yTop = self._basePlane.wb
                 # only check if y, since x is always in db-area
                 if yBottom <= y1 <= yTop or yBottom <= y2 <= yTop:
-                    deviceContext.DrawLine(
+                    points.append((
                         *self._basePlane.correctPosition(x1, y1),
                         *self._basePlane.correctPosition(x2, y2)
-                    )
+                    ))
+        deviceContext.DrawLineList(points)
 
