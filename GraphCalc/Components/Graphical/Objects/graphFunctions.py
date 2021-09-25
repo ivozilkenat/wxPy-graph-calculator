@@ -1,7 +1,7 @@
 from MyWx.wx import *
 
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
-from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject, ExprProperty, FloatProperty, IExprProperty
+from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject, SelectProperty, ExprProperty, FloatProperty, IExprProperty, ToggleProperty
 from GraphCalc.Calc.GraphCalculator import Function2DExpr
 
 from GraphCalc._core.utilities import timeMethod
@@ -77,6 +77,14 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                updateExprFunction=self.redefineAllExpressions
         ))
 
+        self.addProperty(
+            SelectProperty(
+                "point_interval_approximation",
+                ("standard", "slope", "interval"),
+                updateFunction=self.refreshBasePlane()
+            )
+        )
+
     def exprIsEvaluable(self):
         expr = self.getProperty("function_definition").getValue()
         # testing if evaluable, by trying to get a number value for x = 1 | x != 0 todo: can values be not continuously
@@ -89,37 +97,97 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             #todo: optimize -> calculate values based on dominant areas of point density
             #   -stop using class attributes
             self.valueAmount = int(self._basePlane.getDBLength() * self.getProperty(vc.PROPERTY_FUNC_COEFF).getValue())
-
             # completely overhaul argument calculation -> thereby value calculation
             # todo: calculate all arguments, which are expected to give valid results:
             #       -find max -> prevent calculating points out of view -> point density
             #       -calc valid values for expression to prevent invalid arguments
-
             expr = self.getProperty("function_definition").getValue().expr()
 
             #   get values for which the function is defined
-
             expr = lambdify(Function2DExpr.argumentSymbol, expr)
 
-            visibleIntervals = self.findArgsInVisible(expr, 150, precision=0.01)
-            if (visibleAmount := len(visibleIntervals)) == 0:
-                self.values = None
-                return
+            # todo: use precalculation
+            algo = self.getProperty("point_interval_approximation").getSelected()
+            if algo == "standard":
+                self.standardApproximation(expr)
+            elif algo == "slope":
+                self.slopeApproximation(expr, 20)
+            elif algo == "interval":
+                self.intervalApproximation(expr)
             else:
-                amountPerInterval = int(self.valueAmount / visibleAmount)
-
-            self.arguments = [
-                    np.linspace(i[0], i[1], amountPerInterval) for i in visibleIntervals
-                ]
-
-            self.values = [
-               np.fromiter(map(lambda x: expr(x), interval), dtype=np.float)  for interval in self.arguments
-            ]
-            # todo: decide by average value, if function should be drawn
-            #       or by size of interval
+                self.values = None
         else:
             self.values = None
 
+    def standardApproximation(self, callableExpression):
+        self.arguments = np.linspace(*self._basePlane.getLogicalDB(), self.valueAmount)
+        self.values = np.array([[callableExpression(i) for i in self.arguments]])
+        self.arguments = np.array([self.arguments])
+
+    def slopeApproximation(self, callableExpression, n, minValFactor = 0.075):
+        # divide db into n intervals and check median slope, determine proportion -> assign values
+        minValues = int(self.valueAmount * minValFactor)
+        if minValues <= 2:
+            minValues = 2
+        dbStart, dbEnd = self._basePlane.getLogicalDB()
+        step = self._basePlane.getLogicalDBLength() / n
+        intervals = list()
+        intervals.append((dbStart, dbStart + step))
+        while len(intervals) < n:
+            intervals.append(
+                (intervals[-1][-1], intervals[-1][-1] + step)
+            )
+        slopes = list()
+        for x0, x1 in intervals:
+            y0, y1 = callableExpression(x0), callableExpression(x1)
+            if any(np.isnan(v) for v in (y0, y1)):  # check if nan in calculated values
+                continue
+            slopes.append(
+                ((x0, x1), abs(((y1 - y0) / (x1 - x0)) ** -1))
+            )
+        sumSlopes = sum([s[1] for s in slopes])
+        arguments = list()
+        for interval, m in slopes:
+            x0, x1 = interval
+            va = int(self.valueAmount * (m / sumSlopes))
+            if va <= 1:
+                va = minValues
+            arguments.append(
+                np.linspace(x0, x1, va, dtype=np.float)
+            )
+        # calculate arguments
+        self.arguments = np.concatenate(arguments)
+
+        # calculate values
+        self.values = np.array(
+            [np.fromiter(map(lambda x: callableExpression(x), self.arguments), dtype=np.float)]
+        )
+
+        self.arguments = np.array([self.arguments])
+
+    def intervalApproximation(self, callableExpression):
+
+    # todo: redundant?
+
+        #-> to slow, with to many errors
+        visibleIntervals = self.findArgsInVisible(callableExpression, 150, precision=0.01)
+        if (visibleAmount := len(visibleIntervals)) == 0:
+            self.values = None
+            return
+        else:
+            amountPerInterval = int(self.valueAmount / visibleAmount)
+
+        self.arguments = np.array([
+                np.linspace(i[0], i[1], amountPerInterval) for i in visibleIntervals
+            ])
+
+        self.values = np.array([
+           np.fromiter(map(lambda x: callableExpression(x), interval), dtype=np.float)  for interval in self.arguments
+        ])
+        # todo: decide by average value, if function should be drawn
+        #       or by size of interval
+
+    # todo: redundant?
     def inLogicalWbList(self, *values):
         lowerWb, upperWb = self._basePlane.getLogicalWB()
         return [lowerWb <= v <= upperWb for v in values]
@@ -128,7 +196,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         lowerWb, upperWb = self._basePlane.getLogicalWB()
         return any([lowerWb <= v <= upperWb for v in values])
 
-
+    # todo: redundant?
     def findArgsInVisible(self, callableExpr, checkAmount, precision = 0.05, approximationThreshold=0.1):
         #todo: approxThreshold necessary?
         lowerLimit, upperLimit = self._basePlane.getLogicalDB()
@@ -255,9 +323,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
     @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_DRAW_WIDTH)
     def draw(self, deviceContext):
         points = list()
+        # arguments and values must be nested to allow for drawing of separate intervals
         for i, interval in enumerate(self.values):
             for j in range(1, len(interval)):
-
                 a0, ax, = self.arguments[i][j-1], self.arguments[i][j]
                 v0, vx = self.values[i][j-1], self.values[i][j]
 
@@ -276,9 +344,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                 yBottom, yTop = self._basePlane.wb
                 # only check if y, since x is always in db-area
                 if yBottom <= y1 <= yTop or yBottom <= y2 <= yTop:
-                    points.append((
+                    points.append([
                         *self._basePlane.correctPosition(x1, y1),
                         *self._basePlane.correctPosition(x2, y2)
-                    ))
+                    ])
         deviceContext.DrawLineList(points)
 

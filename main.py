@@ -82,7 +82,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphCalcObjInterface.addExprObj(
             Function2DExpr,
             "f",
-            "x"
+            "x**2"
         )
         self.graphCalcObjInterface.addExprObj(
             Function2DExpr,

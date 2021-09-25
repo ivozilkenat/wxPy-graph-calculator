@@ -336,6 +336,31 @@ class ColorProperty(PropertyCtrl):
     def updateValue(self):
         self.setValidValue(self._control.GetValue())
 
+class SelectProperty(PropertyCtrl):
+    # todo: every item is stored as a string <- make obvious to programmer or use special data class to store all types
+    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False):
+        assert isinstance(value, tuple)
+        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+                         validityFunction=validityFunction, constant=constant)
+        self._currentlySelected = value[0]
+
+    def getCtrl(self, parent):
+        self._control = wx.ComboBox(parent=parent, value = self._currentlySelected, choices=self.getValue())
+        self._control.Bind(wx.EVT_COMBOBOX, self.update)
+        return self._control
+
+    def getStrTuple(self):
+        return tuple([self._control.GetString(i) for i in range(self._control.GetCount())])
+
+    def getSelected(self):
+        return self._currentlySelected
+        #todo: what about GetValue()
+
+    def updateValue(self):
+        print("UPDATE")
+        self._currentlySelected = self._control.GetValue()
+        self.setValidValue(self.getStrTuple())
+
 ### Property Categories
 
 class PropCategoryDataClass:
