@@ -11,6 +11,9 @@ from sympy import *
 
 import numpy as np
 
+# ignores warnings, which may appear by calculating with illegal arguments (e.g. sqrt(-1))
+np.seterr(all="ignore")
+
 
 # todo: utilize this class for defined intervals for functions
 class DefinitionArea():
@@ -80,7 +83,12 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         self.addProperty(
             SelectProperty(
                 "point_interval_approximation",
-                ("standard", "slope", "interval"),
+                (
+                    "standardFirstValue",
+                    "slope",
+                    "interval",
+                    "standard",
+                ),
                 updateFunction=self.refreshBasePlane()
             )
         )
@@ -93,6 +101,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
 
     @timeMethod
     def calculateData(self):
+        print("clac")
         if self.exprIsEvaluable():
             #todo: optimize -> calculate values based on dominant areas of point density
             #   -stop using class attributes
@@ -110,6 +119,8 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             algo = self.getProperty("point_interval_approximation").getSelected()
             if algo == "standard":
                 self.standardApproximation(expr)
+            elif algo == "standardFirstValue":
+                self.standardFindStartApproximation(expr)
             elif algo == "slope":
                 self.slopeApproximation(expr, 20)
             elif algo == "interval":
@@ -123,6 +134,45 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         self.arguments = np.linspace(*self._basePlane.getLogicalDB(), self.valueAmount)
         self.values = np.array([[callableExpression(i) for i in self.arguments]])
         self.arguments = np.array([self.arguments])
+
+
+    def standardFindStartApproximation(self, callableExpression, approximationThreshold=0.001, fast=False):
+        self.standardApproximation(callableExpression)
+        deltaX = self._basePlane.getLogicalDBLength() / self.valueAmount
+        threshold = deltaX * approximationThreshold
+        values, args = self.values[0], self.arguments[0]
+        inserts = 0
+        for index, value in enumerate(values):
+            if not np.isnan(value) and np.isnan(values[index-1]):
+                k = 2
+                oldArg = args[index]
+                newArg = oldArg
+                newDelta = -(deltaX / k)
+                while abs(newDelta) > threshold:
+                    newArg += newDelta
+                    newVal = callableExpression(newArg)
+                    k *= 2
+                    if np.isnan(newVal):
+                        newDelta = (deltaX / k)
+                    else:
+                        newDelta = -(deltaX / k)
+
+                if np.isnan(newVal):
+                    if fast:
+                        newArg = oldArg
+                    else:
+                        while newArg < oldArg:
+                            newArg += abs(newDelta)
+                            if not np.isnan(callableExpression(newArg)):
+                                break
+                        else:
+                            newArg = oldArg
+
+                self.arguments = np.array([np.insert(self.arguments[0], index + inserts, newArg)])
+                self.values = np.array([np.insert(self.values[0], index + inserts, callableExpression(newArg))])
+
+                inserts += 1
+
 
     def slopeApproximation(self, callableExpression, n, minValFactor = 0.075):
         # divide db into n intervals and check median slope, determine proportion -> assign values
@@ -166,9 +216,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         self.arguments = np.array([self.arguments])
 
     def intervalApproximation(self, callableExpression):
-
     # todo: redundant?
-
         #-> to slow, with to many errors
         visibleIntervals = self.findArgsInVisible(callableExpression, 150, precision=0.01)
         if (visibleAmount := len(visibleIntervals)) == 0:
@@ -240,9 +288,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                     while abs(newDelta) > threshold:
                         newArg -= newDelta
                         if self.inLogicalWb(callableExpr(newArg)):
-                            k = 2*k
+                            k *= 2
                         else:
-                            k = -2*k
+                            k *= -2
                         newDelta = deltaA / k
 
 
@@ -269,9 +317,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                     while abs(newDelta) > threshold:
                         newArg += newDelta
                         if self.inLogicalWb(callableExpr(newArg)):
-                            k = 2*k
+                            k *= 2
                         else:
-                            k = -2*k
+                            k *= -2
                         newDelta = deltaA / k
 
                 interval.append(newArg)
