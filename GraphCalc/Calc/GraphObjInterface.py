@@ -5,6 +5,8 @@ from GraphCalc.Components.Property.property import IExprProperty
 
 from MyWx.Collection._core.wxUtilities import randomRGBTriple
 
+from enum import Enum
+
 class GraphObj2DInterface:
 	typeAssignments = {
 		Function2DExpr : GraphFunction2D
@@ -43,3 +45,5 @@ class GraphObj2DInterface:
 		self._graphPropManager.addPropertyObject(newObj)
 		# todo: leave this? => use a sequence
 		newObj.getProperty("color").setValue(randomRGBTriple())
+
+#todo: add standard color enumeration (with special functionality here?)

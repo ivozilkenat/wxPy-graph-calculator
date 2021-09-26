@@ -84,10 +84,10 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             SelectProperty(
                 "point_interval_approximation",
                 (
-                    "standardFirstValue",
-                    "slope",
+                    "linearFirstValue",
                     "interval",
-                    "standard",
+                    "slope",
+                    "linear"
                 ),
                 selectedIndex=0,
                 updateFunction=self.refreshBasePlane
@@ -120,10 +120,10 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             #       -add standardFirstValue to other algos
             #       -rename "standard" algorithm
             algo = self.getProperty("point_interval_approximation").getSelected()
-            if algo == "standard":
-                self.standardApproximation(expr)
-            elif algo == "standardFirstValue":
-                self.standardFindStartApproximation(expr)
+            if algo == "linear":
+                self.linearApproximation(expr)
+            elif algo == "linearFirstValue":
+                self.linearFindStartApproximation(expr)
             elif algo == "slope":
                 self.slopeApproximation(expr, 20)
             elif algo == "interval":
@@ -133,14 +133,14 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         else:
             self.values = None
 
-    def standardApproximation(self, callableExpression):
+    def linearApproximation(self, callableExpression):
         self.arguments = np.linspace(*self._basePlane.getLogicalDB(), self.valueAmount)
         self.values = np.array([[callableExpression(i) for i in self.arguments]])
         self.arguments = np.array([self.arguments])
 
 
-    def standardFindStartApproximation(self, callableExpression, approximationThreshold=0.001, fast=False):
-        self.standardApproximation(callableExpression)
+    def linearFindStartApproximation(self, callableExpression, approximationThreshold=0.001, fast=False):
+        self.linearApproximation(callableExpression)
         deltaX = self._basePlane.getLogicalDBLength() / self.valueAmount
         threshold = deltaX * approximationThreshold
         values, args = self.values[0], self.arguments[0]
@@ -217,6 +217,8 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         )
 
         self.arguments = np.array([self.arguments])
+        print(self.values)
+        print(self.arguments)
 
     def intervalApproximation(self, callableExpression):
     # todo: redundant?
