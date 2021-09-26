@@ -56,33 +56,3 @@ class Dy2DGraphPropertyManager(GraphPropertyManager):
 
     def _setActiveObj(self, object):
         self.propertyManager.setActiveProperty(object)  # todo: potential bugs?
-
-
-# Panel for adding property objects
-class PropertyAddPanel(GenericPanel):
-    def __init__(self, manager, parent=None, size=None):
-        super().__init__(parent=parent, size=size)
-        self._manager = manager
-        self._sizer = wx.BoxSizer(wx.VERTICAL)
-        self.SetBackgroundColour(vc.COLOR_WHITE)
-
-        self.build()
-
-    def build(self):
-        self._sizer.Clear()
-        notebook = wx.Notebook(self)
-
-        self._expressionPanel = GenericPanel(notebook)
-        self._expressionPanel.SetBackgroundColour((255, 0, 0))
-        self._shapePanel = GenericPanel(notebook)
-        self._shapePanel.SetBackgroundColour((0, 255, 0))
-        self._otherPanel = GenericPanel(notebook)
-        self._otherPanel.SetBackgroundColour((0, 0, 255))
-
-        notebook.AddPage(self._expressionPanel, text="Expression")
-        notebook.AddPage(self._shapePanel, text="Shape")
-        notebook.AddPage(self._otherPanel, text="Other")
-
-        self._sizer.Add(notebook, 1, wx.EXPAND)
-
-        self.SetSizer(self._sizer)

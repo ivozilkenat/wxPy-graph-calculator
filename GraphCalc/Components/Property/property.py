@@ -345,7 +345,7 @@ class SelectProperty(PropertyCtrl):
         self._currentlySelected = value[selectedIndex]
 
     def getCtrl(self, parent):
-        self._control = wx.ComboBox(parent=parent, value = self._currentlySelected, choices=self.getValue())
+        self._control = wx.ComboBox(parent=parent, value = self._currentlySelected, choices=self.getValue(), style=wx.CB_READONLY)
         self._control.Bind(wx.EVT_COMBOBOX, self.update)
         return self._control
 
@@ -495,6 +495,10 @@ class ManagerPropertyObject(PropertyObject, ABC):
 
     def isHidden(self):
         return not self._show
+
+    @classmethod
+    def strRep(cls):
+        return cls.__name__
 
 
 # todo: is it possible to restrict access to change the pen color?

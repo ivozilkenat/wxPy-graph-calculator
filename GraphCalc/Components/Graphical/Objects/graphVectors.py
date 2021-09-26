@@ -1,0 +1,1 @@
+from MyWx.wx import *

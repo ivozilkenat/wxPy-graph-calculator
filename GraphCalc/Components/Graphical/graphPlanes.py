@@ -205,7 +205,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
                 if r is not None: #todo: remove this
                   print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
             print()
-
+                #todo: run render message in console or in application
                 # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
                 # draw time is mainly caused by bad graphical object optimization
 

@@ -53,6 +53,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
     def __init__(self, graphCalculator, functionExpression, definitionArea=None):
         GraphicalPanelObject.__init__(self, category=PropertyObjCategory.FUNCTION)
         IExprProperty.__init__(self, graphCalculator, functionExpression)
+        self._str = "Funktion"
 
         self.definitionArea = definitionArea
 
@@ -61,6 +62,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         self.values = None
 
         self.getProperty(vc.PROPERTY_NAME).setValue("Funktion2D")
+
 
     def setBasePlane(self, plane):
         # Properties must be set here, since update function requires panel
@@ -117,8 +119,11 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
 
             # todo: use precalculation
             #       -check for values inside after calc and recalc
-            #       -add standardFirstValue to other algos
+            #       -add standardFirstValue to interval algo -> make new standard
             #       -rename "standard" algorithm
+            #       -other approach: calc nearly all values -> calc necessary points (check slope in intervals)
+            #       -bug: linearFirstValue glitching, when not zoomed in any way (sometimes, drawlines error)
+
             algo = self.getProperty("point_interval_approximation").getSelected()
             if algo == "linear":
                 self.linearApproximation(expr)
@@ -217,13 +222,11 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         )
 
         self.arguments = np.array([self.arguments])
-        print(self.values)
-        print(self.arguments)
 
     def intervalApproximation(self, callableExpression):
     # todo: redundant?
         #-> to slow, with to many errors
-        visibleIntervals = self.findArgsInVisible(callableExpression, 150, precision=0.01)
+        visibleIntervals = self.findArgsInVisible(callableExpression, 150, precision=0.05)
         if (visibleAmount := len(visibleIntervals)) == 0:
             self.values = None
             return
@@ -235,7 +238,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             ])
 
         self.values = np.array([
-           np.fromiter(map(lambda x: callableExpression(x), interval), dtype=np.float)  for interval in self.arguments
+           np.fromiter(map(lambda x: callableExpression(x), interval), dtype=np.float) for interval in self.arguments
         ])
         # todo: decide by average value, if function should be drawn
         #       or by size of interval
@@ -248,7 +251,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         lowerWb, upperWb = self._basePlane.getLogicalWB()
         return any([lowerWb <= v <= upperWb for v in values])
 
-    def findArgsInVisible(self, callableExpr, checkAmount, precision = 0.001, approximationThreshold=0.001):
+    def findArgsInVisible(self, callableExpr, checkAmount, precision=0.01, approximationThreshold=0.0001):
         lowerLimit, upperLimit = self._basePlane.getLogicalDB()
         deltaX = self._basePlane.getLogicalDBLength() / checkAmount
         deltaXAdjust = deltaX * precision
@@ -283,7 +286,6 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                 if not outOfDB:
                     assert approximationThreshold <= 1
                     aMin, aMax = newArg - deltaXAdjust, newArg + deltaXAdjust
-                    print("old", newArg, aMin, aMax)
                     deltaA = aMax - aMin
                     threshold = deltaA*approximationThreshold
                     k = 2
@@ -295,8 +297,6 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                             newDelta = (deltaA / k)
                         else:
                             newDelta = -(deltaA / k)
-                    print("new", newArg)
-
 
                 interval.append(newArg)
 
@@ -382,7 +382,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                 a0, ax, = self.arguments[i][j-1], self.arguments[i][j]
                 v0, vx = self.values[i][j-1], self.values[i][j]
 
-                if any(np.isnan(v) for v in (v0, vx)):  # check if nan in calculated values
+                if any(np.isnan(v) or v == float("inf") for v in (v0, vx)):  # check if nan in calculated values
                     continue
 
                 x1, y1 = self._basePlane.logicalPointToPx(
@@ -402,4 +402,3 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                         *self._basePlane.correctPosition(x2, y2)
                     ])
         deviceContext.DrawLineList(points)
-

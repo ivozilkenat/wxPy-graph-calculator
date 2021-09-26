@@ -3,11 +3,12 @@ from MyWx.Collection.panels import RandomPanel
 
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
-from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager, PropertyAddPanel
+from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Property.property import PropertyObjCategory
+from GraphCalc.Calc.GraphObjInterface import PropertyAddPanel
 
 from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, Function2DExpr
-from GraphCalc.Calc.GraphObjInterface import GraphObj2DInterface
+from GraphCalc.Calc.GraphObjInterface import PropertyObj2DInterface
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 
@@ -24,8 +25,11 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # add context menu
 # graph plane threading?
 # multi language support
-# buttons in ui to change plane background (zooming, scaling, etc.)
+# buttons in ui to change plane background (zooming, scaling, override interval approximation, etc.)
 # optimize function drawing, by precalculating values -> use idle handler and intern optimization
+# when selected object is deleted, change focus
+# add more expression types
+
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.5.0"
@@ -60,9 +64,10 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         )
         self.graphCalculator = GraphCalculator2D()
 
-        self.graphCalcObjInterface = GraphObj2DInterface(
+        self.graphCalcObjInterface = PropertyObj2DInterface(
             graphCalculator=self.graphCalculator,
-            graphPropertyManager=self.graphPropertyManager
+            graphPropertyManager=self.graphPropertyManager,
+            updateFunction=self.Refresh
         )
 
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
@@ -79,18 +84,6 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         # Overview-panel and Inspection-panel have been created
 
-        self.graphCalcObjInterface.addExprObj(
-            Function2DExpr,
-            "f",
-            "x**-1"
-        )
-        # self.graphCalcObjInterface.addExprObj(
-        #     Function2DExpr,
-        #     "g",
-        #     "f(x) * 2"
-        # )
-        print(self.graphCalculator.parser._namespace)
-
         # TESTING---------------
         for i in range(1, 2):
             axis = CartesianAxies()
@@ -100,11 +93,11 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             self.graphPropertyManager.addPropertyObject(axis)
 
         self.addPropertyPanel = PropertyAddPanel(
-            self.graphPropertyManager, #todo: parent should come first | needs to be connected to the interface
-            self.leftWorkspacePanel
+            parent=self.leftWorkspacePanel,
+            graphObjectInterface=self.graphCalcObjInterface #todo: parent should come first | needs to be connected to the interface
         )  # <- define as special control / also other controls that effect manager
 
-        self.leftWorkspacePanelSizer.Add(self.addPropertyPanel, 1, wx.EXPAND | wx.TOP, 5)
+        self.leftWorkspacePanelSizer.Add(self.addPropertyPanel, 0, wx.EXPAND | wx.TOP, 5)
         self.leftWorkspacePanelSizer.Add(self.overviewPanel, 3, wx.EXPAND | wx.TOP, 5)
         self.leftWorkspacePanel.SetSizer(self.leftWorkspacePanelSizer)
 
