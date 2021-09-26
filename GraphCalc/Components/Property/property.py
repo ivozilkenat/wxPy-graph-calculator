@@ -338,11 +338,11 @@ class ColorProperty(PropertyCtrl):
 
 class SelectProperty(PropertyCtrl):
     # todo: every item is stored as a string <- make obvious to programmer or use special data class to store all types
-    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False):
+    def __init__(self, propertyName, value, selectedIndex = 0, updateFunction=None, validityFunction=None, constant=False):
         assert isinstance(value, tuple)
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
                          validityFunction=validityFunction, constant=constant)
-        self._currentlySelected = value[0]
+        self._currentlySelected = value[selectedIndex]
 
     def getCtrl(self, parent):
         self._control = wx.ComboBox(parent=parent, value = self._currentlySelected, choices=self.getValue())

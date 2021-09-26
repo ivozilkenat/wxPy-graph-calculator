@@ -84,11 +84,12 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             SelectProperty(
                 "point_interval_approximation",
                 (
-                    "interval",
-                    "slope",
                     "standardFirstValue",
+                    "slope",
+                    "interval",
                     "standard",
                 ),
+                selectedIndex=0,
                 updateFunction=self.refreshBasePlane
             )
         )
