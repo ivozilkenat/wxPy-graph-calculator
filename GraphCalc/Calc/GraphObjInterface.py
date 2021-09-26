@@ -48,7 +48,7 @@ class PropertyObj2DInterface:
 					break
 
 		#todo: !!!replace with better solution!!!
-		newObj.getProperty("name").setValue(name) #doesn't update definition when changed <- new property? or make static?
+		newObj.getProperty("name").setValue(self._graphCalc.get(name).nameFormatted()) #doesn't update definition when changed <- new property? or make static?
 		self._graphPropManager.addPropertyObject(newObj)
 		# todo: leave this? => use a sequence
 		newObj.getProperty("color").setValue(randomRGBTriple())
@@ -129,7 +129,7 @@ class AddPanelFunction(AddPanelComponent):
 		self._definitionIn = None
 
 	def formatIntoExpression(self):
-		self.setName(f"{self._nameIn.GetValue()}({Function2DExpr.argumentSymbol})")
+		self.setName(self._nameIn.GetValue())
 		self.setExprStr(self._definitionIn.GetValue())
 
 	def build(self):

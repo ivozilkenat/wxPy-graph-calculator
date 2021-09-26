@@ -33,6 +33,10 @@ class ExprObj(ABC):
 	def name(self):
 		return self.__name
 
+	# extensible standard implementation
+	def nameFormatted(self):
+		return self.__name
+
 	def expr(self):
 		return self._expr
 
@@ -50,6 +54,7 @@ class ValueExpr(ExprObj):
 				raise InvalidExpression(f"Function argument symbol: '{Function2DExpr.argumentSymbol}' not allowed for Value")
 			return True
 
+
 class Point2DExpr(ExprObj):
 	def __init__(self, name: str, definition, original):
 		super().__init__(name, definition, original)
@@ -61,6 +66,7 @@ class Point2DExpr(ExprObj):
 			return True
 		return False
 
+
 class Function2DExpr(ExprObj):
 	argumentSymbol = Symbol("x")
 	def __init__(self, name: str, definition, original):
@@ -70,8 +76,14 @@ class Function2DExpr(ExprObj):
 	def isValid(self):
 		if isinstance(self.expr(), Expr):
 			if not self.argumentSymbol in self.expr().free_symbols:
-				raise InvalidExpression(f"missing argument symbol: '{self.argumentSymbol}' for Function")
+				raise InvalidExpression(f"Missing argument symbol: '{self.argumentSymbol}' for Function")
+
+			elif self.name() == str(self.argumentSymbol):
+				raise InvalidExpression(f"Name of function can't be argument symbol")
 			return True
+
+	def nameFormatted(self):
+		return f"{self.name()}({self.argumentSymbol})"
 
 class GraphCalculator2D:
 	allowedTypes = {
