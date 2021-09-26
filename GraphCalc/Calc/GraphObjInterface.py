@@ -3,6 +3,8 @@ from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManage
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Property.property import IExprProperty
 
+from MyWx.Collection._core.wxUtilities import randomRGBTriple
+
 class GraphObj2DInterface:
 	typeAssignments = {
 		Function2DExpr : GraphFunction2D
@@ -31,6 +33,7 @@ class GraphObj2DInterface:
 		targetObject = self.typeAssignments[exprType]
 		newObj = targetObject(self._graphCalc, self._graphCalc.get(name))
 
+
 		for p in self._graphPropManager.propertyManager.getPropertyObjects():
 			if isinstance(p, IExprProperty):
 				if p._exprObj.name() == name: # object was defined before and is already in property manager
@@ -38,3 +41,5 @@ class GraphObj2DInterface:
 					break
 
 		self._graphPropManager.addPropertyObject(newObj)
+		# todo: leave this? => use a sequence
+		newObj.getProperty("color").setValue(randomRGBTriple())

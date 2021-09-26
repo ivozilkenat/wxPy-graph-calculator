@@ -89,7 +89,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                     "interval",
                     "standard",
                 ),
-                updateFunction=self.refreshBasePlane()
+                updateFunction=self.refreshBasePlane
             )
         )
 
@@ -101,7 +101,6 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
 
     @timeMethod
     def calculateData(self):
-        print("clac")
         if self.exprIsEvaluable():
             #todo: optimize -> calculate values based on dominant areas of point density
             #   -stop using class attributes
@@ -116,6 +115,8 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             expr = lambdify(Function2DExpr.argumentSymbol, expr)
 
             # todo: use precalculation
+            #       -check for values inside after calc and recalc
+            #       -add standardFirstValue to other algos
             algo = self.getProperty("point_interval_approximation").getSelected()
             if algo == "standard":
                 self.standardApproximation(expr)
@@ -235,7 +236,6 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         # todo: decide by average value, if function should be drawn
         #       or by size of interval
 
-    # todo: redundant?
     def inLogicalWbList(self, *values):
         lowerWb, upperWb = self._basePlane.getLogicalWB()
         return [lowerWb <= v <= upperWb for v in values]
@@ -244,9 +244,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         lowerWb, upperWb = self._basePlane.getLogicalWB()
         return any([lowerWb <= v <= upperWb for v in values])
 
-    # todo: redundant?
     def findArgsInVisible(self, callableExpr, checkAmount, precision = 0.05, approximationThreshold=0.1):
-        #todo: approxThreshold necessary?
         lowerLimit, upperLimit = self._basePlane.getLogicalDB()
         deltaX = self._basePlane.getLogicalDBLength() / checkAmount
         deltaXAdjust = deltaX * precision
@@ -287,11 +285,12 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                     newDelta = deltaA / k
                     while abs(newDelta) > threshold:
                         newArg -= newDelta
+                        k *= 2
                         if self.inLogicalWb(callableExpr(newArg)):
-                            k *= 2
+                            newDelta = (deltaA / k)
                         else:
-                            k *= -2
-                        newDelta = deltaA / k
+                            newDelta = -(deltaA / k)
+
 
 
                 interval.append(newArg)
@@ -316,11 +315,11 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                     newDelta = deltaA / k
                     while abs(newDelta) > threshold:
                         newArg += newDelta
+                        k *= 2
                         if self.inLogicalWb(callableExpr(newArg)):
-                            k *= 2
+                            newDelta = (deltaA / k)
                         else:
-                            k *= -2
-                        newDelta = deltaA / k
+                            newDelta = -(deltaA / k)
 
                 interval.append(newArg)
                 visibleIntervals.append(interval)

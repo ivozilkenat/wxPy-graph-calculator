@@ -133,7 +133,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
-        # self.SetDoubleBuffered(True)
+        self.SetDoubleBuffered(True)
 
         # self.Bind(wx.EVT_LEFT_DOWN, self._leftMouseDown)
 
