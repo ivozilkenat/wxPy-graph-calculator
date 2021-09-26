@@ -84,9 +84,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             SelectProperty(
                 "point_interval_approximation",
                 (
-                    "standardFirstValue",
-                    "slope",
                     "interval",
+                    "slope",
+                    "standardFirstValue",
                     "standard",
                 ),
                 updateFunction=self.refreshBasePlane
@@ -109,14 +109,15 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
             # todo: calculate all arguments, which are expected to give valid results:
             #       -find max -> prevent calculating points out of view -> point density
             #       -calc valid values for expression to prevent invalid arguments
-            expr = self.getProperty("function_definition").getValue().expr()
+            exprObj = self.getProperty("function_definition").getValue().expr()
 
             #   get values for which the function is defined
-            expr = lambdify(Function2DExpr.argumentSymbol, expr)
+            expr = lambdify(Function2DExpr.argumentSymbol, exprObj)
 
             # todo: use precalculation
             #       -check for values inside after calc and recalc
             #       -add standardFirstValue to other algos
+            #       -rename "standard" algorithm
             algo = self.getProperty("point_interval_approximation").getSelected()
             if algo == "standard":
                 self.standardApproximation(expr)
@@ -244,7 +245,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
         lowerWb, upperWb = self._basePlane.getLogicalWB()
         return any([lowerWb <= v <= upperWb for v in values])
 
-    def findArgsInVisible(self, callableExpr, checkAmount, precision = 0.05, approximationThreshold=0.1):
+    def findArgsInVisible(self, callableExpr, checkAmount, precision = 0.001, approximationThreshold=0.001):
         lowerLimit, upperLimit = self._basePlane.getLogicalDB()
         deltaX = self._basePlane.getLogicalDBLength() / checkAmount
         deltaXAdjust = deltaX * precision
@@ -273,12 +274,13 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
 
                     if visibleIntervals != []:
                         last = visibleIntervals[-1]
-                        if last[0] + deltaXAdjust <= newArg:
+                        if last[0] + deltaXAdjust >= newArg:
                             break
 
                 if not outOfDB:
                     assert approximationThreshold <= 1
                     aMin, aMax = newArg - deltaXAdjust, newArg + deltaXAdjust
+                    print("old", newArg, aMin, aMax)
                     deltaA = aMax - aMin
                     threshold = deltaA*approximationThreshold
                     k = 2
@@ -290,7 +292,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                             newDelta = (deltaA / k)
                         else:
                             newDelta = -(deltaA / k)
-
+                    print("new", newArg)
 
 
                 interval.append(newArg)
@@ -309,6 +311,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
                 if not outOfDB:
                     assert approximationThreshold <= 1
                     aMin, aMax = newArg - deltaXAdjust, newArg + deltaXAdjust
+                    print(aMin, aMax, newArg)
                     deltaA = aMax - aMin
                     threshold = deltaA*approximationThreshold
                     k = 2
@@ -327,12 +330,12 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty): #MathFunction):
 
     # todo: redundant?
     # to slow
-    # def getWBIntersections(self, expression):
-    #     lowerY, upperY = self._basePlane.getLogicalWB() #todo: test if working wrong when not mirrored
-    #
-    #     upperInter = solve(expression-lowerY, quick=True)
-    #     lowerInter = solve(expression-upperY, quick=True)
-    #     return list(filter(lambda x: x.is_real, upperInter)), list(filter(lambda x: x.is_real, lowerInter))
+    def getWBIntersections(self, expression):
+        lowerY, upperY = self._basePlane.getLogicalWB() #todo: test if working wrong when not mirrored
+
+        upperInter = solve(expression-lowerY, quick=True)
+        lowerInter = solve(expression-upperY, quick=True)
+        return list(filter(lambda x: x.is_real, upperInter)), list(filter(lambda x: x.is_real, lowerInter))
 
     # todo: redundant?
     # def calcMaxAndMin(self, expression):
