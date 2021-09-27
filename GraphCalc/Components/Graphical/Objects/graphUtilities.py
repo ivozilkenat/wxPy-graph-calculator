@@ -22,31 +22,31 @@ class CartesianAxies(GraphicalPanelObject):
         # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
         self.getProperty(vc.PROPERTY_SELECTABLE).setValue(False)
-        self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_SUB_AXIS, True, updateFunction=self.refreshBasePlane))
-        self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_MAIN_AXIS, True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_SUB_AXIS, True, updateFunctions=self.refreshBasePlane))
+        self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_MAIN_AXIS, True, updateFunctions=self.refreshBasePlane))
 
-        self.addProperty(ToggleProperty("draw_axle_labels", True, updateFunction=self.refreshBasePlane))
-        self.addProperty(ToggleProperty("draw_axle_arrows", True, updateFunction=self.refreshBasePlane))
-        self.addProperty(ToggleProperty("draw_values", True, updateFunction=self.refreshBasePlane))
+        self.addProperty(ToggleProperty("draw_axle_labels", True, updateFunctions=self.refreshBasePlane))
+        self.addProperty(ToggleProperty("draw_axle_arrows", True, updateFunctions=self.refreshBasePlane))
+        self.addProperty(ToggleProperty("draw_values", True, updateFunctions=self.refreshBasePlane))
 
-        self.addProperty(IntProperty("arrow_head_height", 10, updateFunction=self.refreshBasePlane))
-        self.addProperty(IntProperty("arrow_head_length", 15, updateFunction=self.refreshBasePlane))
-        self.addProperty(IntProperty("arrow_head_overlapping", 4, updateFunction=self.refreshBasePlane))
-        self.addProperty(IntProperty("arrow_draw_width", 1, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("arrow_head_height", 10, updateFunctions=self.refreshBasePlane))
+        self.addProperty(IntProperty("arrow_head_length", 15, updateFunctions=self.refreshBasePlane))
+        self.addProperty(IntProperty("arrow_head_overlapping", 4, updateFunctions=self.refreshBasePlane))
+        self.addProperty(IntProperty("arrow_draw_width", 1, updateFunctions=self.refreshBasePlane))
 
-        self.addProperty(StrProperty("y_label", "Y", updateFunction=self.refreshBasePlane))
-        self.addProperty(IntProperty("y_axis_label_axis_distance", 15, updateFunction=self.refreshBasePlane))
-        self.addProperty(IntProperty("y_axis_label_border_distance", 10, updateFunction=self.refreshBasePlane))
-        self.addProperty(StrProperty("x_label", "X", updateFunction=self.refreshBasePlane))
-        self.addProperty(IntProperty("x_axis_label_axis_distance", 15, updateFunction=self.refreshBasePlane))
-        self.addProperty(IntProperty("x_axis_label_border_distance", 10, updateFunction=self.refreshBasePlane))
+        self.addProperty(StrProperty("y_label", "Y", updateFunctions=self.refreshBasePlane))
+        self.addProperty(IntProperty("y_axis_label_axis_distance", 15, updateFunctions=self.refreshBasePlane))
+        self.addProperty(IntProperty("y_axis_label_border_distance", 10, updateFunctions=self.refreshBasePlane))
+        self.addProperty(StrProperty("x_label", "X", updateFunctions=self.refreshBasePlane))
+        self.addProperty(IntProperty("x_axis_label_axis_distance", 15, updateFunctions=self.refreshBasePlane))
+        self.addProperty(IntProperty("x_axis_label_border_distance", 10, updateFunctions=self.refreshBasePlane))
 
-        self.addProperty(IntProperty("value_label_x_axis_distance", 15, updateFunction=self.refreshBasePlane))
-        self.addProperty(IntProperty("value_label_y_axis_distance", 30, updateFunction=self.refreshBasePlane))
+        self.addProperty(IntProperty("value_label_x_axis_distance", 15, updateFunctions=self.refreshBasePlane))
+        self.addProperty(IntProperty("value_label_y_axis_distance", 30, updateFunctions=self.refreshBasePlane))
 
         c = self.getProperty(vc.PROPERTY_COLOR)
         c.setValue(vc.COLOR_BLACK)
-        c.setUpdateFunction(self.refreshBasePlane)
+        c.setUpdateFunctions(self.refreshBasePlane)
         self.addProperty(c, override=True)
         self.addProperty(
             ListProperty(
@@ -54,7 +54,7 @@ class CartesianAxies(GraphicalPanelObject):
                 vc.COLOR_GRAY,
                 fixedFieldAmount=3,
                 validityFunction=lambda x: 0 <= x <= 255,
-                updateFunction=self.refreshBasePlane
+                updateFunctions=self.refreshBasePlane
             )
         )
         self.addProperty(IntProperty(vc.PROPERTY_SUB_AXIS_DRAW_WIDTH, 1, self.refreshBasePlane))

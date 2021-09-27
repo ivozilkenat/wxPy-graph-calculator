@@ -9,7 +9,7 @@ from GraphCalc.Calc.GraphCalculator import ExprObj
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Dict, TypeVar, Union
+from typing import Dict, TypeVar, Union, List, Tuple, Set, Callable
 
 
 # Probably unnecessary / Maybe nest Property-classes
@@ -37,10 +37,17 @@ class Property(ABC):
 
 # Superclass for property extension
 class PropertyCtrl(Property, ABC):
-    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False):
+    # Import for Dependent property, since it sets value of its properties
+    setterSupport: bool = False
+    def __init__(self, propertyName, value, updateFunctions=None, validityFunction=None, constant=False):
         super().__init__(propertyName, value)
-        self._parameters: Dict = None
-        self._updateFunction: callable = updateFunction
+        self._parameters: Dict = None #todo: redundant?
+        if not isinstance(updateFunctions, set):
+            if isinstance(updateFunctions, (tuple, list)):
+                updateFunctions = set(updateFunctions)
+            else:
+                updateFunctions = set([updateFunctions])
+        self._updateFunctions: Set[Callable, ...] = updateFunctions
         self._control = None
         self._validityFunction: callable = validityFunction
         self._inputBeforeValidation = None
@@ -48,8 +55,7 @@ class PropertyCtrl(Property, ABC):
         # Constant properties should not update something, that will be deleted!!! TODO: change implementation?
         self._constant: bool = constant  # If a property is constant it won't be removed (only a hint, could be implemented differently)
 
-        self.__getCtrl = self.getCtrl
-        self.getCtrl = self.__getCtrlWrapper
+        self._setupCtrlWrapper()
 
     # Every child class must defined how the standard control is build
     @abstractmethod
@@ -61,8 +67,11 @@ class PropertyCtrl(Property, ABC):
     def updateValue(self):
         pass
 
-    def setUpdateFunction(self, callable):
-        self._updateFunction = callable
+    def setUpdateFunctions(self, *callables):
+        self._updateFunctions = set(callables)
+
+    def addUpdateFunctions(self, *callables):
+        self._updateFunctions = self._updateFunctions.union(callables)
 
     def validInput(self, inputData):
         pass
@@ -84,8 +93,20 @@ class PropertyCtrl(Property, ABC):
                     return False
         else:
             self.setValue(value)
-            self._inputBeforeValidation = self._control.GetValue()
+            if self._control is not None:
+                self._inputBeforeValidation = self._control.GetValue()
             return True
+
+    def setValidValueCtrl(self, value, raiseInvalidTypeError):
+        self.setValidValue(value, raiseInvalidTypeError)
+        if self._control is not None:
+            self._control.SetValue(self._value)
+
+    # input not sanitized
+    def _setValueCtrl(self, value):
+        self.setValue(value)
+        if self._control is not None:
+            self._control.SetValue(self._value)
 
     # Define how control changes updated other dependencies
     def update(self, evt=None):
@@ -94,16 +115,21 @@ class PropertyCtrl(Property, ABC):
         # Skip must not be called on enter
 
     def callUpdFunc(self, mustUpdate=True):
-        if self._updateFunction is None:
+        if self._updateFunctions is None:
             if mustUpdate:
                 raise MyWxException.MissingContent(vc.ERROR_UPDATE_FUNCTION_MISSING)
         else:
-            self._updateFunction()
+            for f in self._updateFunctions:
+                f()
 
     def __getCtrlWrapper(self, parent):
         r = self.__getCtrl(parent)
         self._inputBeforeValidation = r.GetValue()  # Set standardized value
         return r
+
+    def _setupCtrlWrapper(self):
+        self.__getCtrl = self.getCtrl
+        self.getCtrl = self.__getCtrlWrapper
 
     def isConstant(self):
         return self._constant
@@ -112,13 +138,19 @@ class PropertyCtrl(Property, ABC):
         assert isinstance(state, bool)
         self._constant = state
 
+    @classmethod
+    def hasSetterSupport(cls):
+        return cls.setterSupport
 
 # implement logic for bounds of properties / further implement necessary logic
 
+
 class ToggleProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction=None, constant=False):
+    setterSupport = True
+
+    def __init__(self, propertyName, value, updateFunctions=None, constant=False):
         assert isinstance(value, bool)
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction, constant=constant)
+        super().__init__(propertyName=propertyName, value=value, updateFunctions=updateFunctions, constant=constant)
 
     def getCtrl(self, parent):
         # del self._control #<- must control be deleted?
@@ -132,10 +164,12 @@ class ToggleProperty(PropertyCtrl):
 
 
 class IntProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False,
+    setterSupport = True
+
+    def __init__(self, propertyName, value, updateFunctions=None, validityFunction=None, constant=False,
                  updateOnEnter=False):
         assert isinstance(value, int)
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+        super().__init__(propertyName=propertyName, value=value, updateFunctions=updateFunctions,
                          validityFunction=validityFunction, constant=constant)
         self._updateOnlyOnEnter = updateOnEnter
 
@@ -152,9 +186,11 @@ class IntProperty(PropertyCtrl):
 
 
 class FloatProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False, increment=0.1):
+    setterSupport = True
+
+    def __init__(self, propertyName, value, updateFunctions=None, validityFunction=None, constant=False, increment=0.1):
         assert isinstance(value, (float, int))
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+        super().__init__(propertyName=propertyName, value=value, updateFunctions=updateFunctions,
                          validityFunction=validityFunction, constant=constant)
         self._inc = increment
 
@@ -169,9 +205,11 @@ class FloatProperty(PropertyCtrl):
 
 
 class StrProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False):
+    setterSupport = True
+
+    def __init__(self, propertyName, value, updateFunctions=None, validityFunction=None, constant=False):
         assert isinstance(value, str)
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+        super().__init__(propertyName=propertyName, value=value, updateFunctions=updateFunctions,
                          validityFunction=validityFunction, constant=constant)
 
     def getCtrl(self, parent):
@@ -185,12 +223,30 @@ class StrProperty(PropertyCtrl):
         self.setValidValue(self._control.GetValue())
 
 
+class ReadOnlyProperty(PropertyCtrl):
+    setterSupport = True
+
+    def __init__(self, propertyName, value, constant=False):
+        assert isinstance(value, str)
+        super().__init__(propertyName=propertyName, value=value, constant=constant)
+
+    def getCtrl(self, parent):
+        self._control = wx.TextCtrl(parent=parent, value=self.getValue(),
+                                    style=wx.TE_READONLY)  # TODO: Add character limit or change PropertyObjectPanel dynamically
+        return self._control
+
+    def updateValue(self):
+        pass
+
+
 # todo: validity function behaviour not tested
 class ExprProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, graphCalculator, updateExprFunction=None, updateFunction=None,
+    setterSupport = True
+
+    def __init__(self, propertyName, value, graphCalculator, updateExprFunction=None, updateFunctions=None,
                  validityFunction=None, constant=False):
         assert isinstance(value, ExprObj)
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+        super().__init__(propertyName=propertyName, value=value, updateFunctions=updateFunctions,
                          validityFunction=validityFunction, constant=constant)
         self._graphCalc = graphCalculator
         self._updateExprFunc = updateExprFunction
@@ -202,14 +258,13 @@ class ExprProperty(PropertyCtrl):
                            self.update)
         return self._control
 
-    def updateValue(self, raiseInvalidTypeError=False):
-        newExprStr = self._control.GetValue()
-        if newExprStr == self._inputBeforeValidation:
+    def setValidValue(self, value, raiseInvalidTypeError=False):
+        if value == self._inputBeforeValidation:
             return False
 
         if self._validityFunction is not None:
             try:
-                if not self._validityFunction(newExprStr):
+                if not self._validityFunction(value):
                     self._control.SetValue(self._inputBeforeValidation)
                     return False
             except TypeError:
@@ -221,15 +276,18 @@ class ExprProperty(PropertyCtrl):
         expr = self.getValue()
         exprType, exprName = type(expr), expr.name()
 
-        if not self.redefineAs(exprType, exprName, newExprStr):
+        if not self.redefineAs(exprType, exprName, value):
             self._control.SetValue(self._inputBeforeValidation)
             return False
         else:
             self.setValue(self._graphCalc.get(exprName))
             if self._updateExprFunc is not None:
                 self._updateExprFunc()  # <- hook to update other expressions
-            self._inputBeforeValidation = newExprStr
+            self._inputBeforeValidation = value
             return True
+
+    def updateValue(self):
+        self.setValidValue(self._control.GetValue())
 
     # Allows to define expression newly
     def redefineAs(self, exprType, exprName, exprStr):
@@ -255,11 +313,11 @@ class ListProperty(PropertyCtrl):
                  value,
                  fixedFieldAmount=None,
                  fixedType: type = None,
-                 updateFunction=None,
+                 updateFunctions=None,
                  validityFunction=None,
                  constant=False):
         assert isinstance(value, (list, tuple, set))  # <- automatically converts into list
-        super().__init__(propertyName=propertyName, value=list(value), updateFunction=updateFunction,
+        super().__init__(propertyName=propertyName, value=list(value), updateFunctions=updateFunctions,
                          validityFunction=validityFunction,
                          constant=constant)  # types are not respected afterwards (int as string, will be converted to only int)
         self._fieldAmount = fixedFieldAmount
@@ -322,9 +380,11 @@ class ListProperty(PropertyCtrl):
 
 
 class ColorProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False):
+    setterSupport = True
+
+    def __init__(self, propertyName, value, updateFunctions=None, validityFunction=None, constant=False):
         assert isinstance(value, tuple)
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+        super().__init__(propertyName=propertyName, value=value, updateFunctions=updateFunctions,
                          validityFunction=validityFunction, constant=constant)
 
     def getCtrl(self, parent):
@@ -343,10 +403,10 @@ class ColorProperty(PropertyCtrl):
 
 class SelectProperty(PropertyCtrl):
     # todo: every item is stored as a string <- make obvious to programmer or use special data class to store all types
-    def __init__(self, propertyName, value, selectedIndex=0, updateFunction=None, validityFunction=None,
+    def __init__(self, propertyName, value, selectedIndex=0, updateFunctions=None, validityFunction=None,
                  constant=False):
         assert isinstance(value, tuple)
-        super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
+        super().__init__(propertyName=propertyName, value=value, updateFunctions=updateFunctions,
                          validityFunction=validityFunction, constant=constant)
         self._currentlySelected = value[selectedIndex]
 
@@ -364,9 +424,26 @@ class SelectProperty(PropertyCtrl):
         # todo: what about GetValue()
 
     def updateValue(self):
-        print("UPDATE")
         self._currentlySelected = self._control.GetValue()
         self.setValidValue(self.getStrTuple())
+
+
+def DependentProperty(targetPropertyCtrl: PropertyCtrl, propertyCtrl: PropertyCtrl, updateFunction: callable, checkValidity=True):
+    if not propertyCtrl.hasSetterSupport():
+        raise NotImplementedError(f"Class '{targetPropertyCtrl.__class__.__name__}' does not support value setting")
+
+    def _update():
+        if checkValidity:
+            propertyCtrl.setValidValueCtrl(updateFunction(), raiseInvalidTypeError=False)
+        else:
+            #this is not advised to use
+            propertyCtrl._setValueCtrl(updateFunction())
+
+    targetPropertyCtrl.addUpdateFunctions(
+        _update
+    )
+    _update()
+    return propertyCtrl
 
 
 ### Property Categories
@@ -413,7 +490,7 @@ class PropertyObject(ABC):
         self.setCategory(category)
         self._properties: Dict[str, Property] = {}  # Exchange with priority queue (or not?)
 
-        self.addProperty(StrProperty(vc.PROPERTY_NAME, vc.PROPERTY_NAME_PLACEHOLDER, constant=True))
+        self.addProperty(ReadOnlyProperty(vc.PROPERTY_NAME, vc.PROPERTY_NAME_PLACEHOLDER, constant=True))
 
     def _validPropertyKey(method):
         def inner(object, key, *args, **kwargs):
@@ -438,6 +515,9 @@ class PropertyObject(ABC):
     @_validPropertyKey
     def getProperty(self, name):
         return self._properties[name]
+
+    def hasProperty(self, name):
+        return name in self._properties.keys()
 
     def getPropertyNames(self):
         return tuple(self._properties.values())
@@ -475,6 +555,8 @@ class PropertyObject(ABC):
 # TODO: This class and derived do not account for manager changing and thereby if any property is added dynamically,
 #       they wont update the correct manager if manager is changed -> sol: 1. add support 2. disable dynamic properties
 class ManagerPropertyObject(PropertyObject, ABC):
+    strName = None
+
     def __init__(self, category: Union[PropCategoryDataClass, PropertyObjCategory], manager=None):
         super().__init__(category)
         self._manager = manager  # TODO: Is this sensible
@@ -483,7 +565,7 @@ class ManagerPropertyObject(PropertyObject, ABC):
     def setManager(self, manager):
         self._manager = manager
         p = self.getProperty(vc.PROPERTY_NAME)  # standard property
-        p.setUpdateFunction(self.updateOverviewPanel)
+        p.setUpdateFunctions(self.updateOverviewPanel)
         self.addProperty(p, override=True)
 
     def hasManager(self):
@@ -507,9 +589,34 @@ class ManagerPropertyObject(PropertyObject, ABC):
     def isHidden(self):
         return not self._show
 
+    def redefineAllExpressions(self):  # todo: check runtime performance here
+        if self._manager is not None:
+            for o in self._manager.getPropertyObjects():
+                if o != self and isinstance(o, IExprProperty):
+                    for p in o.getPropertyDict().values():
+                        if isinstance(p, ExprProperty):
+                            print(o)
+                            p.redefineExisting()
+
     @classmethod
     def strRep(cls):
+        if cls.strName is not None:
+            return cls.strName
         return cls.__name__
+
+
+class NonGraphicalPanelObject(ManagerPropertyObject, ABC):
+    def __init__(self, basePlane=None, category=PropertyObjCategory.NO_CATEGORY):
+        super().__init__(category=category)
+        self._basePlane = basePlane
+
+    def setBasePlane(self, plane):
+        self.clear()
+        self._basePlane = plane
+
+    def refreshBasePlane(self):
+        if self._basePlane is not None:
+            self._basePlane.Refresh()
 
 
 # todo: is it possible to restrict access to change the pen color?
@@ -533,17 +640,17 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         self.clear()
         self._basePlane = plane
         self.addProperty(
-            ToggleProperty(vc.PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))  # standard property
+            ToggleProperty(vc.PROPERTY_DRAW, True, updateFunctions=self.refreshBasePlane))  # standard property
         self.addProperty(
-            ToggleProperty(vc.PROPERTY_SELECTABLE, True, updateFunction=self.refreshBasePlane))  # standard property
-        self.addProperty(IntProperty(vc.PROPERTY_DRAW_WIDTH, 3, updateFunction=self.refreshBasePlane))
+            ToggleProperty(vc.PROPERTY_SELECTABLE, True, updateFunctions=self.refreshBasePlane))  # standard property
+        self.addProperty(IntProperty(vc.PROPERTY_DRAW_WIDTH, 3, updateFunctions=self.refreshBasePlane))
         self.addProperty(
             ListProperty(
                 vc.PROPERTY_COLOR,
                 (255, 0, 0),  # <- everything will be colored red if not specified
                 fixedFieldAmount=3,
                 validityFunction=lambda x: 0 <= x <= 255,  # function will be applied onto every single value
-                updateFunction=self.refreshBasePlane
+                updateFunctions=self.refreshBasePlane
             )
         )  # standard property
         # todo -custom control for color / custom property class
@@ -554,17 +661,6 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def refreshBasePlane(self):
         if self._basePlane is not None:
             self._basePlane.Refresh()
-
-    def redefineAllExpressions(self):  # todo: check runtime performance here
-        if self._basePlane is not None:
-            for o in self._basePlane.layers:
-                if o != self and isinstance(o, IExprProperty):
-                    for p in o.getPropertyDict().values():
-                        if isinstance(p, ExprProperty):
-                            print(o)
-                            p.redefineExisting()
-
-    ###
 
     # Decorator for blitUpdateMethod to use standardized properties
     def standardProperties(blitUpdateMethod: callable):

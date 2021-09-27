@@ -29,10 +29,12 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # optimize function drawing, by precalculating values -> use idle handler and intern optimization
 # when selected object is deleted, change focus
 # add more expression types
+# get coordinates of plane when right clicking => saving to clipboard
+# creating an object twice causes errors
 
 
 class GraphCalculatorApplicationFrame(wx.Frame):
-    version = "0.5.0"
+    version = "0.8.0"
     title = "Ivo's Grafikrechner"
 
     def __init__(self, parent=None, id=wx.ID_ANY, title=""):

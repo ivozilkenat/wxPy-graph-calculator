@@ -49,14 +49,14 @@ class DefinitionArea():
 
 # todo:
 #   -defy definition loops
+#   -allow for definition intervals to be utilized
 
 class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
     _basePlane: Dynamic2DGraphicalPlane
-
+    strName = "Funktion"
     def __init__(self, graphCalculator, functionExpression, definitionArea=None):
         GraphicalPanelObject.__init__(self, category=PropertyObjCategory.FUNCTION)
         IExprProperty.__init__(self, graphCalculator, functionExpression)
-        self._str = "Funktion"
 
         self.definitionArea = definitionArea
 
@@ -72,7 +72,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
         self.addProperty(
-            FloatProperty(vc.PROPERTY_FUNC_COEFF, 0.1, updateFunction=self.refreshBasePlane, increment=0.01))
+            FloatProperty(vc.PROPERTY_FUNC_COEFF, 0.1, updateFunctions=self.refreshBasePlane, increment=0.01))
         # todo: distinguish by type of function (e.g linear functions can be drawn with less detail)
         #       -> optimize draw speed
 
@@ -81,7 +81,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
                 "function_definition",
                 self._exprObj,
                 self._graphCalc,
-                updateFunction=self.refreshBasePlane,
+                updateFunctions=self.refreshBasePlane,
                 updateExprFunction=self.redefineAllExpressions
             ))
 
@@ -95,9 +95,11 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
                     "linear"
                 ),
                 selectedIndex=0,
-                updateFunction=self.refreshBasePlane
+                updateFunctions=self.refreshBasePlane
             )
         )
+
+
 
     def exprIsEvaluable(self):
         expr = self.getProperty("function_definition").getValue()

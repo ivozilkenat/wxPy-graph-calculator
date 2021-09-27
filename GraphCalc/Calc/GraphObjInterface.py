@@ -1,9 +1,10 @@
 import wx
 
-from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, ExprObj, Function2DExpr, InvalidExpression
+from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, ExprObj, ValueExpr, Function2DExpr, InvalidExpression
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
-from GraphCalc.Components.Property.property import IExprProperty
+from GraphCalc.Components.Graphical.Objects.graphPropertyVariable import Variable
+from GraphCalc.Components.Property.property import IExprProperty, GraphicalPanelObject
 
 from MyWx.wx import *
 from MyWx.Collection._core.wxUtilities import randomRGBTriple
@@ -14,7 +15,8 @@ from abc import ABC, abstractmethod
 
 class PropertyObj2DInterface:
     typeAssignments = {
-        Function2DExpr: GraphFunction2D
+        Function2DExpr: GraphFunction2D,
+        ValueExpr: Variable
     }
 
     def __init__(self,
@@ -54,7 +56,8 @@ class PropertyObj2DInterface:
             name).nameFormatted())  # doesn't update definition when changed <- new property? or make static?
         self._graphPropManager.addPropertyObject(newObj)
         # todo: leave this? => use a sequence
-        newObj.getProperty("color").setValue(randomRGBTriple())
+        if isinstance(newObj, GraphicalPanelObject):
+            newObj.getProperty("color").setValue(randomRGBTriple())
 
         if self._updateFunction is not None:
             self._updateFunction()
@@ -163,9 +166,42 @@ class AddPanelFunction(AddPanelComponent):
         self._sizer.Add(definitionSizer, 0, wx.EXPAND)
 
 
+class AddPanelVariableInt(AddPanelComponent):
+    expressionType = ValueExpr
+    propertyObjectType = Variable
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self._nameIn = None
+        self._definitionIn = None
+
+    def formatIntoExpression(self):
+        self.setName(self._nameIn.GetValue())
+        self.setExprStr(self._definitionIn.GetValue())
+
+    def build(self):
+        self.clearSizer()
+        nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        definitionSizer = wx.BoxSizer(wx.HORIZONTAL)
+        nameTxt = wx.StaticText(self._parent, label="Name:")
+        definitionTxt = wx.StaticText(self._parent, label="Value:")
+        self._nameIn = wx.TextCtrl(self._parent)
+        self._definitionIn = wx.TextCtrl(self._parent)
+
+        nameSizer.Add(nameTxt, 1, wx.EXPAND)
+        nameSizer.Add(self._nameIn, 2, wx.EXPAND)
+        definitionSizer.Add(definitionTxt, 1, wx.EXPAND)
+        definitionSizer.Add(self._definitionIn, 2, wx.EXPAND)
+
+        self._sizer.Add(nameSizer, 0, wx.EXPAND | wx.BOTTOM, 5)
+        self._sizer.Add(definitionSizer, 0, wx.EXPAND)
+
+
 class PropertyAddPanel(GenericPanel):
     assignedTypes = dict([
-        AddPanelFunction.getAssignment()
+        AddPanelFunction.getAssignment(),
+        AddPanelVariableInt.getAssignment()
     ])
 
     def __init__(self, graphObjectInterface: PropertyObj2DInterface, parent=None, size=None):
@@ -191,6 +227,7 @@ class PropertyAddPanel(GenericPanel):
         choicesStr = list(self.assignedTypes.keys())
         self._selectionCombobox = wx.ComboBox(parent=self._box, value=choicesStr[0], choices=choicesStr,
                                               style=wx.CB_READONLY)
+        self._selectionCombobox.Bind(wx.EVT_COMBOBOX, self.buildSelectedInput)
         self._addButton = wx.Button(parent=self._box, label="Add Expression")
         self._addButton.Bind(wx.EVT_BUTTON, self._onClick)
         self._feedbackLabel = wx.StaticText(parent=self._box, label="")  # todo: create extra class
@@ -204,9 +241,11 @@ class PropertyAddPanel(GenericPanel):
         assert self._feedbackLabel is not None
         self._feedbackLabel.SetLabel(label)
 
-    def buildSelectedInput(self):
-        self._sizer.Clear()
+    def buildSelectedInput(self, evt=None):
+        if self._content is not None:
+            self._content.clearSizer(True, True)
         self._subSizer.Clear()
+        self._sizer.Clear()
 
         self._subSizer.Add(self._selectionCombobox, 0, wx.EXPAND | wx.TOP, 20)
 
@@ -222,12 +261,14 @@ class PropertyAddPanel(GenericPanel):
         self._box.SetSizer(self._subSizer)
         self._sizer.Add(self._box, 1, wx.EXPAND | wx.ALL, 3)
         self.SetSizer(self._sizer)
+        self.Layout()
 
     def _onClick(self, evt=None):
         try:
             self._content.addExpr()
             self.setFeedback("Valid Entry")
         except InvalidExpression as e:
+            print(e)
             self.setFeedback("Invalid Entry")
 
 # todo: add standard color enumeration (with special functionality here?)

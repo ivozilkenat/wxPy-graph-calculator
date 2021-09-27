@@ -33,10 +33,12 @@ class ExprObj(ABC):
             raise InvalidExpression(f"Provided expression is invalid for {self.__class__.__name__}")
 
     def __standardValidation(self):
-        name = self.name()
+        name = Symbol(self.name())
         if name in self.expr().free_symbols:
             raise InvalidExpression(f"Name '{name}' can't be in expression")
-        elif name == str(Function2DExpr.argumentSymbol):
+        elif not self.name().isalpha():
+            raise InvalidExpression(f"Name has to be defined by alpha-characters")
+        elif name == Function2DExpr.argumentSymbol:
             raise InvalidExpression(f"Name of expression can't be argument symbol")
         return True
 
@@ -53,7 +55,7 @@ class ExprObj(ABC):
     def original(self):
         return self.__org
 
-
+#todo: x is in expression, when using f(n), even though not actually given
 class ValueExpr(ExprObj):
     def __init__(self, name: str, definition, original):
         super().__init__(name, definition, original)
@@ -91,7 +93,7 @@ class Function2DExpr(ExprObj):
         if isinstance(self.expr(), Expr):
             if self.argumentSymbol not in self.expr().free_symbols:
                 raise InvalidExpression(f"Missing argument symbol: '{self.argumentSymbol}' for Function")
-             return True
+            return True
 
     def nameFormatted(self):
         return f"{self.name()}({self.argumentSymbol})"
@@ -116,12 +118,12 @@ class GraphCalculator2D:
     def define(self, exprType, name: str, expressionAsString: str, raiseDefExceptions=True) -> bool:
         assert exprType in self.allowedTypes
         try:
-            exp, org = self.parser.parse(expressionAsString, original=True)
+            expr, org = self.parser.parse(expressionAsString, original=True)
         except (InvalidExpression, GeometryError) as e:
             raise e  # todo: not catched here currently
 
         try:
-            self._objects[name] = exprType(name, exp, org)
+            self._objects[name] = exprType(name, expr, org)
         except InvalidExpression as e:
             if raiseDefExceptions:
                 raise e
@@ -130,11 +132,11 @@ class GraphCalculator2D:
 
         # todo: potentially simplify by conversion
         if exprType is Function2DExpr:
-            self.parser.addDefinition(name, lambda x: exp)
+            self.parser.addDefinition(name, lambda x: expr)
         elif exprType is Point2DExpr:
-            self.parser.addDefinition(name, Point(exp))
+            self.parser.addDefinition(name, Point(expr))
         elif exprType is ValueExpr:
-            self.parser.addDefinition(name, exp)
+            self.parser.addDefinition(name, expr)
 
         return True
 

@@ -4,7 +4,7 @@ from MyWx.wx import *
 
 from GraphCalc.Components.Graphical.graphPlanes import GraphicalPanel, Dynamic2DGraphicalPlane
 from GraphCalc.Components.Property.PropertyManager.propertyManager import PropertyManager
-from GraphCalc.Components.Property.property import PropertyObject, GraphicalPanelObject
+from GraphCalc.Components.Property.property import PropertyObject, GraphicalPanelObject, NonGraphicalPanelObject
 from GraphCalc._core import vc
 
 from typing import Union
@@ -33,7 +33,9 @@ class GraphPropertyManager:
     def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject],
                           show=True):  # TODO: decide if to change property here
         self.propertyManager.addPropertyObject(propertyObject)
-        if isinstance(propertyObject, GraphicalPanelObject):
+        if isinstance(propertyObject, NonGraphicalPanelObject):
+            propertyObject.setBasePlane(self._graphPlane)
+        elif isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.addGraphicalObject(propertyObject)
             if show:  # <- let this stay?
                 propertyObject.getProperty(vc.PROPERTY_DRAW).setValue(True)
