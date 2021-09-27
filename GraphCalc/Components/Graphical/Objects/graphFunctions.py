@@ -2,7 +2,7 @@ from MyWx.wx import *
 
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject, SelectProperty, \
-    ExprProperty, FloatProperty, IExprProperty, ToggleProperty
+    ExprProperty, FloatProperty, IExprProperty, DependentProperty, ReadOnlyProperty, ExprReadOnlyProperty
 from GraphCalc.Calc.GraphCalculator import Function2DExpr
 
 from GraphCalc._core.utilities import timeMethod
@@ -64,7 +64,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         self.arguments = None
         self.values = None
 
-        self.getProperty(vc.PROPERTY_NAME).setValue("Funktion2D")
+        self.getProperty(vc.PROPERTY_NAME)._setValue("Funktion2D")
 
     def setBasePlane(self, plane):
         # Properties must be set here, since update function requires panel
@@ -86,6 +86,54 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
             ))
 
         self.addProperty(
+            DependentProperty(
+                self.getProperty("function_definition"),
+                ExprReadOnlyProperty(
+                    "intersections",
+                    ""
+                ),
+                updateFunction=self._calcIntersections,
+                checkValidity=False
+            )
+        )
+
+        self.addProperty(
+            DependentProperty(
+                self.getProperty("function_definition"),
+                ExprReadOnlyProperty(
+                    "first_derivative",
+                    ""
+                ),
+                updateFunction=self._calcDiff1,
+                checkValidity=False
+            )
+        )
+
+        self.addProperty(
+            DependentProperty(
+                self.getProperty("function_definition"),
+                ExprReadOnlyProperty(
+                    "second_derivative",
+                    ""
+                ),
+                updateFunction=self._calcDiff2,
+                checkValidity=False
+            )
+        )
+
+        self.addProperty(
+            DependentProperty(
+                self.getProperty("function_definition"),
+                ExprReadOnlyProperty(
+                    "third_derivative",
+                    ""
+                ),
+                updateFunction=self._calcDiff3,
+                checkValidity=False
+            )
+        )
+
+        self.addProperty(
             SelectProperty(
                 "point_interval_approximation",
                 (
@@ -99,7 +147,22 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
             )
         )
 
+        # add more properties?
 
+    def _calcIntersections(self):
+        return solve(self._getFuncExpr())
+
+    def _calcDiff1(self):
+        return diff(self._getFuncExpr(), Function2DExpr.argumentSymbol)
+
+    def _calcDiff2(self):
+        return diff(self.getProperty("first_derivative").getValue(), Function2DExpr.argumentSymbol)
+
+    def _calcDiff3(self):
+        return diff(self.getProperty("second_derivative").getValue(), Function2DExpr.argumentSymbol)
+
+    def _getFuncExpr(self):
+        return self.getProperty("function_definition").getValue().expr()
 
     def exprIsEvaluable(self):
         expr = self.getProperty("function_definition").getValue()

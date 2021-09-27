@@ -28,7 +28,7 @@ class Property(ABC):
     def getValue(self):
         return self._value
 
-    def setValue(self, value: Any):
+    def _setValue(self, value: Any):
         self._value = value
 
     def __str__(self):
@@ -74,7 +74,7 @@ class PropertyCtrl(Property, ABC):
         self._updateFunctions = self._updateFunctions.union(callables)
 
     def validInput(self, inputData):
-        pass
+        raise NotImplementedError
 
     # general method for validity checking, does not have to be implemented
     # -> logic can be implemented "manually" in setValue method
@@ -92,7 +92,7 @@ class PropertyCtrl(Property, ABC):
                 else:
                     return False
         else:
-            self.setValue(value)
+            self._setValue(value)
             if self._control is not None:
                 self._inputBeforeValidation = self._control.GetValue()
             return True
@@ -104,7 +104,7 @@ class PropertyCtrl(Property, ABC):
 
     # input not sanitized
     def _setValueCtrl(self, value):
-        self.setValue(value)
+        self._setValue(value)
         if self._control is not None:
             self._control.SetValue(self._value)
 
@@ -160,7 +160,7 @@ class ToggleProperty(PropertyCtrl):
         return self._control
 
     def updateValue(self):
-        self.setValue(self._control.GetValue())
+        self._setValue(self._control.GetValue())
 
 
 class IntProperty(PropertyCtrl):
@@ -243,7 +243,7 @@ class ReadOnlyProperty(PropertyCtrl):
 class ExprProperty(PropertyCtrl):
     setterSupport = True
 
-    def __init__(self, propertyName, value, graphCalculator, updateExprFunction=None, updateFunctions=None,
+    def __init__(self, propertyName, value, graphCalculator=None, updateExprFunction=None, updateFunctions=None,
                  validityFunction=None, constant=False):
         assert isinstance(value, ExprObj)
         super().__init__(propertyName=propertyName, value=value, updateFunctions=updateFunctions,
@@ -280,7 +280,7 @@ class ExprProperty(PropertyCtrl):
             self._control.SetValue(self._inputBeforeValidation)
             return False
         else:
-            self.setValue(self._graphCalc.get(exprName))
+            self._setValue(self._graphCalc.get(exprName))
             if self._updateExprFunc is not None:
                 self._updateExprFunc()  # <- hook to update other expressions
             self._inputBeforeValidation = value
@@ -302,7 +302,34 @@ class ExprProperty(PropertyCtrl):
         self._graphCalc.define(
             type(expr), expr.name(), expr.original(), raiseDefExceptions=True
         )
-        self.setValue(self._graphCalc.get(expr.name()))
+        self._setValue(self._graphCalc.get(expr.name()))
+
+
+class ExprReadOnlyProperty(PropertyCtrl):
+    setterSupport = True
+
+    def __init__(self, propertyName, expression, constant=False):
+        super().__init__(propertyName=propertyName, value=expression, constant=constant)
+
+    def getCtrl(self, parent):
+        self._control = wx.TextCtrl(parent=parent, value=str(self.getValue()), style=wx.TE_READONLY)
+        return self._control
+
+    def setValidValue(self, expression):
+        self._setValue(expression)
+
+    def setValidValueCtrl(self, expression):
+        self.setValidValue(expression)
+        if self._control is not None:
+            self._control.SetValue(str(self.getValue()))
+
+    def _setValueCtrl(self, expression):
+        self._setValue(expression)
+        if self._control is not None:
+            self._control.SetValue(str(self.getValue()))
+
+    def updateValue(self):
+        pass
 
 
 class ListProperty(PropertyCtrl):
@@ -353,7 +380,7 @@ class ListProperty(PropertyCtrl):
     # special override for this class (does not use setValidValue directly)
     def updateValue(self):
         if self.validInput((data := self.string2TypeFormat())):
-            self.setValue(data)
+            self._setValue(data)
             self._inputBeforeValidation = self._control.GetValue()
             return True
         else:

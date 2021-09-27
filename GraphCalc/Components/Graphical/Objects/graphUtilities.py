@@ -13,7 +13,7 @@ class CartesianAxies(GraphicalPanelObject):
     def __init__(self):
         super().__init__(category=PropertyObjCategory.NO_CATEGORY)
 
-        self.getProperty(vc.PROPERTY_NAME).setValue("Cartesian Coordinate-System")
+        self.getProperty(vc.PROPERTY_NAME)._setValue("Cartesian Coordinate-System")
 
         self._subAxisInterval = 1
 
@@ -21,7 +21,7 @@ class CartesianAxies(GraphicalPanelObject):
         # Properties must be set here, since update function requires panel
         # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
-        self.getProperty(vc.PROPERTY_SELECTABLE).setValue(False)
+        self.getProperty(vc.PROPERTY_SELECTABLE)._setValue(False)
         self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_SUB_AXIS, True, updateFunctions=self.refreshBasePlane))
         self.addProperty(ToggleProperty(vc.PROPERTY_DRAW_MAIN_AXIS, True, updateFunctions=self.refreshBasePlane))
 
@@ -45,7 +45,7 @@ class CartesianAxies(GraphicalPanelObject):
         self.addProperty(IntProperty("value_label_y_axis_distance", 30, updateFunctions=self.refreshBasePlane))
 
         c = self.getProperty(vc.PROPERTY_COLOR)
-        c.setValue(vc.COLOR_BLACK)
+        c._setValue(vc.COLOR_BLACK)
         c.setUpdateFunctions(self.refreshBasePlane)
         self.addProperty(c, override=True)
         self.addProperty(

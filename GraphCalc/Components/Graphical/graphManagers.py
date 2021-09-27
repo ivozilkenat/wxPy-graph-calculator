@@ -38,9 +38,9 @@ class GraphPropertyManager:
         elif isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.addGraphicalObject(propertyObject)
             if show:  # <- let this stay?
-                propertyObject.getProperty(vc.PROPERTY_DRAW).setValue(True)
+                propertyObject.getProperty(vc.PROPERTY_DRAW)._setValue(True)
             else:
-                propertyObject.getProperty(vc.PROPERTY_DRAW).setValue(False)
+                propertyObject.getProperty(vc.PROPERTY_DRAW)._setValue(False)
             # todo: add feedback if object could be created or not, considering SeedException
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):

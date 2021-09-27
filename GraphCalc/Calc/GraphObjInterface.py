@@ -52,12 +52,12 @@ class PropertyObj2DInterface:
                     break
 
         # todo: !!!replace with better solution!!!
-        newObj.getProperty("name").setValue(self._graphCalc.get(
+        newObj.getProperty("name")._setValue(self._graphCalc.get(
             name).nameFormatted())  # doesn't update definition when changed <- new property? or make static?
         self._graphPropManager.addPropertyObject(newObj)
         # todo: leave this? => use a sequence
         if isinstance(newObj, GraphicalPanelObject):
-            newObj.getProperty("color").setValue(randomRGBTriple())
+            newObj.getProperty("color")._setValue(randomRGBTriple())
 
         if self._updateFunction is not None:
             self._updateFunction()

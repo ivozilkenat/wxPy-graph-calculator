@@ -93,7 +93,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         for i in range(1, 2):
             axis = CartesianAxies()
             p = axis.getProperty("name")
-            p.setValue("Cartesian-Plane - " + str(i))
+            p._setValue("Cartesian-Plane - " + str(i))
             axis.addProperty(p, override=True)
             self.graphPropertyManager.addPropertyObject(axis)
 
