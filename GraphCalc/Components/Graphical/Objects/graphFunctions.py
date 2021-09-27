@@ -134,6 +134,18 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         )
 
         self.addProperty(
+            DependentProperty(
+                self.getProperty("function_definition"),
+                ExprReadOnlyProperty(
+                    "integral",
+                    ""
+                ),
+                updateFunction=self._calcIntegral,
+                checkValidity=False
+            )
+        )
+
+        self.addProperty(
             SelectProperty(
                 "point_interval_approximation",
                 (
@@ -160,6 +172,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
 
     def _calcDiff3(self):
         return diff(self.getProperty("second_derivative").getValue(), Function2DExpr.argumentSymbol)
+
+    def _calcIntegral(self):
+        return integrate(self._getFuncExpr(), Function2DExpr.argumentSymbol)
 
     def _getFuncExpr(self):
         return self.getProperty("function_definition").getValue().expr()
