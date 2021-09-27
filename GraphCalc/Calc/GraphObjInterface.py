@@ -111,13 +111,14 @@ class AddPanelComponent(SizerComponent, ABC):
 		assert self.expressionType is not None, "expression type not set"
 		assert self.propertyObjectType is not None, "graphicalObjectType not set"
 		self.formatIntoExpression()
-		assert len(self._name) > 0, "name of function not set"
-		self._interface.addExprObj(
-			self.expressionType,
-			self._name,
-			self._exprStr
-		)
-
+		if len(self._name) > 0:
+			self._interface.addExprObj(
+				self.expressionType,
+				self._name,
+				self._exprStr
+			)
+		else:
+			raise InvalidExpression("Name of expression must be set")
 
 class AddPanelFunction(AddPanelComponent):
 	expressionType = Function2DExpr

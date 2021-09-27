@@ -374,7 +374,10 @@ class PropCategoryDataClass:
 
 class PropertyObjCategory(Enum):
     FUNCTION = PropCategoryDataClass(vc.PROPERTY_CAT_FUNC)
-    SHAPES = PropCategoryDataClass(vc.PROPERTY_CAT_SHAPE)
+    VARIABLE = PropCategoryDataClass("Variablen")
+    POINT = PropCategoryDataClass("Punkte")
+    VECTOR = PropCategoryDataClass("Vektor")
+    SHAPE = PropCategoryDataClass(vc.PROPERTY_CAT_SHAPE)
     NO_CATEGORY = PropCategoryDataClass(vc.PROPERTY_CAT_MISC)
 
     # Needed for the object manager to sort by category

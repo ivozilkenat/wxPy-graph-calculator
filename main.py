@@ -78,7 +78,10 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel, self.inspectionPanel = self.graphPropertyManager.propertyManager.getOverviewInspectionPanels()
 
         self.overviewPanel.createCategory(PropertyObjCategory.FUNCTION.getName())
-        self.overviewPanel.createCategory(PropertyObjCategory.SHAPES.getName())
+        self.overviewPanel.createCategory(PropertyObjCategory.VARIABLE.getName())
+        self.overviewPanel.createCategory(PropertyObjCategory.POINT.getName())
+        self.overviewPanel.createCategory(PropertyObjCategory.VECTOR.getName())
+        self.overviewPanel.createCategory(PropertyObjCategory.SHAPE.getName())
         self.overviewPanel.createCategory(PropertyObjCategory.NO_CATEGORY.getName())
         #self.overviewPanel.createCategory(PropertyObjCategory.CUSTOM_CATEGORY("Test").getName())
 
