@@ -8,6 +8,7 @@ from typing import Union, Tuple
 
 from decimal import Decimal
 
+
 # positions as tuples or individual arguments?
 # add more assertions or further type checking
 # add interactive selection of displayed objects
@@ -102,6 +103,7 @@ class GraphicalPanel(GenericPanel):
 # Interactive 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):
     ZOOMING_CONST = 0.05
+
     def __init__(self, parent, size=None):
         super().__init__(parent=parent, size=size)
         self.colorManager = PlaneColorHandler()
@@ -122,14 +124,12 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.zoomFactorX = 1
         self.zoomFactorY = 1
 
-        #todo: experimental
+        # todo: experimental
         self.zoomXCounter = 0
         self.zoomYCounter = 0
 
         self.hovered = None
         self.active = None
-
-
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
@@ -161,12 +161,12 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def getLogicalWB(self):
         return self.pxXToLogical(self.wb[0]), self.pxXToLogical(self.wb[1])
 
-    def getLogicalDBLength(self): #todo: test if getDBLength can be calculated in to logical
+    def getLogicalDBLength(self):  # todo: test if getDBLength can be calculated in to logical
         db = self.getLogicalDB()
-        return db[-1]-db[0]
+        return db[-1] - db[0]
 
     def getDBLength(self):
-        return self.db[-1]-self.db[0]
+        return self.db[-1] - self.db[0]
 
     def logicalPointToPx(self, x, y):
         return self.logicalXToPx(x), self.logicalYToPx(y)
@@ -200,14 +200,14 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             mdc = wx.MemoryDC(self.colorManager.idBitmap)
 
             for object in self.layers:
-                r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6) #todo: add this constant
+                r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6)  # todo: add this constant
                 # Performance testing
-                if r is not None: #todo: remove this
-                  print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+                if r is not None:  # todo: remove this
+                    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
             print()
-                #todo: run render message in console or in application
-                # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
-                # draw time is mainly caused by bad graphical object optimization
+            # todo: run render message in console or in application
+            # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
+            # draw time is mainly caused by bad graphical object optimization
 
     def centerLogicalPoint(self, x, y):
         self.centerPxPoint(*self.logicalPointToPx(x, y))
@@ -219,10 +219,10 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     # method to manipulate the origin in a way that a graph point is at target position of plane
     def focusPxPointOnTarget(self, vx, vy, tx, ty):
-        rx, ry = self.absPosToOrigin(tx, ty) # position of target, relative to origin
-        vt = self.pxPointToLogical(rx, ry) # value of target
-        deltaV = vx-vt[0], vy-vt[1]
-        cx, cy = self.logicalPointToPx(*deltaV) # position change in px
+        rx, ry = self.absPosToOrigin(tx, ty)  # position of target, relative to origin
+        vt = self.pxPointToLogical(rx, ry)  # value of target
+        deltaV = vx - vt[0], vy - vt[1]
+        cx, cy = self.logicalPointToPx(*deltaV)  # position change in px
         self.originUpdate = (cx, cy)
 
     # Mousewheel event receiver (zooming)
@@ -246,7 +246,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     def _zoomFunction(self, value):
         from math import exp
-        return 2**(value*0.1)
+        return 2 ** (value * 0.1)
 
     # def _leftMouseDown(self, evt=None):
     #     print("left down")
@@ -286,7 +286,8 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
                 mX, mY = event.GetPosition()
                 if self.mouseBefore is None:
                     self.mouseBefore = (mX, mY)
-                self.originUpdate = self.mouseBefore[0] - mX, mY - self.mouseBefore[1] if self.yMirror else self.mouseBefore[1] - mY
+                self.originUpdate = self.mouseBefore[0] - mX, mY - self.mouseBefore[1] if self.yMirror else \
+                self.mouseBefore[1] - mY
                 self.mouseBefore = (mX, mY)
                 self.Refresh()
             else:
@@ -343,11 +344,11 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     # y-mirror methods
     def mirrorPointsY(self, points, mY):
-        return [(x, 2*mY-y) for x, y in points]
+        return [(x, 2 * mY - y) for x, y in points]
 
     def mirrorPoints(self, points, mirrorPoint):
         xm, ym = mirrorPoint
-        return [(2*xm-y, 2*ym-y) for x, y in points]
+        return [(2 * xm - y, 2 * ym - y) for x, y in points]
 
     def yIsMirrored(self):
         return self.yMirror
@@ -403,7 +404,7 @@ class PlaneColorHandler:
 
     def __init__(self):
         self._colorIds = dict()
-        self._idCounter = 2 # Starts at 2, since 1 returns NONE_ID
+        self._idCounter = 2  # Starts at 2, since 1 returns NONE_ID
 
         self.idBitmap = None
 
@@ -465,6 +466,7 @@ class PlaneColorHandler:
         if self.colorExists(graphObject.getProperty(vc.PROPERTY_COLOR).getValue()):
             return True
         return False
+
 
 class SeedException(Exception):
     def __init__(self, message="The maximum seed range has been exceeded"):

@@ -25,7 +25,7 @@ PROPERTY_SUB_AXIS_DRAW_WIDTH = "sub_axis_draw_width"
 
 ERROR_UPDATE_FUNCTION_MISSING = "update-function of property has not been specified"
 ERROR_MISSING_INSPECTION = "propertyManager has not created an inspectionPanel"
-ERROR_MISSING_PROP_MAN = "propertyManager is not set" #Maybe don't have exception messages here
+ERROR_MISSING_PROP_MAN = "propertyManager is not set"  # Maybe don't have exception messages here
 
 # Base-Colors
 

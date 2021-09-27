@@ -94,7 +94,8 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
 
         lp: ListPanel = categoryTemp.getContent()
         panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry,
-                                 size=(0, 50))  # TODO: only has fixed size -> should be generic or generally outsourced constant
+                                 size=(0,
+                                       50))  # TODO: only has fixed size -> should be generic or generally outsourced constant
         panel._text.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
 
         lp.add(panel)
@@ -165,6 +166,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         panel = txt.GetParent()
         self._manager.setActiveProperty(panel.getPropertyObj())
 
+
 # SizerComponent to manage accordionPanels
 class CategoryOverviewComponent(SizerComponent):
     def __init__(self, parent):
@@ -198,6 +200,7 @@ class CategoryOverviewComponent(SizerComponent):
     def categoryNameDict(self):
         return {i.getLabelTxt(): i for i in self._categories}
 
+
 class CategoryAccordion(PanelWithHeaderAccordion):
     def __init__(self, parent, title):
         super().__init__(parent=parent, headline=title)
@@ -209,6 +212,7 @@ class CategoryAccordion(PanelWithHeaderAccordion):
         else:
             self._backColor = vc.COL_OVERVIEW_HASCONTENT
         super().build()
+
 
 # Panel to represent PropertyObjects
 class PropertyObjPanel(GenericPanel):

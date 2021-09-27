@@ -2,7 +2,8 @@ import wx
 
 from MyWx.wx import *
 
-from GraphCalc.Components.Property.property import IntProperty, ListProperty, GraphicalPanelObject, ToggleProperty, PropertyObjCategory, StrProperty
+from GraphCalc.Components.Property.property import IntProperty, ListProperty, GraphicalPanelObject, ToggleProperty, \
+    PropertyObjCategory, StrProperty
 from GraphCalc._core import vc
 
 from GraphCalc._core.utilities import multiplesInInterval
@@ -13,7 +14,6 @@ class CartesianAxies(GraphicalPanelObject):
         super().__init__(category=PropertyObjCategory.NO_CATEGORY)
 
         self.getProperty(vc.PROPERTY_NAME).setValue("Cartesian Coordinate-System")
-
 
         self._subAxisInterval = 1
 
@@ -34,7 +34,6 @@ class CartesianAxies(GraphicalPanelObject):
         self.addProperty(IntProperty("arrow_head_overlapping", 4, updateFunction=self.refreshBasePlane))
         self.addProperty(IntProperty("arrow_draw_width", 1, updateFunction=self.refreshBasePlane))
 
-
         self.addProperty(StrProperty("y_label", "Y", updateFunction=self.refreshBasePlane))
         self.addProperty(IntProperty("y_axis_label_axis_distance", 15, updateFunction=self.refreshBasePlane))
         self.addProperty(IntProperty("y_axis_label_border_distance", 10, updateFunction=self.refreshBasePlane))
@@ -44,7 +43,6 @@ class CartesianAxies(GraphicalPanelObject):
 
         self.addProperty(IntProperty("value_label_x_axis_distance", 15, updateFunction=self.refreshBasePlane))
         self.addProperty(IntProperty("value_label_y_axis_distance", 30, updateFunction=self.refreshBasePlane))
-
 
         c = self.getProperty(vc.PROPERTY_COLOR)
         c.setValue(vc.COLOR_BLACK)
@@ -80,10 +78,11 @@ class CartesianAxies(GraphicalPanelObject):
         # print(self._basePlane.logicalYToPx(-10))
         # print(self._basePlane.pxYToLogical(500))
         # print()
+
     @GraphicalPanelObject.draw(vc.PROPERTY_COL_SUB_AXIS, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawSubAxis(self, deviceContext):
 
-        intervalUpdateFactor = 2 # interval always becomes a multiple of this, if update is necessary
+        intervalUpdateFactor = 2  # interval always becomes a multiple of this, if update is necessary
 
         if self._basePlane.logicalXToPx(self._subAxisInterval) > self._basePlane.Px2LEx * intervalUpdateFactor:
             self._subAxisInterval /= intervalUpdateFactor
@@ -98,7 +97,7 @@ class CartesianAxies(GraphicalPanelObject):
         )
 
         xSubAxisPx = [self._basePlane.logicalXToPx(x) for x in xSubAxisLog]
-        ySubAxisPx =[self._basePlane.logicalYToPx(y) for y in ySubAxisLog]
+        ySubAxisPx = [self._basePlane.logicalYToPx(y) for y in ySubAxisLog]
 
         # todo: display numbers with more spacing
         decimalPlaces = 8
@@ -107,7 +106,7 @@ class CartesianAxies(GraphicalPanelObject):
         labels = list()
         coords = list()
 
-        #todo: fix labeling orientation bug / make transition smoother
+        # todo: fix labeling orientation bug / make transition smoother
         # Draw sub axis
         for x in xSubAxisPx:
             if x == 0:
@@ -155,8 +154,8 @@ class CartesianAxies(GraphicalPanelObject):
             labelY = cy - 1 / 2 * th
             labelX = self._basePlane.correctX(0) - dyLabel
 
-            if labelX - dyLabel/2 <= 0:
-                labelX = self._basePlane.correctX(dbStart) + dyLabel/2
+            if labelX - dyLabel / 2 <= 0:
+                labelX = self._basePlane.correctX(dbStart) + dyLabel / 2
             elif dbEnd < 0:
                 labelX = self._basePlane.correctX(dbEnd) - dyLabel
 
@@ -166,7 +165,7 @@ class CartesianAxies(GraphicalPanelObject):
                 labelY
             ))
 
-        #todo: can this be implemented without calculation overhead?
+        # todo: can this be implemented without calculation overhead?
         if self.getProperty("draw_values").getValue() is True:
             deviceContext.DrawTextList(labels, coords)
 
@@ -197,8 +196,8 @@ class CartesianAxies(GraphicalPanelObject):
         tipY = self._basePlane.correctPosition(0, self._basePlane.wb[-1])
         yArrow = [
             tipY,
-            (tipY[0]-headHeight, tipY[1]-headLength-headOverlapping),
-            (tipY[0], tipY[1]-headLength),
+            (tipY[0] - headHeight, tipY[1] - headLength - headOverlapping),
+            (tipY[0], tipY[1] - headLength),
             (tipY[0] + headHeight, tipY[1] - headLength - headOverlapping)
         ]
 
@@ -208,7 +207,6 @@ class CartesianAxies(GraphicalPanelObject):
         else:
             deviceContext.DrawPolygon(yArrow)
 
-
     @GraphicalPanelObject.draw(vc.PROPERTY_COLOR, vc.PROPERTY_SUB_AXIS_DRAW_WIDTH)
     def drawAxisLabels(self, deviceContext):
         label = self.getProperty("y_label").getValue()
@@ -217,7 +215,8 @@ class CartesianAxies(GraphicalPanelObject):
             label,
             *self._basePlane.correctPosition(
                 self.getProperty("y_axis_label_axis_distance").getValue(),
-                self._basePlane.wb[-1] - (0 if self._basePlane.yIsMirrored() else th) - self.getProperty("y_axis_label_border_distance").getValue())
+                self._basePlane.wb[-1] - (0 if self._basePlane.yIsMirrored() else th) - self.getProperty(
+                    "y_axis_label_border_distance").getValue())
         )
         label = self.getProperty("x_label").getValue()
         tw, th = deviceContext.GetTextExtent(label)
@@ -225,5 +224,6 @@ class CartesianAxies(GraphicalPanelObject):
             label,
             *self._basePlane.correctPosition(
                 self._basePlane.db[-1] - tw - self.getProperty("x_axis_label_border_distance").getValue(),
-                self.getProperty("x_axis_label_axis_distance").getValue() + (th if self._basePlane.yIsMirrored() else 0))
+                self.getProperty("x_axis_label_axis_distance").getValue() + (
+                    th if self._basePlane.yIsMirrored() else 0))
         )

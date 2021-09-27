@@ -39,7 +39,7 @@ class GraphPropertyManager:
                 propertyObject.getProperty(vc.PROPERTY_DRAW).setValue(True)
             else:
                 propertyObject.getProperty(vc.PROPERTY_DRAW).setValue(False)
-            #todo: add feedback if object could be created or not, considering SeedException
+            # todo: add feedback if object could be created or not, considering SeedException
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
         self.propertyManager.removePropObject(propertyObject)

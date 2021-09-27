@@ -13,7 +13,7 @@ from typing import Dict, TypeVar, Union
 
 
 # Probably unnecessary / Maybe nest Property-classes
-#todo: add priority to display in specified order
+# todo: add priority to display in specified order
 class Property(ABC):
     def __init__(self, propertyName: str, value):
         self.setName(propertyName)  # constant #TODO: Make dynamic
@@ -71,7 +71,7 @@ class PropertyCtrl(Property, ABC):
     # -> logic can be implemented "manually" in setValue method
     def setValidValue(self, value, raiseInvalidTypeError=False):
         if value == self._inputBeforeValidation:
-            return False #todo: should this be False?
+            return False  # todo: should this be False?
         if self._validityFunction is not None:
             try:
                 if not self._validityFunction(value):
@@ -132,15 +132,16 @@ class ToggleProperty(PropertyCtrl):
 
 
 class IntProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False, updateOnEnter=False):
+    def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False,
+                 updateOnEnter=False):
         assert isinstance(value, int)
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
                          validityFunction=validityFunction, constant=constant)
         self._updateOnlyOnEnter = updateOnEnter
 
-
     def getCtrl(self, parent):
-        self._control = wx.SpinCtrl(parent=parent, min=0, max=999999999, initial=self.getValue(), style=wx.TE_PROCESS_ENTER)
+        self._control = wx.SpinCtrl(parent=parent, min=0, max=999999999, initial=self.getValue(),
+                                    style=wx.TE_PROCESS_ENTER)
         self._control.Bind(wx.EVT_TEXT_ENTER, self.update)
         if not self._updateOnlyOnEnter:
             self._control.Bind(wx.EVT_SPINCTRL, self.update)
@@ -149,13 +150,13 @@ class IntProperty(PropertyCtrl):
     def updateValue(self):
         self.setValidValue(self._control.GetValue())
 
+
 class FloatProperty(PropertyCtrl):
     def __init__(self, propertyName, value, updateFunction=None, validityFunction=None, constant=False, increment=0.1):
         assert isinstance(value, (float, int))
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
                          validityFunction=validityFunction, constant=constant)
         self._inc = increment
-
 
     def getCtrl(self, parent):
         # todo: Bug - ctrl not displayed after the program has been started; size of control slightly incorrect
@@ -183,9 +184,11 @@ class StrProperty(PropertyCtrl):
     def updateValue(self):
         self.setValidValue(self._control.GetValue())
 
-#todo: validity function behaviour not tested
+
+# todo: validity function behaviour not tested
 class ExprProperty(PropertyCtrl):
-    def __init__(self, propertyName, value, graphCalculator, updateExprFunction = None, updateFunction=None, validityFunction=None, constant=False):
+    def __init__(self, propertyName, value, graphCalculator, updateExprFunction=None, updateFunction=None,
+                 validityFunction=None, constant=False):
         assert isinstance(value, ExprObj)
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
                          validityFunction=validityFunction, constant=constant)
@@ -224,14 +227,15 @@ class ExprProperty(PropertyCtrl):
         else:
             self.setValue(self._graphCalc.get(exprName))
             if self._updateExprFunc is not None:
-                self._updateExprFunc() #<- hook to update other expressions
+                self._updateExprFunc()  # <- hook to update other expressions
             self._inputBeforeValidation = newExprStr
             return True
 
     # Allows to define expression newly
     def redefineAs(self, exprType, exprName, exprStr):
         return self._graphCalc.define(
-            exprType, exprName, exprStr, raiseDefExceptions=True #todo: raise exceptions later on, when they can be catched and viewed as user feedback
+            exprType, exprName, exprStr, raiseDefExceptions=True
+            # todo: raise exceptions later on, when they can be catched and viewed as user feedback
         )
 
     # Redefines expression (necessary if namespace changes -> e.g. other expression is changed)
@@ -327,7 +331,7 @@ class ColorProperty(PropertyCtrl):
         self._control = wx.ColourPickerCtrl(parent=parent, colour=self.getValue())
         self._control.Bind(wx.EVT_COLOURPICKER_CHANGED,
                            self.update)
-        self._control.GetValue = self.__getValueOverride # override method <- hacky solution?
+        self._control.GetValue = self.__getValueOverride  # override method <- hacky solution?
         return self._control
 
     def __getValueOverride(self):
@@ -336,16 +340,19 @@ class ColorProperty(PropertyCtrl):
     def updateValue(self):
         self.setValidValue(self._control.GetValue())
 
+
 class SelectProperty(PropertyCtrl):
     # todo: every item is stored as a string <- make obvious to programmer or use special data class to store all types
-    def __init__(self, propertyName, value, selectedIndex = 0, updateFunction=None, validityFunction=None, constant=False):
+    def __init__(self, propertyName, value, selectedIndex=0, updateFunction=None, validityFunction=None,
+                 constant=False):
         assert isinstance(value, tuple)
         super().__init__(propertyName=propertyName, value=value, updateFunction=updateFunction,
                          validityFunction=validityFunction, constant=constant)
         self._currentlySelected = value[selectedIndex]
 
     def getCtrl(self, parent):
-        self._control = wx.ComboBox(parent=parent, value = self._currentlySelected, choices=self.getValue(), style=wx.CB_READONLY)
+        self._control = wx.ComboBox(parent=parent, value=self._currentlySelected, choices=self.getValue(),
+                                    style=wx.CB_READONLY)
         self._control.Bind(wx.EVT_COMBOBOX, self.update)
         return self._control
 
@@ -354,12 +361,13 @@ class SelectProperty(PropertyCtrl):
 
     def getSelected(self):
         return self._currentlySelected
-        #todo: what about GetValue()
+        # todo: what about GetValue()
 
     def updateValue(self):
         print("UPDATE")
         self._currentlySelected = self._control.GetValue()
         self.setValidValue(self.getStrTuple())
+
 
 ### Property Categories
 
@@ -524,8 +532,10 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     def setBasePlane(self, plane):
         self.clear()
         self._basePlane = plane
-        self.addProperty(ToggleProperty(vc.PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))  # standard property
-        self.addProperty(ToggleProperty(vc.PROPERTY_SELECTABLE, True, updateFunction=self.refreshBasePlane))  # standard property
+        self.addProperty(
+            ToggleProperty(vc.PROPERTY_DRAW, True, updateFunction=self.refreshBasePlane))  # standard property
+        self.addProperty(
+            ToggleProperty(vc.PROPERTY_SELECTABLE, True, updateFunction=self.refreshBasePlane))  # standard property
         self.addProperty(IntProperty(vc.PROPERTY_DRAW_WIDTH, 3, updateFunction=self.refreshBasePlane))
         self.addProperty(
             ListProperty(
@@ -545,7 +555,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         if self._basePlane is not None:
             self._basePlane.Refresh()
 
-    def redefineAllExpressions(self): #todo: check runtime performance here
+    def redefineAllExpressions(self):  # todo: check runtime performance here
         if self._basePlane is not None:
             for o in self._basePlane.layers:
                 if o != self and isinstance(o, IExprProperty):
@@ -553,6 +563,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
                         if isinstance(p, ExprProperty):
                             print(o)
                             p.redefineExisting()
+
     ###
 
     # Decorator for blitUpdateMethod to use standardized properties
@@ -586,7 +597,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
 
     # wraps any deviceContext draw method to handle color selection
     # mandatory for id-system #todo: what would could go wrong in this implementation
-    def draw(nameOfColorProperty: str, nameOfWidthProperty: str): #todo: standard constants should be outsourced
+    def draw(nameOfColorProperty: str, nameOfWidthProperty: str):  # todo: standard constants should be outsourced
         def _draw(drawMethod: callable):
             def _inner(graphObject, deviceContext: wx.DC, *args, **kwargs):
                 assert isinstance(graphObject, GraphicalPanelObject)
@@ -597,7 +608,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
                 if graphObject._extraWidth is None:
                     width = graphObject.getProperty(nameOfWidthProperty).getValue()
                 else:
-                    width = 2*graphObject._extraWidth + graphObject.getProperty(nameOfWidthProperty).getValue()
+                    width = 2 * graphObject._extraWidth + graphObject.getProperty(nameOfWidthProperty).getValue()
                 p = wx.Pen(wx.Colour(color))
                 p.SetWidth(width)
                 deviceContext.SetPen(p)
@@ -608,6 +619,7 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
             return _inner
 
         return _draw
+
 
 # interface for uniformed object instantiation with expression property objects (objects, that *have* to define a graph calculator and expression)
 class IExprProperty:

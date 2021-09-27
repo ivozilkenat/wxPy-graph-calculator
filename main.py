@@ -60,7 +60,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.rightWorkspacePanelSizer = wx.BoxSizer(wx.VERTICAL)
 
         self.graphPropertyManager = Dy2DGraphPropertyManager(
-            self.workspace.splitter # <- move parent into getter method
+            self.workspace.splitter  # <- move parent into getter method
         )
         self.graphCalculator = GraphCalculator2D()
 
@@ -83,7 +83,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.overviewPanel.createCategory(PropertyObjCategory.VECTOR.getName())
         self.overviewPanel.createCategory(PropertyObjCategory.SHAPE.getName())
         self.overviewPanel.createCategory(PropertyObjCategory.NO_CATEGORY.getName())
-        #self.overviewPanel.createCategory(PropertyObjCategory.CUSTOM_CATEGORY("Test").getName())
+        # self.overviewPanel.createCategory(PropertyObjCategory.CUSTOM_CATEGORY("Test").getName())
 
         # Overview-panel and Inspection-panel have been created
 
@@ -97,7 +97,8 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.addPropertyPanel = PropertyAddPanel(
             parent=self.leftWorkspacePanel,
-            graphObjectInterface=self.graphCalcObjInterface #todo: parent should come first | needs to be connected to the interface
+            graphObjectInterface=self.graphCalcObjInterface
+            # todo: parent should come first | needs to be connected to the interface
         )  # <- define as special control / also other controls that effect manager
 
         self.leftWorkspacePanelSizer.Add(self.addPropertyPanel, 0, wx.EXPAND | wx.TOP, 5)
@@ -114,7 +115,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.leftWorkspacePanel.SetBackgroundColour((255, 255, 255))
         self.rightWorkspacePanel.SetBackgroundColour((100, 100, 100))
-        #todo: right panel must have a minimum size, else contents can go out of view in the scroll panel
+        # todo: right panel must have a minimum size, else contents can go out of view in the scroll panel
         self.workspace.setWindows(self.leftWorkspacePanel, self.graphPanel, self.rightWorkspacePanel)
         self.workspace.build()
         # self.workspace.splitter.SetMinimumPaneSize(100)
