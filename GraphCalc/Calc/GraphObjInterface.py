@@ -4,7 +4,7 @@ from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, ExprObj, ValueExpr
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.Objects.graphPropertyVariable import Variable
-from GraphCalc.Components.Property.property import IExprProperty, GraphicalPanelObject
+from GraphCalc.Components.Property.property import IExprProperty, GraphicalPanelObject, NonGraphicalPanelObject
 
 from MyWx.wx import *
 from MyWx.Collection._core.wxUtilities import randomRGBTriple
@@ -43,6 +43,9 @@ class PropertyObj2DInterface:
         # create object
 
         targetObject = self.typeAssignments[exprType]
+        assert IExprProperty in (classBases := targetObject.__bases__)
+        assert NonGraphicalPanelObject in classBases or GraphicalPanelObject in classBases
+
         newObj = targetObject(self._graphCalc, self._graphCalc.get(name))
 
         for p in self._graphPropManager.propertyManager.getPropertyObjects():
@@ -55,6 +58,8 @@ class PropertyObj2DInterface:
         newObj.getProperty("name")._setValue(self._graphCalc.get(name).nameFormatted())  # doesn't update definition when changed <- new property? or make static?
 
         self._graphPropManager.addPropertyObject(newObj)
+        newObj.redefineAllExpressions()
+
         # todo: leave this? => use a sequence
         if isinstance(newObj, GraphicalPanelObject):
             newObj.getProperty("color")._setValue(randomRGBTriple())

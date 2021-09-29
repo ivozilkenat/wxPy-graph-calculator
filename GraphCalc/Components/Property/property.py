@@ -303,6 +303,7 @@ class ExprProperty(PropertyCtrl):
             type(expr), expr.name(), expr.original(), raiseDefExceptions=True
         )
         self._setValue(self._graphCalc.get(expr.name()))
+        self.callUpdFunc()
 
 
 class ExprReadOnlyProperty(PropertyCtrl):
@@ -618,12 +619,7 @@ class ManagerPropertyObject(PropertyObject, ABC):
 
     def redefineAllExpressions(self):  # todo: check runtime performance here
         if self._manager is not None:
-            for o in self._manager.getPropertyObjects():
-                if o != self and isinstance(o, IExprProperty):
-                    for p in o.getPropertyDict().values():
-                        if isinstance(p, ExprProperty):
-                            print(o)
-                            p.redefineExisting()
+            self._manager.redefineAllExpressions()
 
     @classmethod
     def strRep(cls):

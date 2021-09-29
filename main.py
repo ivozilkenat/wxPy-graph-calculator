@@ -33,6 +33,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # creating an object twice causes errors
 # values are not properly updated -> when variable is created, which is used in an other expression there is no update call
 # adding a small prompt
+# Kurvenscharen, Flächen, Funktionsintervalle
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.8.0"

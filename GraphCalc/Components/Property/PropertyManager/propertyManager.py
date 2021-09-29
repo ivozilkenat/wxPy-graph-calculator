@@ -2,7 +2,7 @@ from MyWx.wx import *
 
 from GraphCalc.Components.Property.PropertyManager.propertyOverview import PropObjectOverviewPanel
 from GraphCalc.Components.Property.PropertyManager.propertyInspection import PropInspectionPanel
-from GraphCalc.Components.Property.property import PropertyObject, ManagerPropertyObject, PropertyObjCategory
+from GraphCalc.Components.Property.property import IExprProperty, ExprProperty, PropertyObject, ManagerPropertyObject, PropertyObjCategory
 
 from typing import Set
 
@@ -92,3 +92,11 @@ class PropertyManager:
     # check if inspection panel has been initialized
     def hasInspectionPanel(self):
         return False if self._inspectionPanel is None else True
+
+    # redefines expression of every single expression property
+    def redefineAllExpressions(self):
+        for o in self.getPropertyObjects():
+            if o != self and isinstance(o, IExprProperty):
+                for p in o.getPropertyDict().values():
+                    if isinstance(p, ExprProperty):
+                        p.redefineExisting()
