@@ -48,7 +48,6 @@ class PropertyObj2DInterface:
         for p in self._graphPropManager.propertyManager.getPropertyObjects():
             if isinstance(p, IExprProperty):
                 if p._exprObj.name() == name:  # object was defined before and is already in property manager
-                    print("name already existing")
                     self._graphPropManager.removePropertyObject(p)  # prevents accidental multi definition
                     break
 
@@ -167,7 +166,7 @@ class AddPanelFunction(AddPanelComponent):
         self._sizer.Add(definitionSizer, 0, wx.EXPAND)
 
 
-class AddPanelVariableInt(AddPanelComponent):
+class AddPanelVariable(AddPanelComponent):
     expressionType = ValueExpr
     propertyObjectType = Variable
 
@@ -202,7 +201,7 @@ class AddPanelVariableInt(AddPanelComponent):
 class PropertyAddPanel(GenericPanel):
     assignedTypes = dict([
         AddPanelFunction.getAssignment(),
-        AddPanelVariableInt.getAssignment()
+        AddPanelVariable.getAssignment()
     ])
 
     def __init__(self, graphObjectInterface: PropertyObj2DInterface, parent=None, size=None):
