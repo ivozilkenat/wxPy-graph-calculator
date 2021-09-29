@@ -43,11 +43,11 @@ class PropertyCtrl(Property, ABC):
         super().__init__(propertyName, value)
         self._parameters: Dict = None #todo: redundant?
         if not isinstance(updateFunctions, set):
-            if isinstance(updateFunctions, (tuple, list)):
-                updateFunctions = set(updateFunctions)
+            if isinstance(updateFunctions, (tuple, set)):
+                updateFunctions = list(updateFunctions)
             else:
-                updateFunctions = set([updateFunctions])
-        self._updateFunctions: Set[Callable, ...] = updateFunctions
+                updateFunctions = [updateFunctions]
+        self._updateFunctions: List[Callable, ...] = updateFunctions
         self._control = None
         self._validityFunction: callable = validityFunction
         self._inputBeforeValidation = None
@@ -68,10 +68,10 @@ class PropertyCtrl(Property, ABC):
         pass
 
     def setUpdateFunctions(self, *callables):
-        self._updateFunctions = set(callables)
+        self._updateFunctions = list(callables)
 
     def addUpdateFunctions(self, *callables):
-        self._updateFunctions = self._updateFunctions.union(callables)
+        self._updateFunctions += list(callables)
 
     def validInput(self, inputData):
         raise NotImplementedError

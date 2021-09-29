@@ -178,7 +178,8 @@ class ListPanel(GenericPanel):
     def getComponents(self):
         return self._listComponent._components
 
-    def build(self):
+    def build(self, deleteWindows=False):
+        self._listComponent._sizer.Clear(deleteWindows)
         self.SetSizer(self._listComponent.getSizerAndBuild())
 
 

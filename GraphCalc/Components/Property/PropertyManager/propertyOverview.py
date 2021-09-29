@@ -97,7 +97,6 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
                                  size=(0,
                                        50))  # TODO: only has fixed size -> should be generic or generally outsourced constant
         panel._text.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
-
         lp.add(panel)
         lp.build()
 
@@ -110,7 +109,12 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         for panel in lp.getComponents():
             if panel.getPropertyObj() == propertyEntry:
                 lp.remove(panel)
-                lp.build()
+                #panel._text.Unbind(wx.EVT_LEFT_UP)
+                del panel
+                if len(lp.getComponents()) == 0:
+                    catTemp.clearContent()
+                    catTemp.build()
+                lp.build(deleteWindows=True)
                 return
 
     # set position of category

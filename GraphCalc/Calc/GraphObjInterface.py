@@ -48,12 +48,13 @@ class PropertyObj2DInterface:
         for p in self._graphPropManager.propertyManager.getPropertyObjects():
             if isinstance(p, IExprProperty):
                 if p._exprObj.name() == name:  # object was defined before and is already in property manager
+                    print("name already existing")
                     self._graphPropManager.removePropertyObject(p)  # prevents accidental multi definition
                     break
 
         # todo: !!!replace with better solution!!!
-        newObj.getProperty("name")._setValue(self._graphCalc.get(
-            name).nameFormatted())  # doesn't update definition when changed <- new property? or make static?
+        newObj.getProperty("name")._setValue(self._graphCalc.get(name).nameFormatted())  # doesn't update definition when changed <- new property? or make static?
+
         self._graphPropManager.addPropertyObject(newObj)
         # todo: leave this? => use a sequence
         if isinstance(newObj, GraphicalPanelObject):

@@ -187,5 +187,8 @@ class SizerTemplate(SizerComponent, ABC):
         assert isinstance(content, wx.Window)
         self._content = content
 
+    def clearContent(self):
+        self._content = None
+
     def getContent(self):
         return self._content
