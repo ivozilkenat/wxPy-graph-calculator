@@ -34,6 +34,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # values are not properly updated -> when variable is created, which is used in an other expression there is no update call
 # adding a small prompt
 # Kurvenscharen, Flächen, Funktionsintervalle
+# add object deletion
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.8.0"
@@ -54,7 +55,6 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
     def _buildUI(self):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-
         self.workspace = ThreePanelWorkspace(self)
 
         self.leftWorkspacePanel = GenericPanel(self.workspace.splitter)

@@ -74,7 +74,7 @@ class CartesianAxies(GraphicalPanelObject):
             self.drawArrowHeads(deviceContext)
         if self.getProperty("draw_axle_labels").getValue() is True:
             self.drawAxisLabels(deviceContext)
-        # print(self._basePlane.logicalYToPx(10))
+        # (self._basePlane.logicalYToPx(10))
         # print(self._basePlane.logicalYToPx(-10))
         # print(self._basePlane.pxYToLogical(500))
         # print()

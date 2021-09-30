@@ -95,19 +95,21 @@ class PropertyCtrl(Property, ABC):
                     return False
         else:
             self._setValue(value)
-            if self._control is not None:
+            if bool(self._control) is True:
                 self._inputBeforeValidation = self._control.GetValue()
             return True
 
     def setValidValueCtrl(self, value, raiseInvalidTypeError):
         self.setValidValue(value, raiseInvalidTypeError)
-        if self._control is not None:
-            self._control.SetValue(self._value)
+        self.__setterValueCtrl()
 
     # input not sanitized
     def _setValueCtrl(self, value):
         self._setValue(value)
-        if self._control is not None:
+        self.__setterValueCtrl()
+
+    def __setterValueCtrl(self):
+        if bool(self._control) is True:
             self._control.SetValue(self._value)
 
     # Define how control changes updated other dependencies
@@ -323,13 +325,13 @@ class ExprReadOnlyProperty(PropertyCtrl):
 
     def setValidValueCtrl(self, expression):
         self.setValidValue(expression)
-        if self._control is not None:
+        if bool(self._control) is True:
             self._control.SetValue(str(self.getValue()))
 
     def _setValueCtrl(self, expression):
         self._setValue(expression)
-        if self._control is not None:
-            #todo: sizer not always deleted
+        if bool(self._control) is True:
+            #todo: sizer not always deleted?
             self._control.SetValue(str(self.getValue()))
 
     def updateValue(self):
@@ -468,6 +470,7 @@ def DependentProperty(targetPropertyCtrl: PropertyCtrl, propertyCtrl: PropertyCt
             propertyCtrl.setValidValueCtrl(updateFunction(), raiseInvalidTypeError=False)
         else:
             #this is not advised to use, since input is not sanitized
+
             propertyCtrl._setValueCtrl(updateFunction())
 
     targetPropertyCtrl.addUpdateFunctions(
