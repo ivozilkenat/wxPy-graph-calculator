@@ -97,7 +97,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             p = axis.getProperty("name")
             p._setValue("Cartesian-Plane - " + str(i))
             axis.addProperty(p, override=True)
-            self.graphPropertyManager.addPropertyObject(axis)
+            self.graphPropertyManager.addPropertyObject(axis, setAsActive=False)
 
         self.addPropertyPanel = PropertyAddPanel(
             parent=self.leftWorkspacePanel,

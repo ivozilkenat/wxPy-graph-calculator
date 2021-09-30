@@ -16,6 +16,7 @@ from typing import Dict, TypeVar, Union, List, Tuple, Set, Callable
 # todo: add priority to display in specified order
 class Property(ABC):
     def __init__(self, propertyName: str, value):
+        self._name = None
         self.setName(propertyName)  # constant #TODO: Make dynamic
         self._value = value
 
@@ -39,6 +40,7 @@ class Property(ABC):
 class PropertyCtrl(Property, ABC):
     # Import for Dependent property, since it sets value of its properties
     setterSupport: bool = False
+
     def __init__(self, propertyName, value, updateFunctions=None, validityFunction=None, constant=False):
         super().__init__(propertyName, value)
         self._parameters: Dict = None #todo: redundant?
@@ -327,6 +329,7 @@ class ExprReadOnlyProperty(PropertyCtrl):
     def _setValueCtrl(self, expression):
         self._setValue(expression)
         if self._control is not None:
+            #todo: sizer not always deleted
             self._control.SetValue(str(self.getValue()))
 
     def updateValue(self):
@@ -464,7 +467,7 @@ def DependentProperty(targetPropertyCtrl: PropertyCtrl, propertyCtrl: PropertyCt
         if checkValidity:
             propertyCtrl.setValidValueCtrl(updateFunction(), raiseInvalidTypeError=False)
         else:
-            #this is not advised to use
+            #this is not advised to use, since input is not sanitized
             propertyCtrl._setValueCtrl(updateFunction())
 
     targetPropertyCtrl.addUpdateFunctions(
@@ -621,6 +624,9 @@ class ManagerPropertyObject(PropertyObject, ABC):
         if self._manager is not None:
             self._manager.redefineAllExpressions()
 
+    def setAsActive(self):
+        self._manager.setActiveProperty(self)
+
     @classmethod
     def strRep(cls):
         if cls.strName is not None:
@@ -640,7 +646,6 @@ class NonGraphicalPanelObject(ManagerPropertyObject, ABC):
     def refreshBasePlane(self):
         if self._basePlane is not None:
             self._basePlane.Refresh()
-
 
 # todo: is it possible to restrict access to change the pen color?
 #       create new class for id system

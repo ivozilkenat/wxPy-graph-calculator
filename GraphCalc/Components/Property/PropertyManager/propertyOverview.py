@@ -108,13 +108,16 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         lp: ListPanel = catTemp.getContent()
         for panel in lp.getComponents():
             if panel.getPropertyObj() == propertyEntry:
-                lp.remove(panel)
+
+                if self._activePanel == panel:
+                    self._manager.clearActiveProperty()
+
+                lp.delete(panel)
                 #panel._text.Unbind(wx.EVT_LEFT_UP)
-                del panel
                 if len(lp.getComponents()) == 0:
                     catTemp.clearContent()
                     catTemp.build()
-                lp.build(deleteWindows=True)
+                lp.build()
                 return
 
     # set position of category
@@ -161,15 +164,25 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         if self._activePanel is not None:
             self._activePanel.SetBackgroundColour(PropertyObjPanel.STD_COLOR)
         panel.SetBackgroundColour(PropertyObjPanel.SELECT_COLOR)
-        self._activePanel = panel
+        self._setActivePropertyPanel(panel)
         self.Refresh()  # <- should this be called here?
+
+    def clearHighlighting(self):
+        if self._activePanel is not None:
+            self._activePanel.SetBackgroundColour(PropertyObjPanel.STD_COLOR)
+        self.Refresh()
 
     # Event handler for propertyObj selection
     def _changeActiveProperty(self, evt: wx.MouseEvent = None):
         txt = evt.GetEventObject()
         panel = txt.GetParent()
-        self._manager.setActiveProperty(panel.getPropertyObj())
+        self._setActiveProperty(panel.getPropertyObj())
 
+    def _setActiveProperty(self, propertyObj):
+        self._manager.setActiveProperty(propertyObj)
+
+    def _setActivePropertyPanel(self, propertyPanel):
+        self._activePanel = propertyPanel
 
 # SizerComponent to manage accordionPanels
 class CategoryOverviewComponent(SizerComponent):

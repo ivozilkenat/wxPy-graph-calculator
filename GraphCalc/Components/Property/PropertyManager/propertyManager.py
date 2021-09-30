@@ -53,9 +53,17 @@ class PropertyManager:
         self._activeProperty = propertyObject
         if self.hasInspectionPanel() and not equal:
             self._inspectionPanel.setActivePropObj(self._activeProperty)
-            self._inspectionPanel.buildCurrentPropObj()
+            self._inspectionPanel.buildInspectedPropertyObj()
         if self.hasOverviewPanel():
             self._overviewPanel.highlightProperty(propertyObject)
+
+    def clearActiveProperty(self):
+        if self.hasInspectionPanel():
+            self._inspectionPanel.setActivePropObj(None)
+            self._inspectionPanel.buildInspectedPropertyObj()
+        if self.hasOverviewPanel():
+            self._overviewPanel.clearHighlighting()
+            self._overviewPanel._setActivePropertyPanel(None)
 
     # Get currently selected/Focused Property
     def getActiveProperty(self):

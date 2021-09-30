@@ -31,7 +31,8 @@ class GraphPropertyManager:
         self.propertyManager = propertyManager
 
     def addPropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject],
-                          show=True):  # TODO: decide if to change property here
+                          show=True,
+                          setAsActive=True):  # TODO: decide if to change property here
         self.propertyManager.addPropertyObject(propertyObject)
         if isinstance(propertyObject, NonGraphicalPanelObject):
             propertyObject.setBasePlane(self._graphPlane)
@@ -41,6 +42,8 @@ class GraphPropertyManager:
                 propertyObject.getProperty(vc.PROPERTY_DRAW)._setValue(True)
             else:
                 propertyObject.getProperty(vc.PROPERTY_DRAW)._setValue(False)
+        if setAsActive:
+            self.propertyManager.setActiveProperty(propertyObject)
             # todo: add feedback if object could be created or not, considering SeedException
 
     def removePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):

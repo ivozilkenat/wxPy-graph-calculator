@@ -175,12 +175,15 @@ class ListPanel(GenericPanel):
     def remove(self, panelEntry: wx.Window):
         self._listComponent.removeComponent(panelEntry)
 
+    def delete(self, panelEntry: wx.Window):
+        self.remove(panelEntry)
+        panelEntry.Destroy()
+
     def getComponents(self):
         return self._listComponent._components
 
-    def build(self, deleteWindows=False):
-        self._listComponent._sizer.Clear(deleteWindows)
-        self.SetSizer(self._listComponent.getSizerAndBuild())
+    def build(self):
+        self.SetSizerAndFit(self._listComponent.getSizerAndBuild())
 
 
 class RandomGridPanel(GenericPanel):

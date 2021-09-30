@@ -31,47 +31,51 @@ class PropInspectionPanel(GenericPanel):
 
     # set currently active property-object
     def setActivePropObj(self, propertyObj: PropertyObject):
-        assert isinstance(propertyObj, PropertyObject)
-        self._inspectedObj = propertyObj
-
-    # build panel by currently active property-object
-    def buildCurrentPropObj(self):
-        self.buildByPropObj(self._inspectedObj)
+        assert isinstance(propertyObj, PropertyObject) or propertyObj is None
+        if propertyObj != self._inspectedObj:
+            self._inspectedObj = propertyObj
+            # if self._inspectedObj is not None:
+            #     self._inspectedObj._control
 
     # build panel by specified propertyObject
-    def buildByPropObj(self, propertyObj: PropertyObject):
+    def buildByPropertyObj(self, propertyObj: PropertyObject):
+        self.setActivePropObj(propertyObj)
+        self.buildInspectedPropertyObj()
+
+    # build panel by currently active property-object
+    def buildInspectedPropertyObj(self):
         # TODO: How to sort property objects / How to update property objects / flickers a bit when builidng
         self._contentPanel.Show(False)  # <- prevents unwanted overlapping of elements while object is build
         self._sizerComponent.emptyList()
-        valueAmount = len(propertyObj._properties.values())
+        if self._inspectedObj is not None:
+            valueAmount = len(self._inspectedObj._properties.values())
 
-        for i, p in enumerate(propertyObj._properties.values()):
-            # TODO: export these values
-            txtWidth = 100
-            txtCtrlProportion = (1, 6)
+            for i, p in enumerate(self._inspectedObj._properties.values()):
+                # TODO: export these values
+                txtWidth = 100
+                txtCtrlProportion = (1, 6)
 
-            # background = wx.Panel(self)    #TODO: add styling
-            # background.SetBackgroundColour((250, 250, 250))
+                # background = wx.Panel(self)    #TODO: add styling
+                # background.SetBackgroundColour((250, 250, 250))
 
-            txt = wx.StaticText(
-                parent=self._contentPanel,
-                label=f"{p.getName().capitalize()}:",
-                size=(txtWidth, 0),
-                style=wx.ALIGN_LEFT | wx.ST_ELLIPSIZE_END
-            )
-            ctrl = p.getCtrl(parent=self._contentPanel)
+                txt = wx.StaticText(
+                    parent=self._contentPanel,
+                    label=f"{p.getName().capitalize()}:",
+                    size=(txtWidth, 0),
+                    style=wx.ALIGN_LEFT | wx.ST_ELLIPSIZE_END
+                )
+                ctrl = p.getCtrl(parent=self._contentPanel)
 
-            s1 = wx.BoxSizer(wx.HORIZONTAL)
-            s1.Add(txt, 1, wx.EXPAND | wx.LEFT | wx.TOP | wx.BOTTOM, 5)
-            s1.Add(ctrl, 0, wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, 5)  # TODO: export proportions into separate file
+                s1 = wx.BoxSizer(wx.HORIZONTAL)
+                s1.Add(txt, 1, wx.EXPAND | wx.LEFT | wx.TOP | wx.BOTTOM, 5)
+                s1.Add(ctrl, 0, wx.EXPAND | wx.RIGHT | wx.TOP | wx.BOTTOM, 5)  # TODO: export proportions into separate file
 
-            self._sizerComponent.addComponent(s1)
-            if i < valueAmount - 1:
-                self._sizerComponent.addComponent(wx.StaticLine(self._contentPanel))
-            # self._sizerComponent.addComponent(background)
+                self._sizerComponent.addComponent(s1)
+                if i < valueAmount - 1:
+                    self._sizerComponent.addComponent(wx.StaticLine(self._contentPanel))
+                # self._sizerComponent.addComponent(background)
 
         self._sizerComponent.clearSizer(deleteSizers=True, deleteWindows=True)
-
         self._contentPanel.SetSizer(self._sizerComponent.getSizerAndBuild())
         self._contentPanel.FitInside()
 
