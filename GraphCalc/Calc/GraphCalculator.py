@@ -36,8 +36,8 @@ class ExprObj(ABC):
         name = Symbol(self.name())
         if name in self.expr().free_symbols:
             raise InvalidExpression(f"Name '{name}' can't be in expression")
-        elif not self.name().isalpha():
-            raise InvalidExpression(f"Name has to be defined by alpha-characters")
+        elif self.name().strip().isdigit():
+            raise InvalidExpression(f"Name cannot be only digits")
         elif name == Function2DExpr.argumentSymbol:
             raise InvalidExpression(f"Name of expression can't be argument symbol")
         return True

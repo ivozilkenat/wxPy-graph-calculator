@@ -495,7 +495,7 @@ class PropertyObjCategory(Enum):
     FUNCTION = PropCategoryDataClass(vc.PROPERTY_CAT_FUNC)
     VARIABLE = PropCategoryDataClass("Variablen")
     POINT = PropCategoryDataClass("Punkte")
-    VECTOR = PropCategoryDataClass("Vektor")
+    VECTOR = PropCategoryDataClass("Vektoren")
     SHAPE = PropCategoryDataClass(vc.PROPERTY_CAT_SHAPE)
     NO_CATEGORY = PropCategoryDataClass(vc.PROPERTY_CAT_MISC)
 
