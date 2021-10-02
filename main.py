@@ -1,5 +1,11 @@
+import os
+
+import wx
+
 from MyWx.wx import *
 from MyWx.Collection.panels import RandomPanel
+
+from GraphCalc._core.utilities import convertToScientificStr, notScientificStrRange
 
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
@@ -41,10 +47,20 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # refactor code
 # rework code
 # position axle scaling based on width of text, to prevent overlapping
+# implement better rounding functionalities
+# add saving
+# structure ApplicationFrame more rigorously
+
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.8.0"
     title = "Ivo's Grafikrechner"
+    sourcePath = os.path.join(
+        "GraphCalc",
+        "source"
+    )
+    imgSrcPath = os.path.join(sourcePath, "img")
+    iconSize = (32, 32)
 
     def __init__(self, parent=None, id=wx.ID_ANY, title=""):
         super().__init__(parent, id, title)
@@ -126,11 +142,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.leftWorkspacePanelSizer.Add(self.overviewPanel, 3, wx.EXPAND | wx.TOP, 5)
         self.leftWorkspacePanel.SetSizer(self.leftWorkspacePanelSizer)
 
-        graphToolPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
-        inputPromptPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
-
         self.rightWorkspacePanelSizer.Add(self.inspectionPanel, 4, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
-        #self.rightWorkspacePanelSizer.Add(graphToolPlaceholder, 12, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
         self.rightWorkspacePanelSizer.Add(self.output.getPanel(), 1, wx.EXPAND | wx.ALL, 5)
         self.rightWorkspacePanel.SetSizer(self.rightWorkspacePanelSizer)
 
@@ -141,17 +153,23 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.workspace.build()
         # self.workspace.splitter.SetMinimumPaneSize(100)
 
-        toolbarPlaceholder = RandomPanel(self, size=(0, 50))  # todo: implement
-
-        self.mainSizer.Add(toolbarPlaceholder, 0, wx.EXPAND)
+        self.mainSizer.Add(self.toolbar, 0, wx.EXPAND)
         self.mainSizer.Add(self.workspace.getSizer(), 1, wx.EXPAND)
         self.SetSizer(self.mainSizer)
 
     def _bindHandlers(self):
+        self.graphPanel.Bind(wx.EVT_MOTION, self._updateStatusBarPos)
+        self.graphPanel.Bind(wx.EVT_PAINT, self._updateStatusBarDrawTime)
+
         self.Bind(wx.EVT_CLOSE, self._onFrameClose)
         self.graphPanel.Bind(wx.EVT_RIGHT_DOWN, self._onRightDownGraph)
 
     def _buildBars(self):
+        self._buildMenuBar()
+        self._buildToolBar()
+        self._buildStatusBar()
+
+    def _buildMenuBar(self):
         # Make a file menu with Hello and Exit items
         fileMenu = wx.Menu()
         # The "\t..." syntax defines an accelerator key that also triggers
@@ -184,11 +202,47 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._onHello, helloItem)
         self.Bind(wx.EVT_MENU, self._onExit, exitItem)
         self.Bind(wx.EVT_MENU, self._onAbout, aboutItem)
+
+    def _buildStatusBar(self):
         """
-		Create a Statusbar
-		"""
+        Create a Statusbar
+        """
         self.CreateStatusBar()
-        self.SetStatusText("Wer das ließt kann lesen")
+        self.GetStatusBar().SetFieldsCount(2)
+
+    def _buildToolBar(self):
+        self.toolbar = wx.ToolBar(self)
+        self.toolbar.SetToolBitmapSize(self.iconSize)
+
+        self.toolbar.AddTool(
+            wx.ID_ANY,
+            "test_tool",
+            wx.Bitmap(os.path.join(self.imgSrcPath, "test.png"))
+        )
+        self.toolbar.AddSeparator()
+
+        self.toolbar.Realize()
+
+    def _updateStatusBarDrawTime(self, evt=None):
+        bar: wx.StatusBar = self.GetStatusBar()
+        bar.SetStatusText(f"Last drawtime: {round(self.graphPanel.lastDrawTime * 1000, 3)}ms", 0)
+        evt.Skip()
+
+    def _updateStatusBarPos(self, evt: wx.MouseEvent=None):
+        if evt.Dragging():
+            evt.Skip()
+            return
+        bar: wx.StatusBar = self.GetStatusBar()
+        panel = self.graphPanel
+
+        x, y = panel.pxPointToLogical(*panel.absPosToOrigin(*evt.GetPosition()))
+        #todo: implement better rounding or scientific notation
+        #      -determine by zooming factor
+        bar.SetStatusText(
+            f"x = {x} | y = {y}", # f"x = {convertToScientificStr(x)} | y = {convertToScientificStr(y)}"
+            1
+        )
+        evt.Skip()
 
     def _onExit(self, evt=None):
         """Close the frame, terminating the application."""

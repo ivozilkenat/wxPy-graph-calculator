@@ -124,12 +124,13 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.zoomFactorX = 1
         self.zoomFactorY = 1
 
-        # todo: experimental
         self.zoomXCounter = 0
         self.zoomYCounter = 0
 
         self.hovered = None
         self.active = None
+
+        self.lastDrawTime = 0
 
         self.SetBackgroundStyle(wx.BG_STYLE_PAINT)
 
@@ -210,7 +211,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             self.yMirror = True
         else:
             self._adjustOriginY = self.__adjustOriginYStandard
-            self.absYToPlane = self._absYToPlaneMirror
+            self.absYToPlane = self._absYToPlaneStandard
             self.yMirror = False
 
     # Calculates relative position to (updated) origin
@@ -267,7 +268,6 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         return self._centerY(self.__adjustOriginYMirror(y))
 
     # absolut pixel pos to relative pos
-    # todo: does not take any mirroring into account
     def absPosToOrigin(self, x, y):
         return self.absXToPlane(x), self.absYToPlane(y)
 
@@ -296,12 +296,15 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             self.colorManager.idBitmap = wx.Bitmap(*self.GetSize())
             mdc = wx.MemoryDC(self.colorManager.idBitmap)
 
+            t = 0
             for object in self.layers:
                 r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6)  # todo: add this constant
                 # Performance testing
                 if r is not None:  # todo: remove this
-                    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
-            print()
+                    t += r[1]
+                    #print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+            self.lastDrawTime = t
+            #print()
             # todo: run render message in console or in application
             # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
             # draw time is mainly caused by bad graphical object optimization

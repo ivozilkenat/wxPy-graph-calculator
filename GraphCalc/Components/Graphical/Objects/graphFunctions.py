@@ -72,7 +72,8 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         # todo: is there a design that makes implementing the super method redundant?
         super().setBasePlane(plane)
         self.addProperty(
-            FloatProperty(vc.PROPERTY_FUNC_COEFF, 0.1, updateFunctions=self.refreshBasePlane, increment=0.01))
+            FloatProperty(vc.PROPERTY_FUNC_COEFF, 0.1, updateFunctions=self.refreshBasePlane, increment=0.01)
+        )
         # todo: distinguish by type of function (e.g linear functions can be drawn with less detail)
         #       -> optimize draw speed
 
@@ -445,7 +446,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         if needValueUpdate:
             # todo: optimization for values, which don't have to be computed
             r = self.calculateData()
-            print(f"time needed: {r}s")
+            # print(f"time needed: {r}s")
         if self.values is None:
             self._drawable = False
             return  # -> expression is not evaluable

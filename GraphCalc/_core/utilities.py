@@ -43,3 +43,14 @@ def enumerateStep(iterable, stepSize, stepStart=0):
             stepStart += stepSize
         except StopIteration:
             break
+
+
+def convertToScientificStr(number):
+    return f"{number:.2e}"
+
+
+def notScientificStrRange(number, powerOfTen=3):
+    if 10 ** -powerOfTen < abs(number) < 10 ** powerOfTen or number == 0:
+        return f"{number:.{powerOfTen}f}"
+    else:
+        return convertToScientificStr(number)
