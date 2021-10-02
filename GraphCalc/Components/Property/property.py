@@ -542,6 +542,12 @@ class PropertyObject(ABC):
                 raise MyWxException.AlreadyExists(f"property with name '{name}' already exists")
         self._properties[property._name] = property
 
+    # Convenience method to add multiple properties at once
+    def addProperties(self, propertyList, override=False): # List[Property, ...]
+        for p in propertyList:
+            self.addProperty(p, override)
+
+
     @_validPropertyKey
     def removeProperty(self, name):
         del self._properties[name]

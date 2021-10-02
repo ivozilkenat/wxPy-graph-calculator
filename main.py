@@ -5,15 +5,15 @@ from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2
 from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Property.property import PropertyObjCategory
-from GraphCalc.Calc.GraphObjInterface import PropertyAddPanel
 
+from GraphCalc.Calc.GraphObjInterface import PropertyAddPanel
 from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, Function2DExpr
 from GraphCalc.Calc.GraphObjInterface import PropertyObj2DInterface
 
+from GraphCalc.Application.outputPrompt import OutputPrompt, BasicOutputTextPanel
+
 from MyWx.Collection.templates import ThreePanelWorkspace
 
-
-# add string file
 # everything is displayed upside down -> mirror on x-axis
 # implement type hinting
 # overhaul all classes and adjust for new superclass, like genericPanel and its global parent implementation
@@ -35,6 +35,12 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # adding a small prompt
 # Kurvenscharen, Flächen, Funktionsintervalle
 # add object deletion
+# add multi selection
+# add object tools
+# update value constants
+# refactor code
+# rework code
+# position axle scaling based on width of text, to prevent overlapping
 
 class GraphCalculatorApplicationFrame(wx.Frame):
     version = "0.8.0"
@@ -53,6 +59,12 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self._buildUI()
         self._bindHandlers()
 
+        self.output.getPanel().setLines([
+            "Application has been instantiated!",
+            "Welcome to Ivo's GraphCalculator",
+            None  #<- works like a line break
+        ])
+
     def _buildUI(self):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.workspace = ThreePanelWorkspace(self)
@@ -62,6 +74,10 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.rightWorkspacePanel = GenericPanel(self.workspace.splitter)
         self.rightWorkspacePanelSizer = wx.BoxSizer(wx.VERTICAL)
+
+        self.output = OutputPrompt(
+            BasicOutputTextPanel(self.rightWorkspacePanel)
+        )
 
         self.graphPropertyManager = Dy2DGraphPropertyManager(
             self.workspace.splitter  # <- move parent into getter method
@@ -104,6 +120,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             graphObjectInterface=self.graphCalcObjInterface
             # todo: parent should come first | needs to be connected to the interface
         )  # <- define as special control / also other controls that effect manager
+        self.addPropertyPanel.setOutput(self.output)
 
         self.leftWorkspacePanelSizer.Add(self.addPropertyPanel, 0, wx.EXPAND | wx.TOP, 5)
         self.leftWorkspacePanelSizer.Add(self.overviewPanel, 3, wx.EXPAND | wx.TOP, 5)
@@ -112,9 +129,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         graphToolPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
         inputPromptPlaceholder = RandomPanel(self.rightWorkspacePanel, (0, 120))
 
-        self.rightWorkspacePanelSizer.Add(self.inspectionPanel, 20, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
-        self.rightWorkspacePanelSizer.Add(graphToolPlaceholder, 12, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
-        self.rightWorkspacePanelSizer.Add(inputPromptPlaceholder, 1, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.rightWorkspacePanelSizer.Add(self.inspectionPanel, 4, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        #self.rightWorkspacePanelSizer.Add(graphToolPlaceholder, 12, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
+        self.rightWorkspacePanelSizer.Add(self.output.getPanel(), 1, wx.EXPAND | wx.ALL, 5)
         self.rightWorkspacePanel.SetSizer(self.rightWorkspacePanelSizer)
 
         self.leftWorkspacePanel.SetBackgroundColour((255, 255, 255))

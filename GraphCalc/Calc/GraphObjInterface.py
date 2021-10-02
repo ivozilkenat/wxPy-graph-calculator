@@ -4,7 +4,10 @@ from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, ExprObj, ValueExpr
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.Objects.graphPropertyVariable import Variable
+from GraphCalc.Components.Graphical.Objects.graphFunctionGroup import GraphFunctionGroup
 from GraphCalc.Components.Property.property import IExprProperty, GraphicalPanelObject, NonGraphicalPanelObject
+
+from GraphCalc.Application.outputPrompt import IOutputExtension
 
 from MyWx.wx import *
 from MyWx.Collection._core.wxUtilities import randomRGBTriple
@@ -203,7 +206,7 @@ class AddPanelVariable(AddPanelComponent):
         self._sizer.Add(definitionSizer, 0, wx.EXPAND)
 
 
-class PropertyAddPanel(GenericPanel):
+class PropertyAddPanel(GenericPanel, IOutputExtension):
     assignedTypes = dict([
         AddPanelFunction.getAssignment(),
         AddPanelVariable.getAssignment()
@@ -211,7 +214,8 @@ class PropertyAddPanel(GenericPanel):
 
     def __init__(self, graphObjectInterface: PropertyObj2DInterface, parent=None, size=None):
         assert isinstance(graphObjectInterface, PropertyObj2DInterface)
-        super().__init__(parent=parent, size=size)
+        GenericPanel.__init__(self, parent=parent, size=size)
+        IOutputExtension.__init__(self)
         self._interface = graphObjectInterface
         self._sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetBackgroundColour((255, 255, 255))
@@ -271,9 +275,12 @@ class PropertyAddPanel(GenericPanel):
     def _onClick(self, evt=None):
         try:
             self._content.addExpr()
+            self.sendlTry(
+                f"added '{self._content.getPropertyTypeName()}' :  {self._content.getName()} = {self._content.getExprStr()}"
+            )
             self.setFeedback("Valid Entry")
         except InvalidExpression as e:
-            print(e)
+            self.sendlTry(e)
             self.setFeedback("Invalid Entry")
 
 # todo: add standard color enumeration (with special functionality here?)

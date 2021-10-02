@@ -29,7 +29,7 @@ class ExprObj(ABC):
         return True
 
     def __validWrapper(self):
-        if not self.__standardValidation() or not self._isValid():
+        if not self._isValid() or not self.__standardValidation():
             raise InvalidExpression(f"Provided expression is invalid for {self.__class__.__name__}")
 
     def __standardValidation(self):
@@ -69,6 +69,7 @@ class ValueExpr(ExprObj):
                     f"Function argument symbol: '{Function2DExpr.argumentSymbol}' not allowed for Value"
                 )
             return True
+        return False
 
 
 class Point2DExpr(ExprObj):
@@ -95,6 +96,7 @@ class Function2DExpr(ExprObj):
             if self.argumentSymbol not in self.expr().free_symbols:
                 raise InvalidExpression(f"Missing argument symbol: '{self.argumentSymbol}' for Function")
             return True
+        return False
 
     def nameFormatted(self):
         return f"{self.name()}({self.argumentSymbol})"

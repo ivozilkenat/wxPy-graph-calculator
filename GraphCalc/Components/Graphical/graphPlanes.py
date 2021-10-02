@@ -94,9 +94,9 @@ class GraphicalPanel(GenericPanel):
         self.Refresh()
 
 
-# implement zooming / scaling
 # implement highlighting
 # getRect of plane
+# add selection mode
 
 # todo: must have a color handler
 
@@ -186,29 +186,6 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def pxYToLogical(self, value):
         return value / (self.Px2LEy * self.zoomFactorY)
 
-    def _onPaint(self, evt=None):
-        if 0 not in self.GetSize():
-
-            self.updatePlaneData()
-
-            dc = wx.BufferedPaintDC(self)
-
-            dc.SetBackground(wx.Brush(self.backgroundColor))
-            dc.Clear()
-
-            self.colorManager.idBitmap = wx.Bitmap(*self.GetSize())
-            mdc = wx.MemoryDC(self.colorManager.idBitmap)
-
-            for object in self.layers:
-                r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6)  # todo: add this constant
-                # Performance testing
-                if r is not None:  # todo: remove this
-                    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
-            print()
-            # todo: run render message in console or in application
-            # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
-            # draw time is mainly caused by bad graphical object optimization
-
     def centerLogicalPoint(self, x, y):
         self.centerPxPoint(*self.logicalPointToPx(x, y))
 
@@ -224,76 +201,6 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         deltaV = vx - vt[0], vy - vt[1]
         cx, cy = self.logicalPointToPx(*deltaV)  # position change in px
         self.originUpdate = (cx, cy)
-
-    # Mousewheel event receiver (zooming)
-    def _mousewheel(self, evt: wx.MouseEvent = None):
-        if evt.GetWheelRotation() > 0:
-            self.zoomXCounter += 1
-            self.zoomYCounter += 1
-        else:
-            self.zoomXCounter -= 1
-            self.zoomYCounter -= 1
-
-        originalValue = self.pxPointToLogical(*self.absPosToOrigin(*evt.GetPosition()))
-
-        self.zoomFactorX = self._zoomFunction(self.zoomXCounter)
-        self.zoomFactorY = self._zoomFunction(self.zoomYCounter)
-
-        self.focusPxPointOnTarget(*originalValue, *evt.GetPosition())
-
-        self.Refresh()
-        evt.Skip()
-
-    def _zoomFunction(self, value):
-        from math import exp
-        return 2 ** (value * 0.1)
-
-    # def _leftMouseDown(self, evt=None):
-    #     print("left down")
-
-    # Resets mouseBefore-Status for dragging
-    def _leftMouseUp(self, evt=None):
-        self.mouseBefore = None
-        if self.hovered is not None:
-            self._setActiveObj(self.hovered)
-        else:
-            self._unsetActiveObj()
-
-    def _setActiveObj(self, graphObject: GraphicalPanelObject):
-        self.active = graphObject
-
-    def _unsetActiveObj(self):
-        self.active = None
-
-    # Adjusts origin shift in proportion to mouse movement
-    def _mouseMotion(self, event: wx.MouseEvent = None):  # todo: rename, since handles also left clicks
-
-        relPos = event.GetPosition()
-        if (hovered := self.objectBelowPos(relPos)) is not None:
-            self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
-            self.hovered = hovered
-        else:
-            self.hovered = None
-
-        # if propertyObjectAt(position of mouse):
-        #   change mouse cursor
-        #   event left down? -> select object as currently selected?
-
-        self.mouseCounter += 1  # <- current fix to reduce drawCalls when mouseMotion is received
-        if self.mouseCounter > 5:  # <- spurious fix / could be adjusted for stepwise scaling
-            if event.Dragging() and event.leftIsDown:
-                self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
-                mX, mY = event.GetPosition()
-                if self.mouseBefore is None:
-                    self.mouseBefore = (mX, mY)
-                self.originUpdate = self.mouseBefore[0] - mX, mY - self.mouseBefore[1] if self.yMirror else \
-                self.mouseBefore[1] - mY
-                self.mouseBefore = (mX, mY)
-                self.Refresh()
-            else:
-                self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
-
-            self.mouseCounter = 0
 
     # setup y-axis orientation
     def mirrorY(self, state: bool):
@@ -376,6 +283,99 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def _absYToPlaneMirror(self, y):
         return self.correctY(0) - y
 
+    def _onPaint(self, evt=None):
+        if 0 not in self.GetSize():
+
+            self.updatePlaneData()
+
+            dc = wx.BufferedPaintDC(self)
+
+            dc.SetBackground(wx.Brush(self.backgroundColor))
+            dc.Clear()
+
+            self.colorManager.idBitmap = wx.Bitmap(*self.GetSize())
+            mdc = wx.MemoryDC(self.colorManager.idBitmap)
+
+            for object in self.layers:
+                r = object.blitUpdateCopy(dc, mdc, self.colorManager.idOfObject(object), 6)  # todo: add this constant
+                # Performance testing
+                if r is not None:  # todo: remove this
+                    print(f"{object.__class__.__name__}, drawtime: {r[1]:.5f}s")
+            print()
+            # todo: run render message in console or in application
+            # runs at about 7ms for linear and 8-9ms for quadratic functions, at 1920x1080
+            # draw time is mainly caused by bad graphical object optimization
+
+    # Mousewheel event receiver (zooming)
+    def _mousewheel(self, evt: wx.MouseEvent = None):
+        if evt.GetWheelRotation() > 0:
+            self.zoomXCounter += 1
+            self.zoomYCounter += 1
+        else:
+            self.zoomXCounter -= 1
+            self.zoomYCounter -= 1
+
+        originalValue = self.pxPointToLogical(*self.absPosToOrigin(*evt.GetPosition()))
+
+        self.zoomFactorX = self._zoomFunction(self.zoomXCounter)
+        self.zoomFactorY = self._zoomFunction(self.zoomYCounter)
+
+        self.focusPxPointOnTarget(*originalValue, *evt.GetPosition())
+
+        self.Refresh()
+        evt.Skip()
+
+    def _zoomFunction(self, value):
+        from math import exp
+        return 2 ** (value * 0.1)
+
+    # def _leftMouseDown(self, evt=None):
+    #     print("left down")
+
+    # Resets mouseBefore-Status for dragging
+    def _leftMouseUp(self, evt=None):
+        self.mouseBefore = None
+        if self.hovered is not None:
+            self._setActiveObj(self.hovered)
+        else:
+            self._unsetActiveObj()
+
+    def _setActiveObj(self, graphObject: GraphicalPanelObject):
+        self.active = graphObject
+
+    def _unsetActiveObj(self):
+        self.active = None
+
+    # Adjusts origin shift in proportion to mouse movement
+    def _mouseMotion(self, event: wx.MouseEvent = None):  # todo: rename, since handles also left clicks
+
+        relPos = event.GetPosition()
+        if (hovered := self.objectBelowPos(relPos)) is not None:
+            self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+            self.hovered = hovered
+        else:
+            self.hovered = None
+
+        # if propertyObjectAt(position of mouse):
+        #   change mouse cursor
+        #   event left down? -> select object as currently selected?
+
+        self.mouseCounter += 1  # <- current fix to reduce drawCalls when mouseMotion is received
+        if self.mouseCounter > 5:  # <- spurious fix / could be adjusted for stepwise scaling
+            if event.Dragging() and event.leftIsDown:
+                self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
+                mX, mY = event.GetPosition()
+                if self.mouseBefore is None:
+                    self.mouseBefore = (mX, mY)
+                self.originUpdate = self.mouseBefore[0] - mX, mY - self.mouseBefore[1] if self.yMirror else \
+                self.mouseBefore[1] - mY
+                self.mouseBefore = (mX, mY)
+                self.Refresh()
+            else:
+                self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
+
+            self.mouseCounter = 0
+
     # change parent class to adjust for color restriction when adding objects
     def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):
         super().addGraphicalObject(graphicalObject, priorityIndex, setBasePlane)
@@ -395,7 +395,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
 
 # todo: use alternative system with a second bitmap which uses id's for all objects
-# creates id's based on colors -> id 1: (1, 0, 0), ... (allows for 256^3 (=16'777'216)combinations, more than enough)
+# creates id's based on colors -> id 1: (1, 0, 0), ... (allows for 256^3 (=16'777'216) combinations, more than enough)
 # todo: implement and optimize
 # Component of graphical Panel
 class PlaneColorHandler:
