@@ -3,7 +3,7 @@ from MyWx.wx import *
 from GraphCalc.Components.Graphical.graphPlanes import Dynamic2DGraphicalPlane
 from GraphCalc.Components.Property.property import PropertyObjCategory, GraphicalPanelObject, SelectProperty, \
     ExprProperty, FloatProperty, IExprProperty, DependentProperty, ReadOnlyProperty, ExprReadOnlyProperty
-from GraphCalc.Calc.GraphCalculator import Function2DExpr
+from GraphCalc.Calc.graphCalculator import Function2DExpr
 
 from GraphCalc._core.utilities import timeMethod
 from GraphCalc._core import vc
@@ -50,6 +50,7 @@ class DefinitionArea():
 # todo:
 #   -defy definition loops
 #   -allow for definition intervals to be utilized
+#   -optimization depending on the function type
 
 class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
     _basePlane: Dynamic2DGraphicalPlane
@@ -85,6 +86,18 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
                 updateFunctions=self.refreshBasePlane,
                 updateExprFunction=self.redefineAllExpressions
             ))
+
+        self.addProperty(
+            DependentProperty(
+                self.getProperty("function_definition"),
+                ExprReadOnlyProperty(
+                    "function_simplified",
+                    ""
+                ),
+                updateFunction=self._simplifiedFunction,
+                checkValidity=False
+            )
+        )
 
         self.addProperty(
             DependentProperty(
@@ -161,6 +174,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         )
 
         # add more properties?
+
+    def _simplifiedFunction(self):
+        return simplify(self._getFuncExpr())
 
     def _calcIntersections(self):
         return solve(self._getFuncExpr())

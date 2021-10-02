@@ -5,7 +5,7 @@ from abc import abstractmethod
 
 
 class IValidTextPanel:
-    def __init__(self, output = None):
+    def __init__(self, output=None):
         self._output = output
 
     # usually set by prompt itself

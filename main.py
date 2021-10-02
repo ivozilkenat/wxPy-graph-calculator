@@ -9,34 +9,35 @@ from GraphCalc._core.utilities import convertToScientificStr, notScientificStrRa
 
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
+from GraphCalc.Components.Property.PropertyManager.propertyManager import PropertyManagerPostEvent
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Property.property import PropertyObjCategory
+from GraphCalc.Components.Property.PropertyManager.propertyManager import ActiveChangedEvent, EVT_ACT_PROP_CH
 
-from GraphCalc.Calc.GraphObjInterface import PropertyAddPanel
-from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, Function2DExpr
-from GraphCalc.Calc.GraphObjInterface import PropertyObj2DInterface
+
+from GraphCalc.Calc.graphObjInterface import PropertyAddPanel
+from GraphCalc.Calc.graphCalculator import GraphCalculator2D, Function2DExpr
+from GraphCalc.Calc.graphObjInterface import PropertyObj2DInterface
+from GraphCalc.Calc.graphTools import ToolManager, Selector
 
 from GraphCalc.Application.outputPrompt import OutputPrompt, BasicOutputTextPanel
 
 from MyWx.Collection.templates import ThreePanelWorkspace
 
-# everything is displayed upside down -> mirror on x-axis
+# General Todos: ==================================
 # implement type hinting
 # overhaul all classes and adjust for new superclass, like genericPanel and its global parent implementation
 # add *args, **kwargs
 # convert assert's into exceptions
 # rework function system -> optimize
 # allow prompt interaction
-# add graph information below
 # add context menu
 # graph plane threading?
 # multi language support
 # buttons in ui to change plane background (zooming, scaling, override interval approximation, etc.)
 # optimize function drawing, by precalculating values -> use idle handler and intern optimization
-# when selected object is deleted, change focus
 # add more expression types
 # get coordinates of plane when right clicking => saving to clipboard
-# creating an object twice causes errors
 # values are not properly updated -> when variable is created, which is used in an other expression there is no update call
 # adding a small prompt
 # Kurvenscharen, Flächen, Funktionsintervalle
@@ -50,10 +51,15 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # implement better rounding functionalities
 # add saving
 # structure ApplicationFrame more rigorously
+# split classes into more files -> use more structural hierarchy
+# proof if mathematical rigorously
+# multiselect
+# custom events in own classes => observer design pattern could be used more often
+#==================================================
 
 
 class GraphCalculatorApplicationFrame(wx.Frame):
-    version = "0.8.0"
+    version = "0.9.0"
     title = "Ivo's Grafikrechner"
     sourcePath = os.path.join(
         "GraphCalc",
@@ -77,7 +83,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self.output.getPanel().setLines([
             "Application has been instantiated!",
-            "Welcome to Ivo's GraphCalculator",
+            f"Welcome to {self.title} - v{self.version}",
             None  #<- works like a line break
         ])
 
@@ -98,6 +104,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPropertyManager = Dy2DGraphPropertyManager(
             self.workspace.splitter  # <- move parent into getter method
         )
+        self.graphPropertyManager.setPropertyManager(PropertyManagerPostEvent(self))
         self.graphCalculator = GraphCalculator2D()
 
         self.graphCalcObjInterface = PropertyObj2DInterface(
@@ -105,6 +112,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             graphPropertyManager=self.graphPropertyManager,
             updateFunction=self.Refresh
         )
+
+        self.toolManager = ToolManager(self.graphPropertyManager, Selector())
+        self.Bind(EVT_ACT_PROP_CH, self.toolManager.getSelector().update)
 
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
         self.graphPanel.mirrorY(True)
@@ -161,6 +171,10 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPanel.Bind(wx.EVT_MOTION, self._updateStatusBarPos)
         self.graphPanel.Bind(wx.EVT_PAINT, self._updateStatusBarDrawTime)
 
+        self.Bind(wx.EVT_MENU, self._toggleStatusBar, self._showStatusBarItem)
+        self.Bind(wx.EVT_MENU, self._toggleToolBar, self._showToolBarItem)
+        self.Bind(wx.EVT_MENU, self._clearPrompt, self._clearPromptItem)
+
         self.Bind(wx.EVT_CLOSE, self._onFrameClose)
         self.graphPanel.Bind(wx.EVT_RIGHT_DOWN, self._onRightDownGraph)
 
@@ -170,20 +184,44 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self._buildStatusBar()
 
     def _buildMenuBar(self):
-        # Make a file menu with Hello and Exit items
         fileMenu = wx.Menu()
         # The "\t..." syntax defines an accelerator key that also triggers
         # the same event
-        helloItem = fileMenu.Append(-1, "&Hello...\tCtrl-H",
-                                    "Help string shown in status bar for this menu item")
+        helloItem = fileMenu.Append(
+            wx.ID_ANY,
+            "&Hello...\tCtrl-H",
+            "Help string shown in status bar for this menu item"
+        )
         fileMenu.AppendSeparator()
-        # When using a stock ID we don't need to specify the menu item's
-        # label
         exitItem = fileMenu.Append(wx.ID_EXIT)
 
-        # Now a help menu for the about item
+        toolMenu = wx.Menu()
+
+        miscMenu = wx.Menu()
+        self._showStatusBarItem = miscMenu.Append(
+            wx.ID_ANY,
+            "Show statusbar",
+            "Shows the Statusbar",
+            kind=wx.ITEM_CHECK
+        )
+        self._showToolBarItem = miscMenu.Append(
+            wx.ID_ANY,
+            "Show toolbar",
+            "Shows the Toolbar",
+            kind=wx.ITEM_CHECK
+        )
+        self._clearPromptItem = miscMenu.Append(
+            wx.ID_ANY,
+            "Clear prompt",
+            "Clears the Prompt"
+        )
+        miscMenu.Check(self._showStatusBarItem.GetId(), True)
+        miscMenu.Check(self._showToolBarItem.GetId(), True)
+
         helpMenu = wx.Menu()
         aboutItem = helpMenu.Append(wx.ID_ABOUT)
+
+
 
         # Make the menu bar and add the two menus to it. The '&' defines
         # that the next letter is the "mnemonic" for the menu item. On the
@@ -191,14 +229,12 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         # triggered from the keyboard.
         menuBar = wx.MenuBar()
         menuBar.Append(fileMenu, "&File")
+        menuBar.Append(toolMenu, "&Tools")
+        menuBar.Append(miscMenu, "&Miscellaneous")
         menuBar.Append(helpMenu, "&Help")
 
-        # Give the menu bar to the frame
         self.SetMenuBar(menuBar)
 
-        # Finally, associate a handler function with the EVT_MENU event for
-        # each of the menu items. That means that when that menu item is
-        # activated then the associated handler function will be called.
         self.Bind(wx.EVT_MENU, self._onHello, helloItem)
         self.Bind(wx.EVT_MENU, self._onExit, exitItem)
         self.Bind(wx.EVT_MENU, self._onAbout, aboutItem)
@@ -217,9 +253,14 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.toolbar.AddTool(
             wx.ID_ANY,
             "test_tool",
-            wx.Bitmap(os.path.join(self.imgSrcPath, "test.png"))
+            wx.Bitmap(os.path.join(self.imgSrcPath, "test.png")),
+            "this is a tool for testing purposes",
         )
         self.toolbar.AddSeparator()
+        # self.toolbar.AddTool(
+        #     wx.ID_ANY,
+        #     ""
+        # )
 
         self.toolbar.Realize()
 
@@ -243,6 +284,23 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             1
         )
         evt.Skip()
+
+    def _toggleStatusBar(self, evt=None):
+        if self._showStatusBarItem.IsChecked():
+            self.GetStatusBar().Show()
+        else:
+            self.GetStatusBar().Hide()
+        self.Layout()
+
+    def _toggleToolBar(self, evt=None):
+        if self._showToolBarItem.IsChecked():
+            self.toolbar.Show()
+        else:
+            self.toolbar.Hide()
+        self.Layout()
+
+    def _clearPrompt(self, evt=None):
+        self.output.getPanel().clear()
 
     def _onExit(self, evt=None):
         """Close the frame, terminating the application."""

@@ -5,7 +5,7 @@ from GraphCalc._core import vc
 
 from GraphCalc._core.utilities import timeMethod
 
-from GraphCalc.Calc.GraphCalculator import ExprObj
+from GraphCalc.Calc.graphCalculator import ExprObj
 
 from abc import ABC, abstractmethod
 from enum import Enum

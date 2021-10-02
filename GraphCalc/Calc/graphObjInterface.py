@@ -1,6 +1,6 @@
 import wx
 
-from GraphCalc.Calc.GraphCalculator import GraphCalculator2D, ExprObj, ValueExpr, Function2DExpr, InvalidExpression
+from GraphCalc.Calc.graphCalculator import GraphCalculator2D, ExprObj, ValueExpr, Function2DExpr, InvalidExpression
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.Objects.graphPropertyVariable import Variable

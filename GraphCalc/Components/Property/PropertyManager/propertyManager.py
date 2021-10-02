@@ -1,4 +1,7 @@
+import wx
+
 from MyWx.wx import *
+from wx.lib.newevent import NewEvent
 
 from GraphCalc.Components.Property.PropertyManager.propertyOverview import PropObjectOverviewPanel
 from GraphCalc.Components.Property.PropertyManager.propertyInspection import PropInspectionPanel
@@ -8,6 +11,7 @@ from typing import Set
 
 
 # TODO: -allow for sorting of properties and categorize them
+
 
 # Base class to handle everything related to propertyObject organization
 class PropertyManager:
@@ -42,6 +46,7 @@ class PropertyManager:
 
     # get dict of categories and their property-objects
     def getPropertiesByCategory(self):
+
         categoryDic = PropertyObjCategory.categoryDict()
         for p in self._propertyObjects:
             categoryDic[p.getCategory()].append(p)
@@ -108,3 +113,21 @@ class PropertyManager:
                 for p in o.getPropertyDict().values():
                     if isinstance(p, ExprProperty):
                         p.redefineExisting()
+
+
+ActiveSetEvent, EVT_ACT_PROP_SET = NewEvent()
+ActiveChangedEvent, EVT_ACT_PROP_CH = NewEvent()
+
+
+# extension that emits events, e.g. selection changed
+class PropertyManagerPostEvent(PropertyManager):
+    def __init__(self, parent: wx.Window, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._parent = parent
+
+    def setActiveProperty(self, propertyObject: PropertyObject):
+        new = propertyObject != self._activeProperty
+        super().setActiveProperty(propertyObject)
+        wx.PostEvent(self._parent.GetEventHandler(), ActiveSetEvent(selected=propertyObject))
+        if new:
+            wx.PostEvent(self._parent.GetEventHandler(), ActiveChangedEvent(selected=propertyObject))
