@@ -1,24 +1,20 @@
 import os
 
-import wx
-
 from MyWx.wx import *
-from MyWx.Collection.panels import RandomPanel
 
-from GraphCalc._core.utilities import convertToScientificStr, notScientificStrRange
-
-from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
 from GraphCalc.Components.Property.PropertyManager.propertyManager import PropertyManagerPostEvent
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Property.property import PropertyObjCategory
-from GraphCalc.Components.Property.PropertyManager.propertyManager import ActiveChangedEvent, EVT_ACT_PROP_CH
+from GraphCalc.Components.Property.PropertyManager.propertyManager import EVT_ACT_PROP_SET
 
 
 from GraphCalc.Calc.graphObjInterface import PropertyAddPanel
-from GraphCalc.Calc.graphCalculator import GraphCalculator2D, Function2DExpr
+from GraphCalc.Calc.graphCalculator import GraphCalculator2D
 from GraphCalc.Calc.graphObjInterface import PropertyObj2DInterface
-from GraphCalc.Calc.graphTools import ToolManager, PropertySelector, IntersectionTool
+from GraphCalc.Calc.Tools.graphSelector import PropertySelector
+from GraphCalc.Calc.Tools.toolManager import ToolManager
+from GraphCalc.Calc.Tools.Collection import intersection
 
 from GraphCalc.Application.outputPrompt import OutputPrompt, BasicOutputTextPanel
 
@@ -56,6 +52,8 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # multiselect
 # custom events in own classes => observer design pattern could be used more often
 # add approximation solver
+# disable simplify in solve if performance becomes an issue
+# test tools, etc.
 #==================================================
 
 
@@ -115,12 +113,13 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         )
 
         self.toolManager = ToolManager(PropertySelector(), self.output)
-        self.Bind(EVT_ACT_PROP_CH, self.toolManager.selectorUpdHandler())
+        #self.Bind(EVT_ACT_PROP_CH, self.toolManager.selectorUpdHandler())
+        self.Bind(EVT_ACT_PROP_SET, self.toolManager.selectorUpdHandler())
 
         #=Setup tools=
 
         self.intersectionTool = self.toolManager.callable(
-            IntersectionTool(self.graphPropertyManager)
+            intersection.IntersectionTool(self.graphPropertyManager)
         )
 
         #=============

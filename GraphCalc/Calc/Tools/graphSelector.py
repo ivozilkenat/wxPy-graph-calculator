@@ -141,6 +141,8 @@ class PropertySelector(IOutputExtension):
         if self._matching is None:
             return
         newObj = evt.selected
+        if newObj in self._selection.getSelection():
+            return
         self._selection.add(newObj)
         if (missing := self._validSelection()) is True:
             self.sendlTry("Selection successful")

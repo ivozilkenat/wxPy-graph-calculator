@@ -65,6 +65,8 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         self.arguments = None
         self.values = None
 
+        self._functionAsCallable = None
+
         self.getProperty(vc.PROPERTY_NAME)._setValue("Function2D")
 
     def setBasePlane(self, plane):
@@ -179,7 +181,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         return simplify(self._getFuncExpr())
 
     def _calcIntersections(self):
-        return solve(self._getFuncExpr())
+        return solve(self._getFuncExpr(), quick=True, simplify=True, rational=False)
 
     def _calcDiff1(self):
         return diff(self._getFuncExpr(), Function2DExpr.argumentSymbol)
@@ -202,6 +204,9 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         res = expr.expr().subs(Function2DExpr.argumentSymbol, 1)
         return res.is_number  # todo: test this
 
+    def getFuncAsCallable(self):
+        return self._functionAsCallable
+
     @timeMethod
     def calculateData(self):
         if self.exprIsEvaluable():
@@ -215,7 +220,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
             exprObj = self.getProperty("function_definition").getValue().expr()
 
             #   get values for which the function is defined
-            expr = lambdify(Function2DExpr.argumentSymbol, exprObj)
+            self._functionAsCallable = lambdify(Function2DExpr.argumentSymbol, exprObj)
 
             # todo: use precalculation
             #       -check for values inside after calc and recalc
@@ -226,25 +231,25 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
 
             algo = self.getProperty("point_interval_approximation").getSelected()
             if algo == "linear":
-                self.linearApproximation(expr)
+                self.linearApproximation()
             elif algo == "linearFirstValue":
-                self.linearFindStartApproximation(expr)
+                self.linearFindStartApproximation()
             elif algo == "slope":
-                self.slopeApproximation(expr, 20)
+                self.slopeApproximation(20)
             elif algo == "interval":
-                self.intervalApproximation(expr)
+                self.intervalApproximation()
             else:
                 self.values = None
         else:
             self.values = None
 
-    def linearApproximation(self, callableExpression):
+    def linearApproximation(self):
         self.arguments = np.linspace(*self._basePlane.getLogicalDB(), self.valueAmount)
-        self.values = np.array([[callableExpression(i) for i in self.arguments]])
+        self.values = np.array([[self._functionAsCallable(i) for i in self.arguments]])
         self.arguments = np.array([self.arguments])
 
-    def linearFindStartApproximation(self, callableExpression, approximationThreshold=0.001, fast=False):
-        self.linearApproximation(callableExpression)
+    def linearFindStartApproximation(self, approximationThreshold=0.001, fast=False):
+        self.linearApproximation()
         deltaX = self._basePlane.getLogicalDBLength() / self.valueAmount
         threshold = deltaX * approximationThreshold
         values, args = self.values[0], self.arguments[0]
@@ -257,7 +262,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
                 newDelta = -(deltaX / k)
                 while abs(newDelta) > threshold:
                     newArg += newDelta
-                    newVal = callableExpression(newArg)
+                    newVal = self._functionAsCallable(newArg)
                     k *= 2
                     if np.isnan(newVal):
                         newDelta = (deltaX / k)
@@ -270,17 +275,17 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
                     else:
                         while newArg < oldArg:
                             newArg += abs(newDelta)
-                            if not np.isnan(callableExpression(newArg)):
+                            if not np.isnan(self._functionAsCallable(newArg)):
                                 break
                         else:
                             newArg = oldArg
 
                 self.arguments = np.array([np.insert(self.arguments[0], index + inserts, newArg)])
-                self.values = np.array([np.insert(self.values[0], index + inserts, callableExpression(newArg))])
+                self.values = np.array([np.insert(self.values[0], index + inserts, self._functionAsCallable(newArg))])
 
                 inserts += 1
 
-    def slopeApproximation(self, callableExpression, n, minValFactor=0.075):
+    def slopeApproximation(self, n, minValFactor=0.075):
         # divide db into n intervals and check median slope, determine proportion -> assign values
         minValues = int(self.valueAmount * minValFactor)
         if minValues <= 2:
@@ -295,7 +300,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
             )
         slopes = list()
         for x0, x1 in intervals:
-            y0, y1 = callableExpression(x0), callableExpression(x1)
+            y0, y1 = self._functionAsCallable(x0), self._functionAsCallable(x1)
             if any(np.isnan(v) for v in (y0, y1)):  # check if nan in calculated values
                 continue
             slopes.append(
@@ -316,15 +321,15 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
 
         # calculate values
         self.values = np.array(
-            [np.fromiter(map(lambda x: callableExpression(x), self.arguments), dtype=np.float)]
+            [np.fromiter(map(lambda x: self._functionAsCallable(x), self.arguments), dtype=np.float)]
         )
 
         self.arguments = np.array([self.arguments])
 
-    def intervalApproximation(self, callableExpression):
+    def intervalApproximation(self):
         # todo: redundant?
         # -> to slow, with to many errors
-        visibleIntervals = self.findArgsInVisible(callableExpression, 150, precision=0.05)
+        visibleIntervals = self.findArgsInVisible(self._functionAsCallable, 150, precision=0.05)
         if (visibleAmount := len(visibleIntervals)) == 0:
             self.values = None
             return
@@ -336,7 +341,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         ])
 
         self.values = np.array([
-            np.fromiter(map(lambda x: callableExpression(x), interval), dtype=np.float) for interval in self.arguments
+            np.fromiter(map(lambda x: self._functionAsCallablef(x), interval), dtype=np.float) for interval in self.arguments
         ])
         # todo: decide by average value, if function should be drawn
         #       or by size of interval
