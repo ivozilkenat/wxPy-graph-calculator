@@ -296,7 +296,7 @@ class ExprProperty(PropertyCtrl):
     # Allows to define expression newly
     def redefineAs(self, exprType, exprName, exprStr):
         return self._graphCalc.define(
-            exprType, exprName, exprStr, raiseDefExceptions=True
+            exprType, exprName, exprStr, raiseDefExceptions=False
             # todo: raise exceptions later on, when they can be catched and viewed as user feedback
         )
 
@@ -304,7 +304,7 @@ class ExprProperty(PropertyCtrl):
     def redefineExisting(self):
         expr = self.getValue()
         self._graphCalc.define(
-            type(expr), expr.name(), expr.original(), raiseDefExceptions=True
+            type(expr), expr.name(), expr.original(), raiseDefExceptions=False
         )
         self._setValue(self._graphCalc.get(expr.name()))
         self.callUpdFunc()
@@ -670,6 +670,9 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
 
         self._drawable = True
 
+        # self.__blitUpdate = self.blitUpdate
+        # self.setHighlight(True)
+
     def isDrawable(self):
         return self._drawable
 
@@ -712,6 +715,24 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
     @abstractmethod
     def blitUpdate(self, deviceContext: wx.DC, needValueUpdate=True):
         pass
+
+    #todo: can highlighting be implemented with less performance issues?
+
+    # def __blitUpdateHighlight(self, deviceContext: wx.DC, needValueUpdate=True):
+    #     self._colorOverride = (0, 0, 0)
+    #     self._extraWidth = 3
+    #     self.__blitUpdate(deviceContext, needValueUpdate=needValueUpdate)
+    #     self._colorOverride = None
+    #     self._extraWidth = None
+    #     self.__blitUpdate(deviceContext, needValueUpdate=False)
+
+    # def setHighlight(self, state):
+    #     self._highlight = state
+    #
+    #     if self._highlight:
+    #         self.blitUpdate = self.__blitUpdateHighlight
+    #     else:
+    #         self.blitUpdate = self.__blitUpdate
 
     # !!!Id-System methods!!!
 

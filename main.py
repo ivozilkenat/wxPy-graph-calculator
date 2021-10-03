@@ -1,10 +1,13 @@
 import os
 
+import wx
+
 from MyWx.wx import *
 
 from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
 from GraphCalc.Components.Property.PropertyManager.propertyManager import PropertyManagerPostEvent
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
+from GraphCalc.Components.Graphical.graphPlanes import EVT_OBJ_BELOW
 from GraphCalc.Components.Property.property import PropertyObjCategory
 from GraphCalc.Components.Property.PropertyManager.propertyManager import EVT_ACT_PROP_SET
 
@@ -54,6 +57,8 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # add approximation solver
 # disable simplify in solve if performance becomes an issue
 # test tools, etc.
+# unify names
+#todo: -highlighting, -more tools, -toolbar, -menubar, -put overview into static box
 #==================================================
 
 
@@ -180,12 +185,14 @@ class GraphCalculatorApplicationFrame(wx.Frame):
     def _bindHandlers(self):
         self.graphPanel.Bind(wx.EVT_MOTION, self._updateStatusBarPos)
         self.graphPanel.Bind(wx.EVT_PAINT, self._updateStatusBarDrawTime)
+        self.Bind(EVT_OBJ_BELOW, self._updateStatusBarBelowCursor)
 
         self.Bind(wx.EVT_MENU, self._toggleStatusBar, self._showStatusBarItem)
         self.Bind(wx.EVT_MENU, self._toggleToolBar, self._showToolBarItem)
         self.Bind(wx.EVT_MENU, self._clearPrompt, self._clearPromptItem)
 
         self.Bind(wx.EVT_TOOL, self.intersectionTool, self._toolbarIntersectionButton)
+        self.Bind(wx.EVT_MENU, self.intersectionTool, self._menuIntersectionButton)
 
         self.Bind(wx.EVT_CLOSE, self._onFrameClose)
         self.graphPanel.Bind(wx.EVT_RIGHT_DOWN, self._onRightDownGraph)
@@ -208,6 +215,11 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         exitItem = fileMenu.Append(wx.ID_EXIT)
 
         toolMenu = wx.Menu()
+        self._menuIntersectionButton = toolMenu.Append(
+            wx.ID_ANY,
+            "function intersections",
+            "Calculates the intersections of 2 functions"
+        )
 
         miscMenu = wx.Menu()
         self._showStatusBarItem = miscMenu.Append(
@@ -256,7 +268,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         Create a Statusbar
         """
         self.CreateStatusBar()
-        self.GetStatusBar().SetFieldsCount(2)
+        self.GetStatusBar().SetFieldsCount(3)
 
     def _buildToolBar(self):
         self.toolbar = wx.ToolBar(self)
@@ -264,9 +276,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         self._toolbarIntersectionButton = self.toolbar.AddTool(
             wx.ID_ANY,
-            "test_tool",
+            "intersection",
             wx.Bitmap(os.path.join(self.imgSrcPath, "test.png")),
-            "this is a tool for testing purposes",
+            "calculate the intersections of 2 Functions",
         )
         self.toolbar.AddSeparator()
         # self.toolbar.AddTool(
@@ -295,6 +307,16 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             f"x = {x} | y = {y}", # f"x = {convertToScientificStr(x)} | y = {convertToScientificStr(y)}"
             1
         )
+        evt.Skip()
+
+    def _updateStatusBarBelowCursor(self, evt=None):
+        bar: wx.StatusBar = self.GetStatusBar()
+        hovered = evt.below
+        if hovered is not None:
+            bar.SetStatusText(f"Hovering: '{hovered.getProperty('name').getValue()}'", 2)
+        else:
+            bar.SetStatusText("Hovering: ", 2)
+
         evt.Skip()
 
     def _toggleStatusBar(self, evt=None):

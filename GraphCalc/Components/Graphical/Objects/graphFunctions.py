@@ -341,7 +341,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         ])
 
         self.values = np.array([
-            np.fromiter(map(lambda x: self._functionAsCallablef(x), interval), dtype=np.float) for interval in self.arguments
+            np.fromiter(map(lambda x: self._functionAsCallable(x), interval), dtype=np.float) for interval in self.arguments
         ])
         # todo: decide by average value, if function should be drawn
         #       or by size of interval

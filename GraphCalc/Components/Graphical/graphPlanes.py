@@ -1,4 +1,4 @@
-import wx
+from wx.lib.newevent import NewEvent
 
 from MyWx.wx import *
 from GraphCalc.Components.Property.property import GraphicalPanelObject
@@ -97,8 +97,7 @@ class GraphicalPanel(GenericPanel):
 # implement highlighting
 # getRect of plane
 # add selection mode
-
-# todo: must have a color handler
+# don't select when moving mouse
 
 # Interactive 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):
@@ -356,8 +355,10 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         if (hovered := self.objectBelowPos(relPos)) is not None:
             self.SetCursor(wx.Cursor(wx.CURSOR_HAND))
             self.hovered = hovered
+            wx.PostEvent(self._parent.GetTopLevelParent().GetEventHandler(), ObjectBelowEvent(below=hovered))
         else:
             self.hovered = None
+            wx.PostEvent(self._parent.GetTopLevelParent().GetEventHandler(), ObjectBelowEvent(below=hovered))
 
         # if propertyObjectAt(position of mouse):
         #   change mouse cursor
@@ -474,3 +475,6 @@ class PlaneColorHandler:
 class SeedException(Exception):
     def __init__(self, message="The maximum seed range has been exceeded"):
         super().__init__(message)
+
+
+ObjectBelowEvent, EVT_OBJ_BELOW = NewEvent()
