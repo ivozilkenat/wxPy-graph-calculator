@@ -54,7 +54,7 @@ class DefinitionArea():
 
 class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
     _basePlane: Dynamic2DGraphicalPlane
-    strName = "Funktion"
+    strName = "Function"
     def __init__(self, graphCalculator, functionExpression, definitionArea=None):
         GraphicalPanelObject.__init__(self, category=PropertyObjCategory.FUNCTION)
         IExprProperty.__init__(self, graphCalculator, functionExpression)
@@ -65,7 +65,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         self.arguments = None
         self.values = None
 
-        self.getProperty(vc.PROPERTY_NAME)._setValue("Funktion2D")
+        self.getProperty(vc.PROPERTY_NAME)._setValue("Function2D")
 
     def setBasePlane(self, plane):
         # Properties must be set here, since update function requires panel
@@ -499,4 +499,5 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
                         *self._basePlane.correctPosition(x1, y1),
                         *self._basePlane.correctPosition(x2, y2)
                     ])
-        deviceContext.DrawLineList(points)
+        if len(points) > 0:
+            deviceContext.DrawLineList(points)

@@ -55,6 +55,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # proof if mathematical rigorously
 # multiselect
 # custom events in own classes => observer design pattern could be used more often
+# add approximation solver
 #==================================================
 
 
@@ -87,8 +88,6 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             None  #<- works like a line break
         ])
 
-        self.testTool()
-
     def _buildUI(self):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.workspace = ThreePanelWorkspace(self)
@@ -118,9 +117,13 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.toolManager = ToolManager(PropertySelector(), self.output)
         self.Bind(EVT_ACT_PROP_CH, self.toolManager.selectorUpdHandler())
 
-        self.testTool = self.toolManager.callable(
+        #=Setup tools=
+
+        self.intersectionTool = self.toolManager.callable(
             IntersectionTool(self.graphPropertyManager)
         )
+
+        #=============
 
 
 
@@ -182,6 +185,8 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._toggleStatusBar, self._showStatusBarItem)
         self.Bind(wx.EVT_MENU, self._toggleToolBar, self._showToolBarItem)
         self.Bind(wx.EVT_MENU, self._clearPrompt, self._clearPromptItem)
+
+        self.Bind(wx.EVT_TOOL, self.intersectionTool, self._toolbarIntersectionButton)
 
         self.Bind(wx.EVT_CLOSE, self._onFrameClose)
         self.graphPanel.Bind(wx.EVT_RIGHT_DOWN, self._onRightDownGraph)
@@ -258,7 +263,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.toolbar = wx.ToolBar(self)
         self.toolbar.SetToolBitmapSize(self.iconSize)
 
-        self.toolbar.AddTool(
+        self._toolbarIntersectionButton = self.toolbar.AddTool(
             wx.ID_ANY,
             "test_tool",
             wx.Bitmap(os.path.join(self.imgSrcPath, "test.png")),

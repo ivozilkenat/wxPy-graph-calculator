@@ -1,139 +1,21 @@
 from MyWx.wx import *
-from abc import ABC, abstractmethod
 
-from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
-from GraphCalc.Components.Property.PropertyManager.propertyManager import ActiveChangedEvent, EVT_ACT_PROP_CH
+from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
+from GraphCalc.Components.Graphical.Objects.graphPropertyVariable import Variable
+
+from GraphCalc.Calc.graphSelector import SelectionInterface, SelectionPattern, PropertySelector, SelectionSequence
+
+from GraphCalc.Calc.graphCalculator import Function2DExpr
 
 from GraphCalc.Application.outputPrompt import IOutputExtension
 
-from typing import Union
-# rework this whole file
-# -use concept with more extensibility
-# -more logical class structure
-# -potentially use interruption to use selector
-
-
-# Stores selected objects inorder or not in order
-class SelectionSequence:
-    def __init__(self, inOrder: bool = False):
-        self._selection = list()
-        self._inOrder = inOrder
-
-    def getSelection(self):
-        return self._selection
-
-    def getSelectedTypes(self):
-        return list(map(lambda x: type(x), self._selection))
-
-    def isOrdered(self):
-        return self._inOrder
-
-    def reset(self):
-        self._selection = list()
-
-    def setOrdered(self, state: bool):
-        self._inOrder = state
-
-    def add(self, item):
-        self._selection.append(item)
-
-    def remove(self, item):
-        self._selection.remove(item)
-
-    def matches(self, selectionPattern, onlyBool=False):
-        assert isinstance(selectionPattern, SelectionPattern)
-        missing = list()
-        selected = self.getSelectedTypes()
-        print(selected)
-        if self._inOrder:
-            pass
-        else:
-            for o in selectionPattern.desiredObjs:
-                if o not in self._selection:
-                    missing.append(o)
-            pass
-
-        return True
-
-
-# A selection pattern can be compared with a SelectionSequence and returns True, False or the missing types
-#todo: implement further type checking and limitations
-class SelectionPattern:
-    def __init__(self, desiredObjects, fixedAmount=None):
-        self.desiredObjs = desiredObjects
-        assert self.validObjSelection(self.desiredObjs), "Expected list of classes"
-        self.fixedAmount = fixedAmount
-
-    @classmethod
-    def validObjSelection(cls, objSelection):
-        if any([not isinstance(i, type) for i in objSelection]):
-            return False
-        return True
-
-
-class PropertySelector(IOutputExtension):
-    def __init__(self):
-        super().__init__()
-        self._selection = None
-        self._matching = None
-
-    def setSelector(self, selector: SelectionSequence):
-        self._selection = selector
-
-    def selected(self):
-        return self._selection
-
-    def matchSelectionObjCall(self, selectionObj):
-        assert SelectionInterface in type(selectionObj).__bases__
-        self._matching = selectionObj
-        self.setSelector(
-            SelectionSequence(self._matching.selectInOrder())
-        )
-
-        self.sendlTry(f"Selected tool: '{selectionObj.getName()}'")
-        self.sendlTry(f"Select:")
-
-        #selectionObj(*args, **kwargs)
-
-    def _matched(self):
-        self._selection = None
-        self._matching = None
-
-    def update(self, evt: ActiveChangedEvent=None):
-        if self._matching is None:
-            return
-        newObj = evt.selected
-        self._selection.add(newObj)
-        if missing := self._validSelection():
-            self._matching.run()
-            self._matched()
-        else:
-            self.sendlTry(f"Select: {missing}")
-
-        evt.Skip()
-
-    def _validSelection(self):
-        print(self._selection.getSelection())
-
-
-class SelectionInterface(ABC):
-    _selectionInOrder = False
-    def __init__(self):
-        pass
-
-    # Check if selected objects are desired types
-    @abstractmethod
-    def validSelector(self, selectorSequence):
-        pass
-
-    @classmethod
-    def selectInOrder(cls):
-        return cls._selectionInOrder
+from abc import ABC, abstractmethod
+from sympy import *
 
 
 class GraphTool(ABC):
-    _name: str = "Grafisches Werkzeug"
+    _name: str = "Graphical-Tool"
 
     def __init__(self):
         pass
@@ -164,19 +46,45 @@ class GraphPropertyTool(GraphTool, ABC):
 
 # extra tool or parameter for creating point at intersection pos
 class IntersectionTool(GraphPropertyTool, SelectionInterface, IOutputExtension):
-    _name: str = "Schnittpunkt-Berechnung"
-    _selectionInOrder = False
+    _name: str = "Intersection-Calculation"
+    _selectionInOrder = True
+    _selectionPattern = SelectionPattern(
+        desiredTypes= [
+            GraphFunction2D,
+            GraphFunction2D,
+        ]
+    )
 
-    def __init__(self, graphPropertyManager, output=None, *args, **kwargs):
+    def __init__(self, graphPropertyManager: Dy2DGraphPropertyManager, output=None, *args, **kwargs):
         GraphPropertyTool.__init__(self, graphPropertyManager, *args, **kwargs)
         IOutputExtension.__init__(self, output)
         SelectionInterface.__init__(self)
 
-    def run(self, selectionSequence):
-        print("run")
+    def run(self, selectionSequence: SelectionSequence, onlyReal=True):
+        selectionSequence = selectionSequence.getSelection()
+        f1: GraphFunction2D = selectionSequence[0]
+        f2: GraphFunction2D = selectionSequence[1]
+        f1Expr, f2Expr = f1._getFuncExpr(), f2._getFuncExpr()
 
-    def validSelector(self, selectionSequence):
-        pass
+        self.sendlTry(f"Intersections:")
+        # check if equal
+        dExpr = f1Expr-f2Expr
+
+        equal = simplify(dExpr) == 0
+        if equal:
+            self.sendlTry("infinte solutions (functions are equal)")
+        else:
+            # calc intersections
+            try:
+                intersections = solve(dExpr)
+            except:
+                self.sendlTry("Intersections cannot be calculated")
+            if onlyReal:
+                intersections = [i for i in intersections if i.is_real]
+            f1Func, f2Func = lambdify(Function2DExpr.argumentSymbol, f1Expr), lambdify(Function2DExpr.argumentSymbol,
+                                                                                       f2Expr)
+            for i, intersection in enumerate(intersections):
+                self.sendlTry(f"x{i} = {intersection}, y{i} = {f1Func(intersection)}")
 
 
 # extend to use output prompt
@@ -219,23 +127,6 @@ class ToolManager(IOutputExtension):
             if not tool.hasOutput():
                 tool.setOutput(self._output)
 
-        def _inner():
+        def _inner(*args, **kwargs):
             self.call(tool)
         return _inner
-
-    # def instantiateTool(self, tool: Union[GraphTool, GraphPropertyTool]):
-    #     assert tool in self._tools, f"Tool: '{tool}' is not defined in ToolManager"
-    #     assert isinstance(tool, (GraphTool, GraphPropertyTool)), f"Invalid Type of tool: '{type(tool)}'"
-    #     if isinstance(GraphTool, GraphPropertyTool):
-    #         toolObj = GraphTool(self._graphPropManager)
-    #     else:
-    #         toolObj = GraphTool()
-    #     if tool.hasOutputInterface():
-    #         toolObj.setOutput(self._output)
-    #     return toolObj
-
-
-#toolManager = ToolManager
-#toolManager.call(
-#   IntersectionTool(
-# )
