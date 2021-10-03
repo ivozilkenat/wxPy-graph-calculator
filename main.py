@@ -18,7 +18,7 @@ from GraphCalc.Components.Property.PropertyManager.propertyManager import Active
 from GraphCalc.Calc.graphObjInterface import PropertyAddPanel
 from GraphCalc.Calc.graphCalculator import GraphCalculator2D, Function2DExpr
 from GraphCalc.Calc.graphObjInterface import PropertyObj2DInterface
-from GraphCalc.Calc.graphTools import ToolManager, Selector
+from GraphCalc.Calc.graphTools import ToolManager, PropertySelector, IntersectionTool
 
 from GraphCalc.Application.outputPrompt import OutputPrompt, BasicOutputTextPanel
 
@@ -87,6 +87,8 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             None  #<- works like a line break
         ])
 
+        self.testTool()
+
     def _buildUI(self):
         self.mainSizer = wx.BoxSizer(wx.VERTICAL)
         self.workspace = ThreePanelWorkspace(self)
@@ -113,8 +115,14 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             updateFunction=self.Refresh
         )
 
-        self.toolManager = ToolManager(self.graphPropertyManager, Selector())
-        self.Bind(EVT_ACT_PROP_CH, self.toolManager.getSelector().update)
+        self.toolManager = ToolManager(PropertySelector(), self.output)
+        self.Bind(EVT_ACT_PROP_CH, self.toolManager.selectorUpdHandler())
+
+        self.testTool = self.toolManager.callable(
+            IntersectionTool(self.graphPropertyManager)
+        )
+
+
 
         self.graphPanel = self.graphPropertyManager.getGraphPlane()
         self.graphPanel.mirrorY(True)
