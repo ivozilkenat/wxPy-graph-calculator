@@ -44,6 +44,17 @@ class PropertyManager:
             if propertyObject in self._overviewPanel.getPropertyObjects():
                 self._overviewPanel.removeFromCategory(propertyObject)
 
+    # undefines all expression properties of property-object
+    def undefinePropObject(self, propertyObject: PropertyObject):
+        if isinstance(propertyObject, IExprProperty):
+            for p in propertyObject.getPropertyDict().values():
+                if isinstance(p, ExprProperty):
+                    p.undefine()
+
+    def removeUndefinePropObject(self, propertyObject: PropertyObject):
+        self.undefinePropObject(propertyObject)
+        self.removePropObject(propertyObject)
+
     # get dict of categories and their property-objects
     def getPropertiesByCategory(self):
 

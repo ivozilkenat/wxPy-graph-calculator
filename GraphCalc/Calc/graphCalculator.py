@@ -145,7 +145,7 @@ class GraphCalculator2D:
 
     def undefine(self, name: str):
         del self._objects[name]
-
+        self.parser.removeDefinition(name)
 
 class ExpressionStrParser:
     def __init__(self):
@@ -174,6 +174,9 @@ class ExpressionStrParser:
     def addDefinitions(self, vars: Tuple[str, ...], values: Tuple[Any, ...], override=True):
         for var, value in zip(vars, values):
             self.addDefinition(var, value, override)
+
+    def removeDefinition(self, var: str):
+        del self._namespace[var]
 
     def getValue(self, var: str):
         return self._namespace[var]

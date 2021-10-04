@@ -309,6 +309,9 @@ class ExprProperty(PropertyCtrl):
         self._setValue(self._graphCalc.get(expr.name()))
         self.callUpdFunc()
 
+    def undefine(self):
+        expr = self.getValue()
+        self._graphCalc.undefine(expr.name())
 
 class ExprReadOnlyProperty(PropertyCtrl):
     setterSupport = True

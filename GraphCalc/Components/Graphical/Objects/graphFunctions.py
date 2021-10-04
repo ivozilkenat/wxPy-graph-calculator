@@ -181,19 +181,34 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
         return simplify(self._getFuncExpr())
 
     def _calcIntersections(self):
-        return solve(self._getFuncExpr(), quick=True, simplify=True, rational=False)
+        try:
+            return solve(self._getFuncExpr(), quick=True, simplify=True, rational=False)
+        except NotImplementedError:
+            return "Not solvable"
 
     def _calcDiff1(self):
-        return diff(self._getFuncExpr(), Function2DExpr.argumentSymbol)
+        try:
+            return diff(self._getFuncExpr(), Function2DExpr.argumentSymbol)
+        except NotImplementedError:
+            return "Not derivable"
 
     def _calcDiff2(self):
-        return diff(self.getProperty("first_derivative").getValue(), Function2DExpr.argumentSymbol)
+        try:
+            return diff(self.getProperty("first_derivative").getValue(), Function2DExpr.argumentSymbol)
+        except NotImplementedError:
+            return "Not derivable"
 
     def _calcDiff3(self):
-        return diff(self.getProperty("second_derivative").getValue(), Function2DExpr.argumentSymbol)
+        try:
+            return diff(self.getProperty("second_derivative").getValue(), Function2DExpr.argumentSymbol)
+        except NotImplementedError:
+            return "Not derivable"
 
     def _calcIntegral(self):
-        return integrate(self._getFuncExpr(), Function2DExpr.argumentSymbol)
+        try:
+            return integrate(self._getFuncExpr(), Function2DExpr.argumentSymbol)
+        except NotImplementedError:
+            return "Not integrable"
 
     def _getFuncExpr(self):
         return self.getProperty("function_definition").getValue().expr()

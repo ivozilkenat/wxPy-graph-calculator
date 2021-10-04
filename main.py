@@ -10,6 +10,7 @@ from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManage
 from GraphCalc.Components.Graphical.graphPlanes import EVT_OBJ_BELOW
 from GraphCalc.Components.Property.property import PropertyObjCategory
 from GraphCalc.Components.Property.PropertyManager.propertyManager import EVT_ACT_PROP_SET
+from GraphCalc.Components.Property.PropertyManager.propertyOverview import EVT_PROP_PAN_REM_CALL
 
 
 from GraphCalc.Calc.graphObjInterface import PropertyAddPanel
@@ -58,6 +59,8 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # disable simplify in solve if performance becomes an issue
 # test tools, etc.
 # unify names
+# structure more strictly into front- and backend
+# add arbitrary graphical object during runtime in application (e.g. cartesian coordinate system)
 #todo: -highlighting, -more tools, -toolbar, -menubar, -put overview into static box
 #==================================================
 
@@ -194,8 +197,14 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.intersectionTool, self._toolbarIntersectionButton)
         self.Bind(wx.EVT_MENU, self.intersectionTool, self._menuIntersectionButton)
 
+        self.Bind(EVT_PROP_PAN_REM_CALL, self._removePropertyObject)
+
         self.Bind(wx.EVT_CLOSE, self._onFrameClose)
         self.graphPanel.Bind(wx.EVT_RIGHT_DOWN, self._onRightDownGraph)
+
+    def _removePropertyObject(self, evt=None):
+        self.graphPropertyManager.removeUndefinePropertyObject(evt.propertyObject)
+        self.graphPanel.Refresh()
 
     def _buildBars(self):
         self._buildMenuBar()
@@ -350,8 +359,8 @@ class GraphCalculatorApplicationFrame(wx.Frame):
                       "About Hello World 2",
                       wx.OK | wx.ICON_INFORMATION)
 
-    def _onRightDownGraph(self, evt=None):  # todo: doesnt work yet correctly
-        self.PopupMenu(ContextMenu(self), evt.GetPosition())
+    def _onRightDownGraph(self, evt: wx.MouseEvent=None):  # todo: doesnt work yet correctly
+        self.graphPanel.PopupMenu(ContextMenuGraph(self), evt.GetPosition())
         evt.Skip()
 
     def _onFrameClose(self, evt: wx.CloseEvent = None):
@@ -363,7 +372,8 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.Destroy()
 
 
-class ContextMenu(wx.Menu):
+#todo: out-source
+class ContextMenuGraph(wx.Menu):
     def __init__(self, parent):
         super().__init__()
         self._parent = parent

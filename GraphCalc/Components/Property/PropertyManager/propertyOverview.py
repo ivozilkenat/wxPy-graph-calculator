@@ -1,4 +1,5 @@
 import wx
+from wx.lib.newevent import NewEvent
 
 from MyWx.wx import *
 from MyWx.Collection.templates import PanelWithHeaderAccordion
@@ -97,6 +98,9 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
                                  size=(0,
                                        50))  # TODO: only has fixed size -> should be generic or generally outsourced constant
         panel._text.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
+        panel._text.Bind(
+            wx.EVT_RIGHT_DOWN,
+            lambda evt: panel._text.PopupMenu(PropertyObjPanel.ContextPropertyPanel(panel._text, self._manager), evt.GetPosition()))
         lp.add(panel)
         lp.build()
 
@@ -262,3 +266,24 @@ class PropertyObjPanel(GenericPanel):
 
     def setPropertyObj(self, propertyObj: PropertyObject):
         self._property = propertyObj
+
+
+    class ContextPropertyPanel(wx.Menu):
+        def __init__(self, parent, manager):
+            super().__init__()
+            self._panel = parent.GetParent()
+            self._propertyObj = self._panel.getPropertyObj()
+
+            remove = wx.MenuItem(self, wx.ID_ANY, 'Remove')
+            self.Append(remove)
+            self.Bind(wx.EVT_MENU, self._onRemove, remove)
+
+        def _onRemove(self, evt=None):
+            wx.PostEvent(
+               self._panel.GetTopLevelParent().GetEventHandler(),
+               PropertyPanelRemoveCallEvent(propertyObject=self._propertyObj)
+            )
+
+
+
+PropertyPanelRemoveCallEvent, EVT_PROP_PAN_REM_CALL = NewEvent()

@@ -51,6 +51,10 @@ class GraphPropertyManager:
         if isinstance(propertyObject, GraphicalPanelObject):
             self._graphPlane.removeGraphicalObject(propertyObject)
 
+    def removeUndefinePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
+        self.propertyManager.undefinePropObject(propertyObject)
+        self.removePropertyObject(propertyObject)
+
 
 # Defines interface between graphPlane and properties -> allows for graphical operations etc.
 class Dy2DGraphPropertyManager(GraphPropertyManager):
