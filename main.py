@@ -66,7 +66,7 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 
 
 class GraphCalculatorApplicationFrame(wx.Frame):
-    version = "0.9.0"
+    version = "0.9.2"
     title = "Ivo's Grafikrechner"
     sourcePath = os.path.join(
         "GraphCalc",
@@ -203,8 +203,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.graphPanel.Bind(wx.EVT_RIGHT_DOWN, self._onRightDownGraph)
 
     def _removePropertyObject(self, evt=None):
-        self.graphPropertyManager.removeUndefinePropertyObject(evt.propertyObject)
+        self.graphPropertyManager.removeUndefinePropertyObject((o :=evt.propertyObject))
         self.graphPanel.Refresh()
+        self.output.send(f"removed '{type(o).strRep()}':  {o.getProperty('name').getValue()}")
 
     def _buildBars(self):
         self._buildMenuBar()
