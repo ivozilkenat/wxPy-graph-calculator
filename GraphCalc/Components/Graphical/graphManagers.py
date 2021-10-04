@@ -54,6 +54,8 @@ class GraphPropertyManager:
     def removeUndefinePropertyObject(self, propertyObject: Union[PropertyObject, GraphicalPanelObject]):
         self.propertyManager.undefinePropObject(propertyObject)
         self.removePropertyObject(propertyObject)
+        self.propertyManager.redefineAllExpressions()
+
 
 
 # Defines interface between graphPlane and properties -> allows for graphical operations etc.
