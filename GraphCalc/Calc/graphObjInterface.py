@@ -125,8 +125,11 @@ class AddPanelComponent(SizerComponent, ABC):
     def getName(self):
         return self._name
 
-    def setName(self, name: str):
-        self._name = name
+    def setName(self, name: str, clean=True):
+        self._name = self._cleanName(name)
+
+    def _cleanName(self, name: str):
+        return name.replace(" ", "_")
 
     def addExpr(self):
         assert self.expressionType is not None, "expression type not set"

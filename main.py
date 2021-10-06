@@ -65,6 +65,8 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # delete graph objects when they are right clicked (context menu)
 # use prompt for tool input (e.g. limited integrals)
 # right click to remove
+# variable cannot be value at function
+# linearFirstValue -> linearLastValue
 #todo: -tool add coordinate system, -when dupe, object is getting deleted unintendedly, -more tools, -toolbar, -menubar, -put overview into static box, -dont rebuild categories, just change color
 #==================================================
 
