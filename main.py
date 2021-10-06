@@ -61,7 +61,11 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # unify names
 # structure more strictly into front- and backend
 # add arbitrary graphical object during runtime in application (e.g. cartesian coordinate system)
-#todo: -highlighting, -more tools, -toolbar, -menubar, -put overview into static box
+# start work on property controlers
+# delete graph objects when they are right clicked (context menu)
+# use prompt for tool input (e.g. limited integrals)
+# right click to remove
+#todo: -tool add coordinate system, -when dupe, object is getting deleted unintendedly, -more tools, -toolbar, -menubar, -put overview into static box, -dont rebuild categories, just change color
 #==================================================
 
 

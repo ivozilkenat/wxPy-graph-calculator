@@ -94,14 +94,13 @@ class GraphicalPanel(GenericPanel):
         self.Refresh()
 
 
-# implement highlighting
+# (implement highlighting)
 # getRect of plane
 # add selection mode
 # don't select when moving mouse
 
 # Interactive 2D-Base-Plane
 class Dynamic2DGraphicalPlane(GraphicalPanel):
-    ZOOMING_CONST = 0.05
 
     def __init__(self, parent, size=None):
         super().__init__(parent=parent, size=size)
@@ -145,6 +144,11 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         oX, oY = self.origin
         self.db = (oX - 1 / 2 * self.w, oX + 1 / 2 * self.w)  # Definition-Classes
         self.wb = (oY - 1 / 2 * self.h, oY + 1 / 2 * self.h)
+
+    # change parent class to adjust for color restriction when adding objects
+    def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):
+        super().addGraphicalObject(graphicalObject, priorityIndex, setBasePlane)
+        self.colorManager.addIdObject(graphicalObject)
 
     def getLogicalWidth(self):
         return self.pxXToLogical(self.w)
@@ -214,7 +218,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
             self.yMirror = False
 
     # Calculates relative position to (updated) origin
-    def _adjustedOriginPointPos(self, x, y):
+    def _adjustedToOriginPoint(self, x, y):
         return self._adjustOriginX(x), self._adjustOriginY(y)
 
     def _adjustOriginX(self, x):
@@ -230,7 +234,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         return -self.__adjustOriginYStandard(y)
 
     # Calculates position from upper left origin system to origin panel center system
-    def _centerPosition(self, x, y):
+    def _centerPoint(self, x, y):
         return self._centerX(x), self._centerY(y)
 
     def _centerX(self, x):
@@ -241,7 +245,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     # Calculates correct deviation
     def correctPosition(self, x, y):
-        return self._centerPosition(*self._adjustedOriginPointPos(x, y))
+        return self._centerPoint(*self._adjustedToOriginPoint(x, y))
 
     def correctY(self, y):
         return self._centerY(self._adjustOriginY(y))
@@ -328,7 +332,6 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         evt.Skip()
 
     def _zoomFunction(self, value):
-        from math import exp
         return 2 ** (value * 0.1)
 
     # def _leftMouseDown(self, evt=None):
@@ -379,11 +382,6 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
                 self.SetCursor(wx.Cursor(wx.CURSOR_ARROW))
 
             self.mouseCounter = 0
-
-    # change parent class to adjust for color restriction when adding objects
-    def addGraphicalObject(self, graphicalObject, priorityIndex=None, setBasePlane=True):
-        super().addGraphicalObject(graphicalObject, priorityIndex, setBasePlane)
-        self.colorManager.addIdObject(graphicalObject)
 
     def objectBelowPos(self, relativePos):
         if (bmap := self.colorManager.idBitmap) is None:

@@ -432,7 +432,6 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
                 if not outOfDB:
                     assert approximationThreshold <= 1
                     aMin, aMax = newArg - deltaXAdjust, newArg + deltaXAdjust
-                    print(aMin, aMax, newArg)
                     deltaA = aMax - aMin
                     threshold = deltaA * approximationThreshold
                     k = 2
