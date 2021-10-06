@@ -17,12 +17,19 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         self._manager = manager
         self._activePanel = None
         self._categorySizerC = CategoryOverviewComponent(self)
-        self.SetBackgroundColour((250, 250, 250))
-        # TODO: implement ordering
+        self.SetBackgroundColour((255, 255, 255))
+        #self._box = wx.StaticBox(self, wx.ID_ANY, "Expression Entry")
+        #self._subSizer = wx.BoxSizer(wx.VERTICAL)  # todo: add class for generalization
+        self._subSizer = wx.StaticBoxSizer(wx.VERTICAL, self, "Object Overview")
+
         self.build()
+        # TODO: implement ordering
 
     def build(self):
-        self.SetSizer(self._categorySizerC.getSizerAndBuild())
+        if self._subSizer.GetItemCount() > 0:
+            self._subSizer.Detach(0)
+        self._subSizer.Add(self._categorySizerC.getSizerAndBuild(), 1, wx.EXPAND | wx.TOP , 5)
+        self.SetSizer(self._subSizer)
 
     # build and refresh all contained panels
     @GenericMouseScrollPanel.rebuild
@@ -119,8 +126,10 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
                 lp.delete(panel)
                 #panel._text.Unbind(wx.EVT_LEFT_UP)
                 if len(lp.getComponents()) == 0:
+                    pass
                     catTemp.clearContent()
-                    catTemp.build()
+                    catTemp.updateHighlight()
+                    #catTemp.build()
                 lp.build()
                 return
 
@@ -167,14 +176,16 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         panel = self.getPanelOfProperty(propertyObj)
         if self._activePanel is not None:
             self._activePanel.SetBackgroundColour(PropertyObjPanel.STD_COLOR)
+            self._activePanel.Refresh()
         panel.SetBackgroundColour(PropertyObjPanel.SELECT_COLOR)
+        panel.Refresh()
         self._setActivePropertyPanel(panel)
-        self.Refresh()  # <- should this be called here?
+
 
     def clearHighlighting(self):
         if self._activePanel is not None:
             self._activePanel.SetBackgroundColour(PropertyObjPanel.STD_COLOR)
-        self.Refresh()
+            self._activePanel.Refresh()
 
     # Event handler for propertyObj selection
     def _changeActiveProperty(self, evt: wx.MouseEvent = None):
@@ -228,11 +239,18 @@ class CategoryAccordion(PanelWithHeaderAccordion):
 
     def build(self):
         # highlighting
+        self._determineBackgroundColor()
+        super().build()
+
+    def updateHighlight(self):
+        self._determineBackgroundColor()
+        self.setHeadBackgroundColor(self._backColor)
+
+    def _determineBackgroundColor(self):
         if self._content is not None:
             self._backColor = vc.COL_OVERVIEW_NOCONTENT
         else:
             self._backColor = vc.COL_OVERVIEW_HASCONTENT
-        super().build()
 
 
 # Panel to represent PropertyObjects

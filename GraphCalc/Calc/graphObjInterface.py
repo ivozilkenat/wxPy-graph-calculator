@@ -220,14 +220,13 @@ class PropertyAddPanel(GenericPanel, IOutputExtension):
         GenericPanel.__init__(self, parent=parent, size=size)
         IOutputExtension.__init__(self)
         self._interface = graphObjectInterface
-        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self._sizer = wx.StaticBoxSizer(wx.VERTICAL, self, "Expression Entry")
+        # todo: add class for generalization -> research documentation
         self.SetBackgroundColour((255, 255, 255))
-        self._box = wx.StaticBox(self, wx.ID_ANY, "Expression Entry")
         self._selectionCombobox = None
         self._addButton = None
         self._content = None
         self._feedbackLabel = None
-        self._subSizer = wx.BoxSizer(wx.VERTICAL)  # todo: add class for generalization
 
         self.build()
         self.buildSelectedInput()
@@ -237,16 +236,14 @@ class PropertyAddPanel(GenericPanel, IOutputExtension):
         self._sizer.Clear()
 
         choicesStr = list(self.assignedTypes.keys())
-        self._selectionCombobox = wx.ComboBox(parent=self._box, value=choicesStr[0], choices=choicesStr,
+        self._selectionCombobox = wx.ComboBox(parent=self, value=choicesStr[0], choices=choicesStr,
                                               style=wx.CB_READONLY)
         self._selectionCombobox.Bind(wx.EVT_COMBOBOX, self.buildSelectedInput)
-        self._addButton = wx.Button(parent=self._box, label="Add Expression")
+        self._addButton = wx.Button(parent=self, label="Add Expression")
         self._addButton.Bind(wx.EVT_BUTTON, self._onClick)
-        self._feedbackLabel = wx.StaticText(parent=self._box, label="")  # todo: create extra class
+        self._feedbackLabel = wx.StaticText(parent=self, label="")  # todo: create extra class
 
-        self._subSizer.Add(self._selectionCombobox, 0, wx.EXPAND | wx.TOP, 20)
-        self._box.SetSizer(self._subSizer)
-        self._sizer.Add(self._box, 1, wx.EXPAND)
+        self._sizer.Add(self._selectionCombobox, 0, wx.EXPAND | wx.TOP, 20)
         self.SetSizer(self._sizer)
 
     def setFeedback(self, label: str):
@@ -256,22 +253,19 @@ class PropertyAddPanel(GenericPanel, IOutputExtension):
     def buildSelectedInput(self, evt=None):
         if self._content is not None:
             self._content.clearSizer(True, True)
-        self._subSizer.Clear()
         self._sizer.Clear()
 
-        self._subSizer.Add(self._selectionCombobox, 0, wx.EXPAND | wx.TOP, 20)
+        self._sizer.Add(self._selectionCombobox, 0, wx.EXPAND | wx.TOP, 5)
 
         self._content = self.assignedTypes[self._selectionCombobox.GetValue()](
-            parent=self._box,
+            parent=self,
             graphObjectInterface=self._interface
         )
         self._content.build()
-        self._subSizer.Add(self._content.getSizer(), 0, wx.EXPAND | wx.ALL, 5)
-        self._subSizer.Add(self._addButton, 0, wx.EXPAND | wx.ALL, 5)
-        self._subSizer.Add(self._feedbackLabel, 0, wx.EXPAND | wx.ALL, 5)
+        self._sizer.Add(self._content.getSizer(), 0, wx.EXPAND | wx.ALL, 5)
+        self._sizer.Add(self._addButton, 0, wx.EXPAND | wx.ALL, 5)
+        self._sizer.Add(self._feedbackLabel, 0, wx.EXPAND | wx.ALL, 5)
 
-        self._box.SetSizer(self._subSizer)
-        self._sizer.Add(self._box, 1, wx.EXPAND | wx.ALL, 3)
         self.SetSizer(self._sizer)
         self.Layout()
 

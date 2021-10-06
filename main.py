@@ -67,7 +67,12 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # right click to remove
 # variable cannot be value at function
 # linearFirstValue -> linearLastValue
-#todo: -tool add coordinate system, -when dupe, object is getting deleted unintendedly, -more tools, -toolbar, -menubar, -put overview into static box, -dont rebuild categories, just change color
+#todo: -tool add coordinate system,
+# -when dupe, object is getting deleted unintendedly,
+# -more tools, -toolbar, -menubar,
+# -put overview into static box,
+# -dont rebuild categories, just change color,
+# -add help text, for help menubar button
 #==================================================
 
 
@@ -172,8 +177,8 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         )  # <- define as special control / also other controls that effect manager
         self.addPropertyPanel.setOutput(self.output)
 
-        self.leftWorkspacePanelSizer.Add(self.addPropertyPanel, 0, wx.EXPAND | wx.TOP, 5)
-        self.leftWorkspacePanelSizer.Add(self.overviewPanel, 3, wx.EXPAND | wx.TOP, 5)
+        self.leftWorkspacePanelSizer.Add(self.addPropertyPanel, 0, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, 5)
+        self.leftWorkspacePanelSizer.Add(self.overviewPanel, 3, wx.EXPAND | wx.TOP | wx.RIGHT | wx.LEFT, 5)
         self.leftWorkspacePanel.SetSizer(self.leftWorkspacePanelSizer)
 
         self.rightWorkspacePanelSizer.Add(self.inspectionPanel, 4, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.TOP, 5)
@@ -185,7 +190,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         # todo: right panel must have a minimum size, else contents can go out of view in the scroll panel
         self.workspace.setWindows(self.leftWorkspacePanel, self.graphPanel, self.rightWorkspacePanel)
         self.workspace.build()
-        # self.workspace.splitter.SetMinimumPaneSize(100)
+        self.workspace.splitter.SetMinimumPaneSize(150)
 
         self.mainSizer.Add(self.toolbar, 0, wx.EXPAND)
         self.mainSizer.Add(self.workspace.getSizer(), 1, wx.EXPAND)
@@ -288,6 +293,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
     def _buildToolBar(self):
         self.toolbar = wx.ToolBar(self)
+        self.toolbar.SetBackgroundColour((240, 240, 240))
         self.toolbar.SetToolBitmapSize(self.iconSize)
 
         self._toolbarIntersectionButton = self.toolbar.AddTool(

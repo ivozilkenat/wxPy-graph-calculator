@@ -38,7 +38,7 @@ class ThreePanelWorkspace(SizerTemplate):
         self.splitter.SetProportions(self._splitterProportion)
 
         if self._firstSashPos is None:
-            self._firstSashPos = self.splitter.GetWidth() * 0.15
+            self._firstSashPos = self.splitter.GetWidth() * 0.18
         if self._secondSashPos is None:
             self._secondSashPos = -self.splitter.GetWidth() * 0.25  # TODO: change this?
         self.splitter.SetSashAbsPosition(0, self._firstSashPos)
