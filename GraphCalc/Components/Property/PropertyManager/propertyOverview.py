@@ -104,10 +104,14 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
         panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry,
                                  size=(0,
                                        50))  # TODO: only has fixed size -> should be generic or generally outsourced constant
-        panel._text.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
-        panel._text.Bind(
+
+        panel.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
+        panel._text.Bind(wx.EVT_LEFT_UP, lambda e: wx.PostEvent(panel, e)) #hacky solution
+
+        panel.Bind(
             wx.EVT_RIGHT_DOWN,
             lambda evt: panel._text.PopupMenu(PropertyObjPanel.ContextPropertyPanel(panel._text, self._manager), evt.GetPosition()))
+        panel._text.Bind(wx.EVT_RIGHT_DOWN, lambda e: wx.PostEvent(panel, e))
         lp.add(panel)
         lp.build()
 
@@ -124,7 +128,6 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
                     self._manager.clearActiveProperty()
 
                 lp.delete(panel)
-                #panel._text.Unbind(wx.EVT_LEFT_UP)
                 if len(lp.getComponents()) == 0:
                     pass
                     catTemp.clearContent()
@@ -188,9 +191,10 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
             self._activePanel.Refresh()
 
     # Event handler for propertyObj selection
-    def _changeActiveProperty(self, evt: wx.MouseEvent = None):
-        txt = evt.GetEventObject()
-        panel = txt.GetParent()
+    def _changeActiveProperty(self, evt: wx.MouseEvent = None): #hacky solution
+        panel = evt.GetEventObject()
+        if isinstance(panel, wx.StaticText):
+            panel = panel.GetParent()
         self._setActiveProperty(panel.getPropertyObj())
 
     def _setActiveProperty(self, propertyObj):
@@ -262,10 +266,10 @@ class PropertyObjPanel(GenericPanel):
         super().__init__(parent, *args, **kwargs)
         self._property = propertyObject
         self.SetBackgroundColour(self.STD_COLOR)
-        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self._sizer = wx.StaticBoxSizer(wx.VERTICAL, self, "")
 
         self._text = wx.StaticText(self, label=self._property._properties[vc.PROPERTY_NAME].getValue(),
-                                   style=wx.ALIGN_CENTER)
+                                   style=wx.ALIGN_CENTER | wx.ALIGN_CENTER_VERTICAL)
 
         self.build()
 
