@@ -38,6 +38,8 @@ class ExprObj(ABC):
             raise InvalidExpression(f"Name '{name}' can't be in expression")
         elif self.name().strip().isdigit():
             raise InvalidExpression(f"Name cannot be only digits")
+        elif self.name().strip()[0].isdigit():
+            raise InvalidExpression(f"First symbol cannot be digit")
         elif name == Function2DExpr.argumentSymbol:
             raise InvalidExpression(f"Name of expression can't be argument symbol")
         return True
@@ -79,9 +81,14 @@ class Point2DExpr(ExprObj):
 
     def isValid(self):
         if isinstance(self.expr(), tuple):
+            if len(self.expr()) != 2:
+                raise InvalidExpression("Point must consist of format (x, y)")
             self._expr = Point(self.expr())
             return True
         return False
+
+    def nameFormatted(self):
+        return f"Point({self.name()})"
 
 
 class Function2DExpr(ExprObj):

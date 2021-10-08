@@ -101,9 +101,7 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
             categoryTemp.setContent(lp)
 
         lp: ListPanel = categoryTemp.getContent()
-        panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry,
-                                 size=(0,
-                                       50))  # TODO: only has fixed size -> should be generic or generally outsourced constant
+        panel = PropertyObjPanel(parent=lp, propertyObject=propertyEntry, size=(0, 60))  # TODO: only has fixed size -> should be generic or generally outsourced constant
 
         panel.Bind(wx.EVT_LEFT_UP, self._changeActiveProperty)
         panel._text.Bind(wx.EVT_LEFT_UP, lambda e: wx.PostEvent(panel, e)) #hacky solution
@@ -132,7 +130,6 @@ class PropObjectOverviewPanel(GenericMouseScrollPanel):
                     pass
                     catTemp.clearContent()
                     catTemp.updateHighlight()
-                    #catTemp.build()
                 lp.build()
                 return
 
@@ -280,6 +277,7 @@ class PropertyObjPanel(GenericPanel):
         self._text.SetLabel(name)
         font = wx.Font(13, wx.DECORATIVE, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL)
         self._text.SetFont(font)
+
         self._sizer.Add(self._text, 1, wx.EXPAND)
         self.SetSizer(self._sizer)
 
@@ -305,7 +303,6 @@ class PropertyObjPanel(GenericPanel):
                self._panel.GetTopLevelParent().GetEventHandler(),
                PropertyPanelRemoveCallEvent(propertyObject=self._propertyObj)
             )
-
 
 
 PropertyPanelRemoveCallEvent, EVT_PROP_PAN_REM_CALL = NewEvent()

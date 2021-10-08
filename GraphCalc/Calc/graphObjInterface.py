@@ -1,8 +1,9 @@
 import wx
 
-from GraphCalc.Calc.graphCalculator import GraphCalculator2D, ExprObj, ValueExpr, Function2DExpr, InvalidExpression
+from GraphCalc.Calc.graphCalculator import GraphCalculator2D, ExprObj, ValueExpr, Function2DExpr, Point2DExpr, InvalidExpression
 from GraphCalc.Components.Graphical.graphManagers import Dy2DGraphPropertyManager
 from GraphCalc.Components.Graphical.Objects.graphFunctions import GraphFunction2D
+from GraphCalc.Components.Graphical.Objects.graphPoints import GraphPoint2D
 from GraphCalc.Components.Graphical.Objects.graphPropertyVariable import Variable
 from GraphCalc.Components.Graphical.Objects.graphFunctionGroup import GraphFunctionGroup
 from GraphCalc.Components.Property.property import IExprProperty, GraphicalPanelObject, NonGraphicalPanelObject
@@ -19,7 +20,8 @@ from abc import ABC, abstractmethod
 class PropertyObj2DInterface:
     typeAssignments = {
         Function2DExpr: GraphFunction2D,
-        ValueExpr: Variable
+        ValueExpr: Variable,
+        Point2DExpr: GraphPoint2D
     }
 
     def __init__(self,
@@ -65,6 +67,7 @@ class PropertyObj2DInterface:
 
         # todo: leave this? => use a sequence
         if isinstance(newObj, GraphicalPanelObject):
+            print("random color")
             newObj.getProperty("color")._setValue(randomRGBTriple())
 
         if self._updateFunction is not None:
@@ -176,6 +179,45 @@ class AddPanelFunction(AddPanelComponent):
         self._sizer.Add(nameSizer, 0, wx.EXPAND | wx.BOTTOM, 5)
         self._sizer.Add(definitionSizer, 0, wx.EXPAND)
 
+class AddPanelPoint(AddPanelComponent):
+    expressionType = Point2DExpr
+    propertyObjectType = GraphPoint2D
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._sizer = wx.BoxSizer(wx.VERTICAL)
+        self._nameIn = None
+        self._definitionIn = None
+
+    def formatIntoExpression(self):
+        self.setName(self._nameIn.GetValue())
+        x = self._xIn.GetValue()
+        y = self._yIn.GetValue()
+        self.setExprStr(f"({x}, {y})")
+
+    def build(self):
+        self.clearSizer()
+        nameSizer = wx.BoxSizer(wx.HORIZONTAL)
+        xSizer = wx.BoxSizer(wx.HORIZONTAL)
+        ySizer = wx.BoxSizer(wx.HORIZONTAL)
+        nameTxt = wx.StaticText(self._parent, label="Name:")
+        xTxt = wx.StaticText(self._parent, label="x:")
+        yTxt = wx.StaticText(self._parent, label="y:  ")
+        self._nameIn = wx.TextCtrl(self._parent)
+        self._xIn = wx.TextCtrl(self._parent)
+        self._yIn = wx.TextCtrl(self._parent)
+
+        nameSizer.Add(nameTxt, 1, wx.EXPAND)
+        nameSizer.Add(self._nameIn, 2, wx.EXPAND)
+        xSizer.Add(xTxt, 1, wx.EXPAND)
+        xSizer.Add(self._xIn, 2, wx.EXPAND)
+        ySizer.Add(yTxt, 1, wx.EXPAND)
+        ySizer.Add(self._yIn, 2, wx.EXPAND)
+
+        self._sizer.Add(nameSizer, 0, wx.EXPAND | wx.BOTTOM, 5)
+        self._sizer.Add(xSizer, 0, wx.EXPAND | wx.BOTTOM, 5)
+        self._sizer.Add(ySizer, 0, wx.EXPAND)
+
 
 class AddPanelVariable(AddPanelComponent):
     expressionType = ValueExpr
@@ -212,7 +254,8 @@ class AddPanelVariable(AddPanelComponent):
 class PropertyAddPanel(GenericPanel, IOutputExtension):
     assignedTypes = dict([
         AddPanelFunction.getAssignment(),
-        AddPanelVariable.getAssignment()
+        AddPanelVariable.getAssignment(),
+        AddPanelPoint.getAssignment()
     ])
 
     def __init__(self, graphObjectInterface: PropertyObj2DInterface, parent=None, size=None):

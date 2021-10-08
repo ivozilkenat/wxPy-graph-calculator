@@ -1,4 +1,4 @@
-import os
+import os, sys
 
 import wx
 
@@ -18,7 +18,7 @@ from GraphCalc.Calc.graphCalculator import GraphCalculator2D
 from GraphCalc.Calc.graphObjInterface import PropertyObj2DInterface
 from GraphCalc.Calc.Tools.graphSelector import PropertySelector
 from GraphCalc.Calc.Tools.toolManager import ToolManager
-from GraphCalc.Calc.Tools.Collection import intersection
+from GraphCalc.Calc.Tools.Collection import intersection, operation
 
 from GraphCalc.Application.outputPrompt import OutputPrompt, BasicOutputTextPanel
 
@@ -67,22 +67,32 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # right click to remove
 # variable cannot be value at function
 # linearFirstValue -> linearLastValue
-#todo: -tool add coordinate system,
+#todo:
+# -tool add coordinate system,
 # -when dupe, object is getting deleted unintendedly,
 # -more tools, -toolbar, -menubar,
-# -put overview into static box,
-# -dont rebuild categories, just change color,
 # -add help text, for help menubar button
+# -object panel size based on text size
+# -random color of points is incorrectly displayed
 #==================================================
+
+# outsource this
+def resource_path(relative_path, ressource_path=None):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    if ressource_path is None:
+        return os.path.join(base_path, relative_path)
 
 
 class GraphCalculatorApplicationFrame(wx.Frame):
-    version = "0.9.2"
-    title = "Ivo's Grafikrechner"
-    sourcePath = os.path.join(
-        "GraphCalc",
-        "source"
-    )
+    version = "0.1.0"
+    title = "GrafiXRechner"
+    sourcePath = resource_path("source")
     imgSrcPath = os.path.join(sourcePath, "img")
     iconSize = (32, 32)
 
@@ -90,6 +100,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         super().__init__(parent, id, title)
         self.SetTitle(f"{GraphCalculatorApplicationFrame.title} (Version: {GraphCalculatorApplicationFrame.version})")
         self.SetSize((1280, 720))
+        self.SetIcon(wx.Icon(os.path.join(self.imgSrcPath, "icon.ico")))
         self.buildApp()
         # self.Maximize(True)
         self.Show(True)
@@ -140,6 +151,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.intersectionTool = self.toolManager.callable(
             intersection.IntersectionTool(self.graphPropertyManager)
         )
+        self.sumFunctionsTool = self.toolManager.callable(
+            operation.AddTool(self.graphPropertyManager, self.graphCalcObjInterface)
+        )
 
         #=============
 
@@ -162,13 +176,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
         # Overview-panel and Inspection-panel have been created
 
-        # TESTING---------------
-        for i in range(1, 2):
-            axis = CartesianAxies()
-            p = axis.getProperty("name")
-            p._setValue("Cartesian-Plane - " + str(i))
-            axis.addProperty(p, override=True)
-            self.graphPropertyManager.addPropertyObject(axis, setAsActive=False)
+        self._addCoordinateSystem()
 
         self.addPropertyPanel = PropertyAddPanel(
             parent=self.leftWorkspacePanel,
@@ -204,9 +212,20 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self._toggleStatusBar, self._showStatusBarItem)
         self.Bind(wx.EVT_MENU, self._toggleToolBar, self._showToolBarItem)
         self.Bind(wx.EVT_MENU, self._clearPrompt, self._clearPromptItem)
+        self.Bind(wx.EVT_MENU, self._addCoordinateSystem, self._addCoordSystemItem)
+
+        self.Bind(wx.EVT_BUTTON, self._resetZoom, self._resetViewToolbar)
+        self.Bind(wx.EVT_BUTTON, self._gotoXY, self._gotoXYToolbar)
+        self.Bind(wx.EVT_BUTTON, self._zoomIn, self._zoomInToolbar)
+        self.Bind(wx.EVT_BUTTON, self._zoomOut, self._zoomOutToolbar)
+        #self.Bind(wx.EVT_SPINCTRLDOUBLE, self._setXScaling, self._scaleXAxisSpinboxToolbar)#not finished
+
+        self.Bind(wx.EVT_BUTTON, self._deleteAllPropObjects, self._deleteAllToolbar)
+        self.Bind(wx.EVT_BUTTON, self._clearPrompt, self._clearPromptToolbar)
 
         self.Bind(wx.EVT_TOOL, self.intersectionTool, self._toolbarIntersectionButton)
         self.Bind(wx.EVT_MENU, self.intersectionTool, self._menuIntersectionButton)
+        self.Bind(wx.EVT_MENU, self.sumFunctionsTool, self._menuAddFuncButton)
 
         self.Bind(EVT_PROP_PAN_REM_CALL, self._removePropertyObject)
 
@@ -238,8 +257,13 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         toolMenu = wx.Menu()
         self._menuIntersectionButton = toolMenu.Append(
             wx.ID_ANY,
-            "function intersections",
+            "Function intersections",
             "Calculates the intersections of 2 functions"
+        )
+        self._menuAddFuncButton = toolMenu.Append(
+            wx.ID_ANY,
+            "Function sum",
+            "add 2 functions together"
         )
 
         miscMenu = wx.Menu()
@@ -254,6 +278,11 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             "Show toolbar",
             "Shows the Toolbar",
             kind=wx.ITEM_CHECK
+        )
+        self._addCoordSystemItem = miscMenu.Append(
+            wx.ID_ANY,
+            "Add Cartesian-Coordinate-System",
+            "Adds an Cartesian-Coordinate-System"
         )
         self._clearPromptItem = miscMenu.Append(
             wx.ID_ANY,
@@ -299,14 +328,72 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self._toolbarIntersectionButton = self.toolbar.AddTool(
             wx.ID_ANY,
             "intersection",
-            wx.Bitmap(os.path.join(self.imgSrcPath, "test.png")),
+            wx.Bitmap(os.path.join(self.imgSrcPath, "intersections.png")),
             "calculate the intersections of 2 Functions",
         )
+
         self.toolbar.AddSeparator()
-        # self.toolbar.AddTool(
-        #     wx.ID_ANY,
-        #     ""
+
+        self.toolbar.AddStretchableSpace()
+        self._resetViewToolbar = wx.Button(self.toolbar, label="Reset view")
+        self.toolbar.AddControl(
+            self._resetViewToolbar,
+            "reset view"
+        )
+        # scaleXAxisTxt = wx.StaticText(self.toolbar, label="Scale x-factor:")
+        # self.toolbar.AddControl(
+        #     scaleXAxisTxt,
         # )
+        # self._scaleXAxisSpinboxToolbar = wx.SpinCtrlDouble(
+        #     self.toolbar,
+        #     min=0.01, max=1000, initial=1, inc=0.05
+        # )
+        # self.toolbar.AddControl(
+        #     self._scaleXAxisSpinboxToolbar,
+        #     "change x-axis scaling"
+        # ) #not working properly with coordinate system
+        xTxt = wx.StaticText(self.toolbar, label="X: ")
+        yTxt = wx.StaticText(self.toolbar, label="Y: ")
+        self._desiredXToolbar = wx.SpinCtrlDouble(
+            self.toolbar,
+            min=0.0000001, max=999999999, initial=0, inc=0.05
+        )
+        self._desiredYToolbar = wx.SpinCtrlDouble(
+            self.toolbar,
+            min=0.0000001, max=999999999, initial=0, inc=0.05
+        )
+        self._gotoXYToolbar = wx.Button(self.toolbar, label="Go to (X, Y)")
+        self.toolbar.AddControl(self._gotoXYToolbar)
+        self.toolbar.AddControl(xTxt)
+        self.toolbar.AddControl(self._desiredXToolbar)
+        self.toolbar.AddControl(yTxt)
+        self.toolbar.AddControl(self._desiredYToolbar)
+
+
+        self._zoomInToolbar = wx.Button(self.toolbar, label="+")
+        self._zoomOutToolbar = wx.Button(self.toolbar, label="-")
+        self.toolbar.AddControl(self._zoomInToolbar)
+        self.toolbar.AddControl(self._zoomOutToolbar)
+
+        zoomConstTxt = wx.StaticText(self.toolbar, label="Zoom-Konst.: ")
+        self._zoomConstToolbar = wx.SpinCtrl(self.toolbar, min=1, max=10, initial=1)
+        self.toolbar.AddControl(zoomConstTxt)
+        self.toolbar.AddControl(self._zoomConstToolbar)
+
+        self.toolbar.AddStretchableSpace()
+
+        self._clearPromptToolbar = wx.Button(self.toolbar, label="Clear prompt")
+        self.toolbar.AddControl(
+            self._clearPromptToolbar,
+            "clear prompt"
+        )
+
+        self._deleteAllToolbar = wx.Button(self.toolbar, label="Delete all objects")
+        self.toolbar.AddControl(
+            self._deleteAllToolbar,
+            ""
+        )
+
 
         self.toolbar.Realize()
 
@@ -358,18 +445,56 @@ class GraphCalculatorApplicationFrame(wx.Frame):
     def _clearPrompt(self, evt=None):
         self.output.getPanel().clear()
 
+    def _resetZoom(self, evt=None):
+        self.graphPanel.resetZoomView()
+        self.graphPanel.Refresh()
+
+    def _gotoXY(self, evt=None):
+        self.graphPanel.centerLogicalPoint(self._desiredXToolbar.GetValue(), self._desiredYToolbar.GetValue())
+        self.Refresh()
+
+    def _zoomIn(self, evt=None):
+        self.graphPanel.addToZoomCounters(self._zoomConstToolbar.GetValue())
+        self.graphPanel._updateZoomFactors()
+        self.graphPanel.Refresh()
+
+    def _zoomOut(self, evt=None):
+        self.graphPanel.addToZoomCounters(-self._zoomConstToolbar.GetValue())
+        self.graphPanel._updateZoomFactors()
+        self.graphPanel.Refresh()
+
+    def _deleteAllPropObjects(self, evt=None, addNewCoordSystem=True):
+        self.graphPropertyManager.removeUndefineAllObjects()
+        if addNewCoordSystem:
+            self._addCoordinateSystem()
+        else:
+            self.graphPanel.Refresh()
+
+    def _addCoordinateSystem(self, evt=None):
+        self.graphPropertyManager.addPropertyObject(CartesianAxies(), setAsActive=False)
+        self.graphPanel.Refresh()
+
+
+    # def _setXScaling(self, evt=None):
+    #     self.graphPanel.setXScaling(evt.GetValue())
+    #     self.graphPanel.Refresh()
+    #
+    # def _setYScaling(self, evt=None):
+    #     self.graphPanel.setYScaling(evt.GetValue())
+    #     self.graphPanel.Refresh() #not working as expected
+
     def _onExit(self, evt=None):
         """Close the frame, terminating the application."""
         self.Close(True)
 
     def _onHello(self, evt=None):
         """Say hello to the user."""
-        wx.MessageBox("Hello again from wxPython")
+        wx.MessageBox("Welcome the GraphiX.")
 
     def _onAbout(self, evt=None):
         """Display an About Dialog"""
-        wx.MessageBox("This is a wxPython Hello World sample",
-                      "About Hello World 2",
+        wx.MessageBox("Help has not been integrated yet",
+                      "About Dialog",
                       wx.OK | wx.ICON_INFORMATION)
 
     def _onRightDownGraph(self, evt: wx.MouseEvent=None):  # todo: doesnt work yet correctly
@@ -405,7 +530,6 @@ class ContextMenuGraph(wx.Menu):
     def _onClose(self, evt=None):
         self._parent._onFrameClose()
         # self._parent.Close()
-
 
 if __name__ == "__main__":
     app = wx.App(False)

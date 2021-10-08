@@ -56,6 +56,10 @@ class GraphPropertyManager:
         self.removePropertyObject(propertyObject)
         self.propertyManager.redefineAllExpressions()
 
+    def removeUndefineAllObjects(self):
+        for o in self.propertyManager.getPropertyObjects().copy():
+            self.removeUndefinePropertyObject(o)
+
 
 
 # Defines interface between graphPlane and properties -> allows for graphical operations etc.

@@ -777,6 +777,9 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
 
         return _draw
 
+    # obligatory function that is called, if the base plane resets itself
+    def reset(self):
+        pass
 
 # interface for uniformed object instantiation with expression property objects (objects, that *have* to define a graph calculator and expression)
 class IExprProperty:

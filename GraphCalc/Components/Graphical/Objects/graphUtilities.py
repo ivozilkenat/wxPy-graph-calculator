@@ -227,3 +227,6 @@ class CartesianAxies(GraphicalPanelObject):
                 self.getProperty("x_axis_label_axis_distance").getValue() + (
                     th if self._basePlane.yIsMirrored() else 0))
         )
+
+    def reset(self):
+        self._subAxisInterval = 1

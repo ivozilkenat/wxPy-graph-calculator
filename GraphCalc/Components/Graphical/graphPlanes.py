@@ -118,6 +118,9 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
         self.Px2LEx = 50 / 1  # 20px on the x-axis correspond to 1LE
         self.Px2LEy = 50 / 1  # 20px on the y-axis correspond to 1LE
+        #additional scaling factor
+        self._xScaling = 1
+        self._yScaling = 1
 
         self.zoomFactorX = 1
         self.zoomFactorY = 1
@@ -150,6 +153,12 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         super().addGraphicalObject(graphicalObject, priorityIndex, setBasePlane)
         self.colorManager.addIdObject(graphicalObject)
 
+    def setXScaling(self, scalingFactor):
+        self._xScaling = scalingFactor
+
+    def setYScaling(self, scalingFactor):
+        self._yScaling = scalingFactor
+
     def getLogicalWidth(self):
         return self.pxXToLogical(self.w)
 
@@ -176,19 +185,19 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         return self.logicalXToPx(x), self.logicalYToPx(y)
 
     def logicalXToPx(self, value):
-        return value * self.Px2LEx * self.zoomFactorX
+        return value * self.Px2LEx * self.zoomFactorX * self._xScaling
 
     def logicalYToPx(self, value):
-        return value * self.Px2LEy * self.zoomFactorY
+        return value * self.Px2LEy * self.zoomFactorY * self._yScaling
 
     def pxPointToLogical(self, x, y):
         return self.pxXToLogical(x), self.pxYToLogical(y)
 
     def pxXToLogical(self, value):
-        return value / (self.Px2LEx * self.zoomFactorX)
+        return value / (self.Px2LEx * self.zoomFactorX * self._xScaling)
 
     def pxYToLogical(self, value):
-        return value / (self.Px2LEy * self.zoomFactorY)
+        return value / (self.Px2LEy * self.zoomFactorY * self._yScaling)
 
     def centerLogicalPoint(self, x, y):
         self.centerPxPoint(*self.logicalPointToPx(x, y))
@@ -197,6 +206,26 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         vx, vy = self.correctPosition(x, y)
         cx, cy = vx - 1 / 2 * self.w, vy - 1 / 2 * self.h
         self.originUpdate = cx, cy
+
+    def xInLogicalDB(self, x):
+        lower, upper = self.getLogicalDB()
+        if lower <= x <= upper:
+            return True
+        return False
+
+    def yInLogicalWB(self, y):
+        lower, upper = self.getLogicalWB()
+        if lower <= y <= upper:
+            return True
+        return False
+
+    def logicalPointInView(self, x, y):
+        if self.xInLogicalDB(x) and self.yInLogicalWB(y):
+            return True
+        return False
+
+    def centerLogicalPoint(self, x, y):
+        self.centerPxPoint(*self.logicalPointToPx(x, y))
 
     # method to manipulate the origin in a way that a graph point is at target position of plane
     def focusPxPointOnTarget(self, vx, vy, tx, ty):
@@ -252,6 +281,9 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
 
     def correctX(self, x):
         return self._centerX(self._adjustOriginX(x))
+
+    def logicalPointToCorrect(self, x, y):
+        return self.correctPosition(*self.logicalPointToPx(x, y))
 
     # y-mirror methods
     def mirrorPointsY(self, points, mY):
@@ -315,21 +347,23 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     # Mousewheel event receiver (zooming)
     def _mousewheel(self, evt: wx.MouseEvent = None):
         if evt.GetWheelRotation() > 0:
-            self.zoomXCounter += 1
-            self.zoomYCounter += 1
+            self.addToZoomCounters(1)
         else:
-            self.zoomXCounter -= 1
-            self.zoomYCounter -= 1
+            self.addToZoomCounters(-1)
 
         originalValue = self.pxPointToLogical(*self.absPosToOrigin(*evt.GetPosition()))
-
-        self.zoomFactorX = self._zoomFunction(self.zoomXCounter)
-        self.zoomFactorY = self._zoomFunction(self.zoomYCounter)
-
+        self._updateZoomFactors()
         self.focusPxPointOnTarget(*originalValue, *evt.GetPosition())
-
         self.Refresh()
         evt.Skip()
+
+    def addToZoomCounters(self, value: int):
+        self.zoomXCounter += value
+        self.zoomYCounter += value
+
+    def _updateZoomFactors(self):
+        self.zoomFactorX = self._zoomFunction(self.zoomXCounter)
+        self.zoomFactorY = self._zoomFunction(self.zoomYCounter)
 
     def _zoomFunction(self, value):
         return 2 ** (value * 0.1)
@@ -391,6 +425,22 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         for object, objId in self.colorManager.objectColorsId():
             if pixColor == objId and object.getProperty("selectable").getValue():
                 return object
+
+    def resetZoom(self):
+        self.zoomXCounter, self.zoomYCounter = 0, 0
+        self._updateZoomFactors()
+
+    def resetZoomView(self):
+        self.resetZoom()
+        self.centerView()
+        self._callReset()
+
+    def _callReset(self):
+        for o in self.layers:
+            o.reset()
+
+    def centerView(self):
+        self.origin = (0, 0)
 
     def highlight(self, graphObject: GraphicalPanelObject):
         pass  # todo: implement this
