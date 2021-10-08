@@ -67,7 +67,6 @@ class PropertyObj2DInterface:
 
         # todo: leave this? => use a sequence
         if isinstance(newObj, GraphicalPanelObject):
-            print("random color")
             newObj.getProperty("color")._setValue(randomRGBTriple())
 
         if self._updateFunction is not None:

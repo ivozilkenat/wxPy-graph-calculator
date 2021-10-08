@@ -18,7 +18,9 @@ from GraphCalc.Calc.graphCalculator import GraphCalculator2D
 from GraphCalc.Calc.graphObjInterface import PropertyObj2DInterface
 from GraphCalc.Calc.Tools.graphSelector import PropertySelector
 from GraphCalc.Calc.Tools.toolManager import ToolManager
-from GraphCalc.Calc.Tools.Collection import intersection, operation
+from GraphCalc.Calc.Tools.Collection import intersection, operation, point
+
+from GraphCalc.Calc.graphCalculator import Point2DExpr
 
 from GraphCalc.Application.outputPrompt import OutputPrompt, BasicOutputTextPanel
 
@@ -68,11 +70,8 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # variable cannot be value at function
 # linearFirstValue -> linearLastValue
 #todo:
-# -tool add coordinate system,
-# -when dupe, object is getting deleted unintendedly,
-# -more tools, -toolbar, -menubar,
+# -when dupe, object is getting deleted unintended,
 # -add help text, for help menubar button
-# -object panel size based on text size
 # -random color of points is incorrectly displayed
 #==================================================
 
@@ -90,7 +89,7 @@ def resource_path(relative_path, ressource_path=None):
 
 
 class GraphCalculatorApplicationFrame(wx.Frame):
-    version = "0.1.0"
+    version = "1.0.0"
     title = "GrafiXRechner"
     sourcePath = resource_path("source")
     imgSrcPath = os.path.join(sourcePath, "img")
@@ -153,6 +152,9 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         )
         self.sumFunctionsTool = self.toolManager.callable(
             operation.AddTool(self.graphPropertyManager, self.graphCalcObjInterface)
+        )
+        self.pointOfTool = self.toolManager.callable(
+            point.PointOfTool(self.graphPropertyManager)
         )
 
         #=============
@@ -226,6 +228,7 @@ class GraphCalculatorApplicationFrame(wx.Frame):
         self.Bind(wx.EVT_TOOL, self.intersectionTool, self._toolbarIntersectionButton)
         self.Bind(wx.EVT_MENU, self.intersectionTool, self._menuIntersectionButton)
         self.Bind(wx.EVT_MENU, self.sumFunctionsTool, self._menuAddFuncButton)
+        self.Bind(wx.EVT_MENU, self.pointOfTool, self._pointOfFuncButton)
 
         self.Bind(EVT_PROP_PAN_REM_CALL, self._removePropertyObject)
 
@@ -264,6 +267,11 @@ class GraphCalculatorApplicationFrame(wx.Frame):
             wx.ID_ANY,
             "Function sum",
             "add 2 functions together"
+        )
+        self._pointOfFuncButton = toolMenu.Append(
+            wx.ID_ANY,
+            "Point of Function",
+            "Checks if any point is part of a function"
         )
 
         miscMenu = wx.Menu()
@@ -498,12 +506,12 @@ class GraphCalculatorApplicationFrame(wx.Frame):
                       wx.OK | wx.ICON_INFORMATION)
 
     def _onRightDownGraph(self, evt: wx.MouseEvent=None):  # todo: doesnt work yet correctly
-        self.graphPanel.PopupMenu(ContextMenuGraph(self), evt.GetPosition())
+        self.graphPanel.PopupMenu(ContextMenuGraph(self, evt.GetPosition(), self.graphPanel, self.graphCalcObjInterface), evt.GetPosition())
         evt.Skip()
 
     def _onFrameClose(self, evt: wx.CloseEvent = None):
         if False:
-            # if evt.CanVeto():
+            # if evt.CanVeto(): #todo: implement saving
             if wx.MessageBox("The latest changes have not been saved yet, do you want to save before closing ?",
                              "Please confirm", wx.ICON_QUESTION | wx.YES_NO) == wx.YES:
                 pass
@@ -512,9 +520,16 @@ class GraphCalculatorApplicationFrame(wx.Frame):
 
 #todo: out-source
 class ContextMenuGraph(wx.Menu):
-    def __init__(self, parent):
+    def __init__(self, parent, position, graphPlane, graphObjInterface: PropertyObj2DInterface):
         super().__init__()
         self._parent = parent
+        self._pos = position #todo: can this be done more elegantly?
+        self._plane = graphPlane
+        self._interface = graphObjInterface
+
+        pointmi = wx.MenuItem(self, wx.ID_ANY, 'Create Point')
+        self.Append(pointmi)
+        self.Bind(wx.EVT_MENU, self._onCreatePoint, pointmi)
 
         mmi = wx.MenuItem(self, wx.ID_ANY, 'Minimize')
         self.Append(mmi)
@@ -530,6 +545,15 @@ class ContextMenuGraph(wx.Menu):
     def _onClose(self, evt=None):
         self._parent._onFrameClose()
         # self._parent.Close()
+
+    def _onCreatePoint(self, evt=None):
+        pos = self._plane.absPosToLogical(*self._pos)
+        self._interface.addExprObj(
+            Point2DExpr,
+            str(pos), #todo: better way of creating new points?
+            str(pos)
+        )
+
 
 if __name__ == "__main__":
     app = wx.App(False)

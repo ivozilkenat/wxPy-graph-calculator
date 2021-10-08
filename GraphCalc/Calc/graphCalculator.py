@@ -74,6 +74,7 @@ class ValueExpr(ExprObj):
         return False
 
 
+#todo: dont allow x as parameter
 class Point2DExpr(ExprObj):
     def __init__(self, name: str, definition, original):
         super().__init__(name, definition, original)

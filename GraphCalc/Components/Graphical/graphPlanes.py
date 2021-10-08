@@ -306,6 +306,9 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
     def absPosToOrigin(self, x, y):
         return self.absXToPlane(x), self.absYToPlane(y)
 
+    def absPosToLogical(self, x, y):
+        return self.pxPointToLogical(*self.absPosToOrigin(x, y))
+
     def absXToPlane(self, x):
         return x - self.correctX(0)
 

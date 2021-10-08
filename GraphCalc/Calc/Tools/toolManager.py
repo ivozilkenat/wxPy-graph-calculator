@@ -1,6 +1,6 @@
 from GraphCalc.Application.outputPrompt import IOutputExtension
 
-from GraphCalc.Calc.Tools.Collection import intersection, operation
+from GraphCalc.Calc.Tools.Collection import intersection, operation, point
 from GraphCalc.Calc.Tools.graphSelector import PropertySelector
 from GraphCalc.Calc.Tools.graphTools import GraphTool
 
@@ -8,7 +8,8 @@ from GraphCalc.Calc.Tools.graphTools import GraphTool
 class ToolManager(IOutputExtension):
     _tools = {
         intersection.IntersectionTool,
-        operation.AddTool
+        operation.AddTool,
+        point.PointOfTool
     }
 
     #todo: add missing getter and setter
