@@ -36,7 +36,7 @@ class IntersectionTool(GraphPropertyTool, SelectionInterface, IOutputExtension):
 
         equal = simplify(dExpr) == 0
         if equal:
-            self.sendlTry("infinte solutions (functions are equal)")
+            self.sendlTry("infinite solutions (functions are equal)")
         else:
             # calc intersections
             try:

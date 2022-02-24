@@ -433,6 +433,11 @@ class ColorProperty(PropertyCtrl):
     def __getValueOverride(self):
         return self._control.GetColour()[:3]
 
+    def _setValueCtrl(self, colorTuple):
+        self._setValue(colorTuple)
+        if bool(self._control) is True:
+            self._control.SetColour(self.getValue())
+
     def updateValue(self):
         self.setValidValue(self._control.GetValue())
 
@@ -496,7 +501,7 @@ class PropCategoryDataClass:
 
 class PropertyObjCategory(Enum):
     FUNCTION = PropCategoryDataClass(vc.PROPERTY_CAT_FUNC)
-    VARIABLE = PropCategoryDataClass("Variablen")
+    VARIABLE = PropCategoryDataClass("Variablen") #Todo: outsource value constants
     POINT = PropCategoryDataClass("Punkte")
     VECTOR = PropCategoryDataClass("Vektoren")
     SHAPE = PropCategoryDataClass(vc.PROPERTY_CAT_SHAPE)
@@ -687,15 +692,26 @@ class GraphicalPanelObject(ManagerPropertyObject, ABC):
         self.addProperty(
             ToggleProperty(vc.PROPERTY_SELECTABLE, True, updateFunctions=self.refreshBasePlane))  # standard property
         self.addProperty(IntProperty(vc.PROPERTY_DRAW_WIDTH, 3, updateFunctions=self.refreshBasePlane))
+
+        # self.addProperty(
+        #     ListProperty(
+        #         vc.PROPERTY_COLOR,
+        #         (255, 0, 0),  # <- everything will be colored red if not specified
+        #         fixedFieldAmount=3,
+        #         validityFunction=lambda x: 0 <= x <= 255,  # function will be applied onto every single value
+        #         updateFunctions=self.refreshBasePlane
+        #     )
+        # )  # standard property
+
+        # todo: color doesnt update
         self.addProperty(
-            ListProperty(
+            ColorProperty(
                 vc.PROPERTY_COLOR,
-                (255, 0, 0),  # <- everything will be colored red if not specified
-                fixedFieldAmount=3,
-                validityFunction=lambda x: 0 <= x <= 255,  # function will be applied onto every single value
+                (255, 0, 0),
                 updateFunctions=self.refreshBasePlane
             )
-        )  # standard property
+        )
+
         # todo -custom control for color / custom property class
         #     -->add new color property, this is only a placeholder until then
 

@@ -34,6 +34,6 @@ class AddTool(GraphPropertyTool, SelectionInterface, IOutputExtension):
         f1Expr, f2Expr = f1._getFuncExpr(), f2._getFuncExpr()
         self._graphObjInterface.addExprObj(
             Function2DExpr,
-            f"{f1.getProperty('function_definition').getValue().name()}+{f2.getProperty('function_definition').getValue().name()}",
+            f"({f1.getProperty('function_definition').getValue().name()}+{f2.getProperty('function_definition').getValue().name()})",
             f"{f1Expr + f2Expr}"
         )

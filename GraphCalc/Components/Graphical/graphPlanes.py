@@ -203,9 +203,7 @@ class Dynamic2DGraphicalPlane(GraphicalPanel):
         self.centerPxPoint(*self.logicalPointToPx(x, y))
 
     def centerPxPoint(self, x, y):
-        vx, vy = self.correctPosition(x, y)
-        cx, cy = vx - 1 / 2 * self.w, vy - 1 / 2 * self.h
-        self.originUpdate = cx, cy
+        self.origin = x, y
 
     def xInLogicalDB(self, x):
         lower, upper = self.getLogicalDB()
@@ -477,8 +475,9 @@ class PlaneColorHandler:
         del self._colorIds[graphObject]
 
     # Method to create color-format-based id's
-    # todo: Wenn Zeit vorhanden, neue Implementierung über dirkete arithmetische Operation (Logik bereits vorhanden)
+    # todo: Wenn Zeit vorhanden, neue Implementierung über diskrete arithmetische Operation (Logik bereits vorhanden)
     #       (-> Ähnlichkeit zur Umwandlungen vom römischen Zahlenformat)
+    # todo: test color id system for values greater than 256, since logic doesn't make sense
     def createColorId(self):
         cId = list(self.NONE_ID)
         seed = self._idCounter

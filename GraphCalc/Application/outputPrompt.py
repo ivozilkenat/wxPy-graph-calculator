@@ -3,7 +3,7 @@ import wx
 from MyWx.wx import *
 from abc import abstractmethod
 
-
+# Provides basic methods that must be defined. Otherwise panel doesnt suite needs and becomes invalid
 class IValidTextPanel:
     def __init__(self, output=None):
         self._output = output

@@ -67,7 +67,7 @@ class PropertyObj2DInterface:
 
         # todo: leave this? => use a sequence
         if isinstance(newObj, GraphicalPanelObject):
-            newObj.getProperty("color")._setValue(randomRGBTriple())
+            newObj.getProperty("color")._setValueCtrl(randomRGBTriple())
 
         if self._updateFunction is not None:
             self._updateFunction()

@@ -62,17 +62,18 @@ from MyWx.Collection.templates import ThreePanelWorkspace
 # test tools, etc.
 # unify names
 # structure more strictly into front- and backend
-# add arbitrary graphical object during runtime in application (e.g. cartesian coordinate system)
-# start work on property controlers
-# delete graph objects when they are right clicked (context menu)
+# start work on property controllers
 # use prompt for tool input (e.g. limited integrals)
 # right click to remove
 # variable cannot be value at function
 # linearFirstValue -> linearLastValue
 #todo:
+# -delete doesnt call reset of baseplane
 # -when dupe, object is getting deleted unintended,
 # -add help text, for help menubar button
 # -random color of points is incorrectly displayed
+# -bug when using "goto"
+# -function like func(x)+func2(x) not working
 #==================================================
 
 # outsource this
