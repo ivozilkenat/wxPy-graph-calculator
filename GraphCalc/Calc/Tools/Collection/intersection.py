@@ -6,6 +6,7 @@ from GraphCalc.Calc.Tools.graphTools import GraphPropertyTool
 
 from GraphCalc.Application.outputPrompt import IOutputExtension
 
+import numpy as np
 from sympy import *
 
 # extra tool or parameter for creating point at intersection pos
@@ -40,17 +41,28 @@ class IntersectionTool(GraphPropertyTool, SelectionInterface, IOutputExtension):
         else:
             # calc intersections
             try:
-                intersections = solve(dExpr, quick=True, simplify=True, rational=False)
+                intersections = solve(dExpr, Symbol("x"), quick=True, simplify=True, rational=False)
             except:
                 self.sendlTry("Intersections cannot be calculated")
                 return
+
+            #todo: cannot deal with
+
+            for i in intersections:
+                print(type(i))
+
+            intersectionsNoEval = [i for i in intersections if not i.is_complex]
             if onlyReal:
                 intersections = [i for i in intersections if i.is_real]
+
             f1Func, f2Func = f1.getFuncAsCallable(), f2.getFuncAsCallable()
-            if len(intersections) > 0:
+            if len(intersections) + len(intersectionsNoEval) > 0:
                 self.sendlTry("L = {")
-                for i, intersection in enumerate(intersections):
+                for i, intersection in enumerate(np.array(intersections).astype(np.float), 1):
                     self.sendlTry(f"x{i} = {intersection} | y{i} = {f1Func(intersection)}")
+                for i, intersection in enumerate(intersectionsNoEval, len(intersections) + 1):
+                    self.sendlTry(f"x{i} = {intersection} | y{i} = {intersection}")
                 self.sendlTry("}")
+
             else:
                 self.sendlTry("L = {}")

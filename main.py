@@ -1,7 +1,6 @@
 import os, sys
 
 import wx
-
 from MyWx.wx import *
 
 from GraphCalc.Components.Graphical.Objects.graphUtilities import CartesianAxies
@@ -11,7 +10,6 @@ from GraphCalc.Components.Graphical.graphPlanes import EVT_OBJ_BELOW
 from GraphCalc.Components.Property.property import PropertyObjCategory
 from GraphCalc.Components.Property.PropertyManager.propertyManager import EVT_ACT_PROP_SET
 from GraphCalc.Components.Property.PropertyManager.propertyOverview import EVT_PROP_PAN_REM_CALL
-
 
 from GraphCalc.Calc.graphObjInterface import PropertyAddPanel
 from GraphCalc.Calc.graphCalculator import GraphCalculator2D

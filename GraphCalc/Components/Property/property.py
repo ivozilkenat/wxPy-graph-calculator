@@ -202,6 +202,7 @@ class FloatProperty(PropertyCtrl):
         # todo: Bug - ctrl not displayed after the program has been started; size of control slightly incorrect
         self._control = wx.SpinCtrlDouble(parent=parent, min=0, max=999999999, initial=self.getValue(), inc=self._inc)
         self._control.Bind(wx.EVT_SPINCTRLDOUBLE, self.update)
+        print(self._control)
         return self._control
 
     def updateValue(self):
