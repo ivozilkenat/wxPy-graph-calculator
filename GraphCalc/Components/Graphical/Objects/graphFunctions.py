@@ -182,7 +182,7 @@ class GraphFunction2D(GraphicalPanelObject, IExprProperty):  # MathFunction):
 
     def _calcIntersections(self):
         try:
-            return solve(self._getFuncExpr(), quick=True, simplify=True, rational=False)
+            return solve(self._getFuncExpr(), Symbol("x"), quick=True, simplify=True, rational=False)
         except NotImplementedError:
             return "Not solvable"
 
